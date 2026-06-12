@@ -1,0 +1,54 @@
+# Godot 4+ specific
+.godot/
+
+# Imported assets
+.import/
+
+# Exported builds
+/export/
+build/
+dist/
+
+# Mono / C#
+.mono/
+data_*/
+export_presets.cfg.tmp
+
+# Visual Studio
+.vs/
+*.csproj
+*.sln
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+
+# JetBrains Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Linux
+*~
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Crash reports
+crashlog.txt
+
+# Backup files
+*.bak
