@@ -6,10 +6,20 @@ extends CharacterBody2D
 @onready var health: HealthComponent = $HealthComponent
 @onready var hurtbox: HurtboxComponent = $HurtboxComponent
 @onready var hitbox: HitboxComponent = $HitboxComponent
+@onready var state_machine: StateMachine = $StateMachine
 
 func _ready():
 	_initialize_components()
 	_connect_signals()
+	_setup_state_machine()
+
+func _setup_state_machine():
+	for state in state_machine.get_children():
+		if state is State:
+			state.actor = self
+
+func _physics_process(delta: float) -> void:
+	state_machine.physics_update(delta)
 
 func _initialize_components():
 	health.initialize(data.max_health)
