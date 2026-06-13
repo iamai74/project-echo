@@ -17,12 +17,7 @@ func receive_hit(attack: AttackData):
 
 	hit_received.emit(attack)
 
-	health_component.take_damage(
-		attack.damage
-	)
+	health_component.take_damage(attack.damage)
 
 	if attack.knockback_force > 0:
-		knockback_requested.emit(
-			attack.direction *
-			attack.knockback_force
-		)
+		knockback_requested.emit(attack.direction * attack.knockback_force)
