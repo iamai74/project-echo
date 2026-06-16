@@ -1,7 +1,7 @@
 class_name ActorData
 extends Resource
 
-@export var max_health: int
-@export var move_speed: float
-@export var acceleration: float
-@export var jump_force: float
+@export var max_health: int = 5
+@export var move_speed: float = 220.0
+@export var jump_velocity: float = -420.0
+@export var gravity: float = 1200.0

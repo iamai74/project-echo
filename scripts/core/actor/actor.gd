@@ -2,7 +2,6 @@ class_name Actor
 extends CharacterBody2D
 
 @export var data: ActorData
-@export var gravity: float = 1200.0
 
 @onready var health: HealthComponent = $HealthComponent
 @onready var hurtbox: HurtboxComponent = $HurtboxComponent
@@ -50,6 +49,9 @@ func die():
 func move(direction: float):
 	velocity.x = (direction *data.move_speed)
 
+func jump() -> void:
+	velocity.y = data.jump_velocity
+
 func _apply_gravity(delta: float) -> void:
 	if not is_on_floor():
-		velocity.y += gravity * delta
+		velocity.y += data.gravity * delta
