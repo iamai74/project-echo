@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://dq8a47dbvows6"]
+
+[ext_resource type="PackedScene" uid="uid://cwjq0xilttmd4" path="res://scenes/actors/actor.tscn" id="1_wmv1v"]
+[ext_resource type="Texture2D" uid="uid://dystxy3rukecy" path="res://assets/sprites/acrots/player/player_1.png" id="2_l17oj"]
+[ext_resource type="Script" uid="uid://dpe6ywrqwstan" path="res://scripts/core/components/health_component.gd" id="3_oj104"]
+[ext_resource type="Script" uid="uid://du4s86onrwg6v" path="res://scripts/core/components/hurtbox_component.gd" id="4_qdyt2"]
+[ext_resource type="Script" uid="uid://plqh1bnw5qfs" path="res://scripts/core/components/hitbox_component.gd" id="5_g2g7f"]
+[ext_resource type="Script" uid="uid://da4emyt1fxpgk" path="res://scripts/state_machine/state_machine.gd" id="6_fp13k"]
+[ext_resource type="Script" uid="uid://0hsjf0dmpcip" path="res://scripts/core/components/input_component.gd" id="7_g2g7f"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_l17oj"]
+radius = 16.0
+height = 98.0
+
+[node name="Node2D" unique_id=1314009042 instance=ExtResource("1_wmv1v")]
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="0" unique_id=1236898284]
+texture = ExtResource("2_l17oj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="1" unique_id=1441450820]
+shape = SubResource("CapsuleShape2D_l17oj")
+
+[node name="HealthComponent" type="Node" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="2" unique_id=1083357753]
+script = ExtResource("3_oj104")
+metadata/_custom_type_script = "uid://dpe6ywrqwstan"
+
+[node name="HurtboxComponent" type="Area2D" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="3" unique_id=889645156 node_paths=PackedStringArray("health_component")]
+script = ExtResource("4_qdyt2")
+health_component = NodePath("../HealthComponent")
+metadata/_custom_type_script = "uid://du4s86onrwg6v"
+
+[node name="HitboxComponent" type="Area2D" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="4" unique_id=1424276706]
+script = ExtResource("5_g2g7f")
+metadata/_custom_type_script = "uid://plqh1bnw5qfs"
+
+[node name="StateMachine" type="Node" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="5" unique_id=658240242]
+script = ExtResource("6_fp13k")
+metadata/_custom_type_script = "uid://da4emyt1fxpgk"
+
+[node name="InputComponent" type="Node" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="6" unique_id=2010401451]
+script = ExtResource("7_g2g7f")
+metadata/_custom_type_script = "uid://0hsjf0dmpcip"
