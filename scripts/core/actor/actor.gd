@@ -2,6 +2,7 @@ class_name Actor
 extends CharacterBody2D
 
 @export var data: ActorData
+@export var gravity: float = 1200.0
 
 @onready var health: HealthComponent = $HealthComponent
 @onready var hurtbox: HurtboxComponent = $HurtboxComponent
@@ -19,7 +20,11 @@ func _setup_state_machine():
 			state.actor = self
 
 func _physics_process(delta: float) -> void:
+	_apply_gravity(delta)
+
 	state_machine.physics_update(delta)
+
+	move_and_slide()
 
 func _initialize_components():
 	health.initialize(data.max_health)
@@ -44,3 +49,7 @@ func die():
 
 func move(direction: float):
 	velocity.x = (direction *data.move_speed)
+
+func _apply_gravity(delta: float) -> void:
+	if not is_on_floor():
+		velocity.y += gravity * delta
