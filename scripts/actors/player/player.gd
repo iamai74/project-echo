@@ -5,6 +5,7 @@ extends Actor
 @export var debug_name: String = "Player"
 
 func _ready() -> void:
+	super()
 	_setup_components()
 	_setup_state_machine()
 	
