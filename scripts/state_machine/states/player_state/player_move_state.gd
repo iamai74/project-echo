@@ -8,5 +8,8 @@ func physics_update_state(_delta: float) -> void:
 		change_state("Fall")
 		return
 
-	if abs(input_component.get_command().move_direction) <= 0.01:
+	var direction := input_component.get_command().move_direction
+	player.move(direction)
+
+	if abs(direction) <= 0.01:
 		change_state("Idle")

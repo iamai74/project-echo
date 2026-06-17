@@ -14,9 +14,9 @@ func setup() -> void:
 	player = actor as Player
 
 	input_component = player.input_component
-	health_component = player.health_component
-	hitbox_component = player.hitbox_component
-	hurtbox_component = player.hurtbox_component
+	health_component = player.health
+	hitbox_component = player.hitbox
+	hurtbox_component = player.hurtbox
 
 
 func command() -> InputCommand:
@@ -52,7 +52,7 @@ func is_falling() -> bool:
 
 
 func is_dead() -> bool:
-	return health_component.is_dead()
+	return not health_component.is_alive()
 	
 func physics_update(delta: float) -> void:
 
@@ -65,7 +65,7 @@ func physics_update_state(_delta: float) -> void:
 	
 func _handle_global_transitions() -> void:
 
-	if player.is_dead():
+	if is_dead():
 		change_state("Dead")
 		return
 

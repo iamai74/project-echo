@@ -9,10 +9,18 @@
 [ext_resource type="Script" uid="uid://plqh1bnw5qfs" path="res://scripts/core/components/hitbox_component.gd" id="5_g2g7f"]
 [ext_resource type="Script" uid="uid://da4emyt1fxpgk" path="res://scripts/state_machine/state_machine.gd" id="6_fp13k"]
 [ext_resource type="Script" uid="uid://0hsjf0dmpcip" path="res://scripts/core/components/input_component.gd" id="7_g2g7f"]
+[ext_resource type="Script" uid="uid://cs45stfj1cr87" path="res://scripts/state_machine/states/player_state/player_idle_state.gd" id="8_idle"]
+[ext_resource type="Script" uid="uid://cbhobpsocecx4" path="res://scripts/state_machine/states/player_state/player_move_state.gd" id="9_move"]
+[ext_resource type="Script" uid="uid://kanva2edh8qy" path="res://scripts/state_machine/states/player_state/player_fall_state.gd" id="10_fall"]
+[ext_resource type="Script" uid="uid://cy5l82wokq04i" path="res://scripts/state_machine/states/player_state/player_jump_state.gd" id="11_jump"]
+[ext_resource type="Script" uid="uid://bopo6s28jttp3" path="res://scripts/state_machine/states/player_state/player_attack_state.gd" id="12_attack"]
+[ext_resource type="Script" uid="uid://36g7x2nu0cen" path="res://scripts/state_machine/states/player_state/player_dead_state.gd" id="13_dead"]
+[ext_resource type="Script" uid="uid://cjvdm32hi23gj" path="res://scripts/state_machine/states/player_state/player_hurt_state.gd" id="14_hurt"]
+[ext_resource type="Script" uid="uid://bd4ydaxlvrgud" path="res://scripts/state_machine/states/player_state/player_jump_attack_state.gd" id="15_jumpattack"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_l17oj"]
 radius = 16.0
-height = 98.0
+height = 95.0
 
 [node name="Node2D" unique_id=1314009042 instance=ExtResource("1_wmv1v")]
 
@@ -43,6 +51,30 @@ metadata/_custom_type_script = "uid://plqh1bnw5qfs"
 [node name="StateMachine" type="Node" parent="CharacterBody2D" index="5" unique_id=658240242]
 script = ExtResource("6_fp13k")
 metadata/_custom_type_script = "uid://da4emyt1fxpgk"
+
+[node name="Idle" type="Node" parent="CharacterBody2D/StateMachine" index="0" unique_id=609778553]
+script = ExtResource("8_idle")
+
+[node name="Move" type="Node" parent="CharacterBody2D/StateMachine" index="1" unique_id=2051851874]
+script = ExtResource("9_move")
+
+[node name="Fall" type="Node" parent="CharacterBody2D/StateMachine" index="2" unique_id=1849488781]
+script = ExtResource("10_fall")
+
+[node name="Jump" type="Node" parent="CharacterBody2D/StateMachine" index="3" unique_id=1425855728]
+script = ExtResource("11_jump")
+
+[node name="Attack" type="Node" parent="CharacterBody2D/StateMachine" index="4" unique_id=448700282]
+script = ExtResource("12_attack")
+
+[node name="Dead" type="Node" parent="CharacterBody2D/StateMachine" index="5" unique_id=590120645]
+script = ExtResource("13_dead")
+
+[node name="Hurt" type="Node" parent="CharacterBody2D/StateMachine" index="6" unique_id=1918084766]
+script = ExtResource("14_hurt")
+
+[node name="JumpAttack" type="Node" parent="CharacterBody2D/StateMachine" index="7" unique_id=1564166855]
+script = ExtResource("15_jumpattack")
 
 [node name="InputComponent" type="Node" parent="CharacterBody2D" index="6" unique_id=2010401451]
 script = ExtResource("7_g2g7f")
