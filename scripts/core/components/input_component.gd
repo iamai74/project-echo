@@ -50,9 +50,7 @@ func _apply_deadzone(value: float) -> float:
 	var abs_value := absf(value)
 	if abs_value < stick_deadzone:
 		return 0.0
-
-	var sign := signf(value)
-	return sign * ((abs_value - stick_deadzone) / (1.0 - stick_deadzone))
+	return sign(value) * ((abs_value - stick_deadzone) / (1.0 - stick_deadzone))
 
 
 func _tick_buffers(delta: float) -> void:

@@ -7,7 +7,9 @@ extends CharacterBody2D
 @onready var hurtbox: HurtboxComponent = $HurtboxComponent
 @onready var hitbox: HitboxComponent = $HitboxComponent
 @onready var state_machine: StateMachine = $StateMachine
+@onready var sprite: Sprite2D = get_node_or_null("Sprite2D")
 
+var facing_direction: int = 1
 var coyote_timer: float = 0.0
 var jump_count: int = 0
 
@@ -29,6 +31,7 @@ func _physics_process(delta: float) -> void:
 	state_machine.physics_update(delta)
 
 	move_and_slide()
+	_update_facing_direction()
 
 func _initialize_components():
 	health.initialize(data.max_health)
@@ -64,7 +67,12 @@ func _update_coyote_timer(delta: float) -> void:
 	else:
 		coyote_timer = maxf(coyote_timer - delta, 0.0)
 
-
 func _apply_gravity(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y += data.gravity * delta
+
+func _update_facing_direction() -> void:
+	if velocity.x != 0:
+		facing_direction = sign(velocity.x)
+		if sprite:
+			sprite.flip_h = (facing_direction == -1)
