@@ -69,6 +69,10 @@ func _handle_global_transitions() -> void:
 		change_state("Dead")
 		return
 
+	var current_state_name = player.state_machine.current_state.name
+	if current_state_name == "Attack" or current_state_name == "Hurt":
+		return
+
 	var cmd := input_component.get_command()
 
 	if cmd.consume_jump() and player.jump_count > 0:
