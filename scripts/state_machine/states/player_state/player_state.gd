@@ -71,7 +71,8 @@ func _handle_global_transitions() -> void:
 
 	var cmd := input_component.get_command()
 
-	if cmd.consume_jump():
+	if cmd.consume_jump() and player.jump_count > 0:
+		player.jump_count -= 1
 		change_state("Jump")
 		return
 

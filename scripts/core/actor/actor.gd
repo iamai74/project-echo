@@ -8,6 +8,10 @@ extends CharacterBody2D
 @onready var hitbox: HitboxComponent = $HitboxComponent
 @onready var state_machine: StateMachine = $StateMachine
 
+var coyote_timer: float = 0.0
+var jump_count: int = 0
+
+
 func _ready():
 	_initialize_components()
 	_connect_signals()
@@ -19,6 +23,7 @@ func _setup_state_machine():
 			state.actor = self
 
 func _physics_process(delta: float) -> void:
+	_update_coyote_timer(delta)
 	_apply_gravity(delta)
 
 	state_machine.physics_update(delta)
@@ -51,6 +56,14 @@ func move(direction: float):
 
 func jump() -> void:
 	velocity.y = data.jump_velocity
+
+func _update_coyote_timer(delta: float) -> void:
+	if is_on_floor():
+		coyote_timer = data.coyote_time
+		jump_count = data.max_jumps
+	else:
+		coyote_timer = maxf(coyote_timer - delta, 0.0)
+
 
 func _apply_gravity(delta: float) -> void:
 	if not is_on_floor():
