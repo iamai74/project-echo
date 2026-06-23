@@ -3,9 +3,13 @@ extends PlayerState
 
 
 func enter() -> void:
-	player.start_attack()
-
-
+	player.lock_input()
+	hitbox_component.activate()
+	
+func exit() -> void:
+	hitbox_component.deactivate()
+	player.unlock_input()
+	
 func physics_update(_delta: float) -> void:
 
 	if not player.is_attack_finished():

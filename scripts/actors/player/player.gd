@@ -28,3 +28,9 @@ func get_input() -> InputComponent:
 
 func is_player() -> bool:
 	return true
+
+func lock_input() -> void:
+	input_component.set_input_enabled(false)
+
+func unlock_input() -> void:
+	input_component.set_input_enabled(true)

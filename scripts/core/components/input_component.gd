@@ -57,3 +57,9 @@ func _tick_buffers(delta: float) -> void:
 	for property in BUFFER_PROPERTIES:
 		var value: float = command.get(property)
 		command.set(property, maxf(value - delta, 0.0))
+		
+func set_input_enabled(enbled: bool) -> void:
+	if enbled:
+		process_mode = Node.PROCESS_MODE_INHERIT
+	else:
+		process_mode = Node.PROCESS_MODE_DISABLED
