@@ -35,18 +35,16 @@ func _physics_process(delta: float) -> void:
 
 func _initialize_components():
 	health.initialize(data.max_health)
-	hurtbox.health_component = health
 
 func _connect_signals():
 	health.died.connect(_on_died)
 	hurtbox.hit_received.connect(_on_hit_received)
-	hurtbox.knockback_requested.connect(_on_knockback_requested)
 	
 func _on_hit_received(attack: AttackData):
+	health.take_damage(attack.damage)
 	print(name, " received ", attack.damage, " damage")
-	
-func _on_knockback_requested(force: Vector2):
-	velocity += force
+	if attack.knockback_force > 0:
+		velocity += attack.direction * attack.knockback_force
 
 func _on_died():
 	die()
