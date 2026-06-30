@@ -56,7 +56,11 @@ func is_dead() -> bool:
 	
 func physics_update(delta: float) -> void:
 
+	var previous_state := state_machine.current_state
 	_handle_global_transitions()
+
+	if state_machine.current_state != previous_state:
+		return
 
 	physics_update_state(delta)
 	

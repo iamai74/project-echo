@@ -9,21 +9,34 @@ signal hit_target(target)
 var active := false
 var hit_targets := {}
 
+
+func _ready():
+	area_entered.connect(_on_area_entered)
+
+
 func activate():
 	active = true
 	monitoring = true
 	hit_targets.clear()
-	
+	for area in get_overlapping_areas():
+		_try_hit(area)
+
 func deactivate():
 	active = false
 	monitoring = false
 
 func _on_area_entered(area: Area2D):
+	_try_hit(area)
+
+func _try_hit(area: Area2D) -> void:
 
 	if not active:
 		return
 
 	if not area is HurtboxComponent:
+		return
+
+	if area.get_parent() == get_parent():
 		return
 
 	if hit_targets.has(area):
