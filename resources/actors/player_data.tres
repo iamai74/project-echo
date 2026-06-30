@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_mroww")
+max_health = 10
 jump_velocity = -400.0
 metadata/_custom_type_script = "uid://cqg2cqlhvv4td"

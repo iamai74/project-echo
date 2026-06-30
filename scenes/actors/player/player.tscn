@@ -22,6 +22,14 @@
 radius = 16.0
 height = 95.0
 
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_yab6n"]
+radius = 16.0
+height = 94.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_5mkge"]
+radius = 30.0
+height = 100.0
+
 [node name="Node2D" unique_id=1314009042 instance=ExtResource("1_wmv1v")]
 
 [node name="CharacterBody2D" parent="." index="0" unique_id=635324780]
@@ -43,9 +51,15 @@ metadata/_custom_type_script = "uid://dpe6ywrqwstan"
 script = ExtResource("4_qdyt2")
 metadata/_custom_type_script = "uid://du4s86onrwg6v"
 
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/HurtboxComponent" index="0" unique_id=671275976]
+shape = SubResource("CapsuleShape2D_yab6n")
+
 [node name="HitboxComponent" type="Area2D" parent="CharacterBody2D" index="4" unique_id=1424276706]
 script = ExtResource("5_g2g7f")
 metadata/_custom_type_script = "uid://plqh1bnw5qfs"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/HitboxComponent" index="0" unique_id=436602588]
+shape = SubResource("CapsuleShape2D_5mkge")
 
 [node name="StateMachine" type="Node" parent="CharacterBody2D" index="5" unique_id=658240242]
 script = ExtResource("6_fp13k")

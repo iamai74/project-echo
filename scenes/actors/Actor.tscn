@@ -1,8 +1,10 @@
 [gd_scene format=3 uid="uid://cwjq0xilttmd4"]
 
 [ext_resource type="Script" uid="uid://brdg8ur0nopxe" path="res://scripts/core/actor/actor.gd" id="1_vpdwn"]
+[ext_resource type="Resource" uid="uid://ddp7wsvewpldd" path="res://resources/actors/actor_data.tres" id="2_k3bm4"]
 
 [node name="Node2D" type="Node2D" unique_id=1314009042]
 
 [node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=635324780]
 script = ExtResource("1_vpdwn")
+data = ExtResource("2_k3bm4")
