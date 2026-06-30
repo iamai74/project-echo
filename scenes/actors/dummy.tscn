@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://c0ukpjjim8vil"]
+
+[ext_resource type="PackedScene" uid="uid://cwjq0xilttmd4" path="res://scenes/actors/actor.tscn" id="1_h8oti"]
+[ext_resource type="Texture2D" uid="uid://cidglj0w0vo2o" path="res://assets/sprites/acrots/test_dummy.png" id="2_8enio"]
+[ext_resource type="Script" uid="uid://dpe6ywrqwstan" path="res://scripts/core/components/health_component.gd" id="3_wkxlr"]
+[ext_resource type="Script" uid="uid://du4s86onrwg6v" path="res://scripts/core/components/hurtbox_component.gd" id="4_woq06"]
+[ext_resource type="Script" uid="uid://da4emyt1fxpgk" path="res://scripts/state_machine/state_machine.gd" id="5_wkxlr"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_unx04"]
+radius = 24.0
+height = 92.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_wkxlr"]
+radius = 26.0
+height = 96.0
+
+[node name="Node2D" unique_id=1314009042 instance=ExtResource("1_h8oti")]
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="0" unique_id=1663040079]
+texture = ExtResource("2_8enio")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="1" unique_id=2090370841]
+shape = SubResource("CapsuleShape2D_unx04")
+
+[node name="HealthComponent" type="Node" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="2" unique_id=1190539147]
+script = ExtResource("3_wkxlr")
+metadata/_custom_type_script = "uid://dpe6ywrqwstan"
+
+[node name="HurtboxComponent" type="Area2D" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="3" unique_id=1698941831]
+script = ExtResource("4_woq06")
+metadata/_custom_type_script = "uid://du4s86onrwg6v"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/HurtboxComponent" index="0" unique_id=1035761704]
+shape = SubResource("CapsuleShape2D_wkxlr")
+
+[node name="StateMachine" type="Node" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="4" unique_id=171640901]
+script = ExtResource("5_wkxlr")
+metadata/_custom_type_script = "uid://da4emyt1fxpgk"
