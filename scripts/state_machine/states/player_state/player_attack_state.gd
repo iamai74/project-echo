@@ -1,32 +1,25 @@
 class_name PlayerAttackState
 extends PlayerState
 
-const ATTACK_DURATION := 0.3
-
-var _attack_timer := 0.0
-
 
 func enter() -> void:
-	_attack_timer = ATTACK_DURATION
 	player.lock_input()
-	print("Attack state enter")
-	hitbox_component.activate()
-	
-func exit() -> void:
-	hitbox_component.deactivate()
-	player.unlock_input()
-	print("Attack state ended")
-	
-func physics_update(delta: float) -> void:
-	_attack_timer -= delta
-	if _attack_timer > 0.0:
-		return
+	player.attack(AttackType.Type.LIGHT)
 
+
+func exit() -> void:
+	player.unlock_input()
+
+
+func on_attack_finished(attack: AttackDefinition) -> void:
+	var next_state := "Idle"
+	if not is_grounded():
+		next_state = "Fall"
+	elif has_movement_input():
+		next_state = "Move"
 	if not is_grounded():
 		change_state("Fall")
-		return
-
-	if has_movement_input():
+	elif has_movement_input():
 		change_state("Move")
 	else:
 		change_state("Idle")

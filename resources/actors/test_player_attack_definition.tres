@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="AttackDefinition" format=3 uid="uid://dl6loi4npp7bc"]
+
+[ext_resource type="Script" uid="uid://sihngm58leek" path="res://scripts/core/actor/attack_definition.gd" id="1_t2cy4"]
+
+[resource]
+script = ExtResource("1_t2cy4")
+damage = 5
+metadata/_custom_type_script = "uid://sihngm58leek"

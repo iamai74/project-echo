@@ -21,3 +21,6 @@ func handle_input(_event: InputEvent) -> void:
 	
 func change_state(state_name: StringName) -> void:
 	state_machine.change_state(state_name)
+
+func on_attack_finished(attack: AttackDefinition) -> void:
+	pass

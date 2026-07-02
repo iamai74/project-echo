@@ -17,6 +17,8 @@
 [ext_resource type="Script" uid="uid://36g7x2nu0cen" path="res://scripts/state_machine/states/player_state/player_dead_state.gd" id="13_dead"]
 [ext_resource type="Script" uid="uid://cjvdm32hi23gj" path="res://scripts/state_machine/states/player_state/player_hurt_state.gd" id="14_hurt"]
 [ext_resource type="Script" uid="uid://bd4ydaxlvrgud" path="res://scripts/state_machine/states/player_state/player_jump_attack_state.gd" id="15_jumpattack"]
+[ext_resource type="Script" uid="uid://dfwax5a84deud" path="res://scripts/core/components/weapon_component.gd" id="18_5mkge"]
+[ext_resource type="Resource" uid="uid://bcy53mrjuyo5f" path="res://resources/actors/test_player_weapon_data.tres" id="18_q2guw"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_l17oj"]
 radius = 16.0
@@ -33,6 +35,7 @@ height = 100.0
 [node name="Node2D" unique_id=1314009042 instance=ExtResource("1_wmv1v")]
 
 [node name="CharacterBody2D" parent="." index="0" unique_id=635324780]
+collision_layer = 2
 script = ExtResource("2_5bhx7")
 debug_name = "Player"
 data = ExtResource("3_i174x")
@@ -54,14 +57,7 @@ metadata/_custom_type_script = "uid://du4s86onrwg6v"
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/HurtboxComponent" index="0" unique_id=671275976]
 shape = SubResource("CapsuleShape2D_yab6n")
 
-[node name="HitboxComponent" type="Area2D" parent="CharacterBody2D" index="4" unique_id=1424276706]
-script = ExtResource("5_g2g7f")
-metadata/_custom_type_script = "uid://plqh1bnw5qfs"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/HitboxComponent" index="0" unique_id=436602588]
-shape = SubResource("CapsuleShape2D_5mkge")
-
-[node name="StateMachine" type="Node" parent="CharacterBody2D" index="5" unique_id=658240242]
+[node name="StateMachine" type="Node" parent="CharacterBody2D" index="4" unique_id=658240242]
 script = ExtResource("6_fp13k")
 metadata/_custom_type_script = "uid://da4emyt1fxpgk"
 
@@ -89,6 +85,20 @@ script = ExtResource("14_hurt")
 [node name="JumpAttack" type="Node" parent="CharacterBody2D/StateMachine" index="7" unique_id=1564166855]
 script = ExtResource("15_jumpattack")
 
-[node name="InputComponent" type="Node" parent="CharacterBody2D" index="6" unique_id=2010401451]
+[node name="InputComponent" type="Node" parent="CharacterBody2D" index="5" unique_id=2010401451]
 script = ExtResource("7_g2g7f")
 metadata/_custom_type_script = "uid://0hsjf0dmpcip"
+
+[node name="WeaponComponent" type="Node2D" parent="CharacterBody2D" index="6" unique_id=1144485180]
+script = ExtResource("18_5mkge")
+weapon_data = ExtResource("18_q2guw")
+metadata/_custom_type_script = "uid://dfwax5a84deud"
+
+[node name="HitboxComponent" type="Area2D" parent="CharacterBody2D/WeaponComponent" index="0" unique_id=1424276706]
+collision_layer = 4
+collision_mask = 8
+script = ExtResource("5_g2g7f")
+metadata/_custom_type_script = "uid://plqh1bnw5qfs"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/WeaponComponent/HitboxComponent" index="0" unique_id=436602588]
+shape = SubResource("CapsuleShape2D_5mkge")

@@ -6,6 +6,9 @@ signal damage_blocked()
 
 var invulnerable := false
 
+func _ready():
+	pass
+
 func receive_hit(attack: AttackData):
 
 	if invulnerable:

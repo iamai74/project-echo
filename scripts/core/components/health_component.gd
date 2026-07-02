@@ -24,7 +24,6 @@ func initialize(max_hp: int) -> void:
 func take_damage(amount: int) -> void:
 	if amount <= 0 or not is_alive():
 		return
-		
 	current_health = max(0, current_health - amount)
 	damaged.emit(amount)
 	health_changed.emit(current_health, max_health)

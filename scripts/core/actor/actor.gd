@@ -5,11 +5,12 @@ extends CharacterBody2D
 
 @onready var health: HealthComponent = $HealthComponent
 @onready var hurtbox: HurtboxComponent = $HurtboxComponent
-@onready var hitbox: HitboxComponent = $HitboxComponent
+#@onready var hitbox: HitboxComponent = $HitboxComponent
 @onready var state_machine: StateMachine = $StateMachine
 @onready var sprite: Sprite2D = get_node_or_null("Sprite2D")
+@onready var weapon_component: WeaponComponent = get_node_or_null("WeaponComponent")
 
-var facing_direction: int = 1
+var facing_direction: Vector2 = Vector2.RIGHT
 var coyote_timer: float = 0.0
 var jump_count: int = 0
 
@@ -42,7 +43,6 @@ func _connect_signals():
 	
 func _on_hit_received(attack: AttackData):
 	health.take_damage(attack.damage)
-	print(name, " received ", attack.damage, " damage")
 	if attack.knockback_force > 0:
 		velocity += attack.direction * attack.knockback_force
 
@@ -57,7 +57,15 @@ func move(direction: float):
 
 func jump() -> void:
 	velocity.y = data.jump_velocity
-
+	
+func attack(type: AttackType.Type) -> void:
+	if weapon_component:
+		weapon_component.start_attack(type)
+	
+func light_attack() -> void:
+	if weapon_component:
+		attack(AttackType.Type.LIGHT)
+	
 func _update_coyote_timer(delta: float) -> void:
 	if is_on_floor():
 		coyote_timer = data.coyote_time
@@ -71,6 +79,6 @@ func _apply_gravity(delta: float) -> void:
 
 func _update_facing_direction() -> void:
 	if velocity.x != 0:
-		facing_direction = sign(velocity.x)
+		facing_direction = Vector2(velocity.x, 0)
 		if sprite:
-			sprite.flip_h = (facing_direction == -1)
+			sprite.flip_h = (sign(velocity.x) == -1)

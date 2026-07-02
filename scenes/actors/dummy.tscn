@@ -16,23 +16,28 @@ height = 96.0
 
 [node name="Node2D" unique_id=1314009042 instance=ExtResource("1_h8oti")]
 
-[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="0" unique_id=1663040079]
+[node name="CharacterBody2D" parent="." index="0" unique_id=635324780]
+collision_layer = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" index="0" unique_id=1663040079]
 texture = ExtResource("2_8enio")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="1" unique_id=2090370841]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" index="1" unique_id=2090370841]
 shape = SubResource("CapsuleShape2D_unx04")
 
-[node name="HealthComponent" type="Node" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="2" unique_id=1190539147]
+[node name="HealthComponent" type="Node" parent="CharacterBody2D" index="2" unique_id=1190539147]
 script = ExtResource("3_wkxlr")
 metadata/_custom_type_script = "uid://dpe6ywrqwstan"
 
-[node name="HurtboxComponent" type="Area2D" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="3" unique_id=1698941831]
+[node name="HurtboxComponent" type="Area2D" parent="CharacterBody2D" index="3" unique_id=1698941831]
+collision_layer = 8
+collision_mask = 4
 script = ExtResource("4_woq06")
 metadata/_custom_type_script = "uid://du4s86onrwg6v"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/HurtboxComponent" index="0" unique_id=1035761704]
 shape = SubResource("CapsuleShape2D_wkxlr")
 
-[node name="StateMachine" type="Node" parent="CharacterBody2D" parent_id_path=PackedInt32Array(635324780) index="4" unique_id=171640901]
+[node name="StateMachine" type="Node" parent="CharacterBody2D" index="4" unique_id=171640901]
 script = ExtResource("5_wkxlr")
 metadata/_custom_type_script = "uid://da4emyt1fxpgk"

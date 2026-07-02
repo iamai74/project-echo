@@ -48,6 +48,9 @@ func handle_input(event: InputEvent) -> void:
 	if current_state:
 		current_state.handle_input(event)
 		
+func handle_attack_finished(attack: AttackDefinition) -> void:
+	current_state.on_attack_finished(attack)
+	
 func change_state(new_state_name: StringName) -> void:
 
 	if not states.has(new_state_name):

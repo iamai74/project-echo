@@ -3,21 +3,23 @@ extends Area2D
 
 signal hit_target(target)
 
-@export var damage: int = 10
+@export var damage: int = 5
 @export var knockback_force: float = 150.0
 
 var active := false
 var hit_targets := {}
-
+var _attackData: AttackData
 
 func _ready():
+	monitoring = false
 	area_entered.connect(_on_area_entered)
 
 
-func activate():
+func activate(attackData: AttackData):
 	active = true
 	monitoring = true
 	hit_targets.clear()
+	_attackData = attackData
 	for area in get_overlapping_areas():
 		_try_hit(area)
 
@@ -29,7 +31,6 @@ func _on_area_entered(area: Area2D):
 	_try_hit(area)
 
 func _try_hit(area: Area2D) -> void:
-
 	if not active:
 		return
 
@@ -38,21 +39,10 @@ func _try_hit(area: Area2D) -> void:
 
 	if area.get_parent() == get_parent():
 		return
-
+		
 	if hit_targets.has(area):
 		return
-
+		
 	hit_targets[area] = true
-
-	var attack := AttackData.new(
-		damage,
-		knockback_force,
-		owner,
-		owner.global_position.direction_to(
-			area.global_position
-		)
-	)
-
-	area.receive_hit(attack)
-
+	area.receive_hit(_attackData)
 	hit_target.emit(area)

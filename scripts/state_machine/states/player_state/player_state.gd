@@ -15,7 +15,7 @@ func setup() -> void:
 
 	input_component = player.input_component
 	health_component = player.health
-	hitbox_component = player.hitbox
+	#hitbox_component = player.hitbox
 	hurtbox_component = player.hurtbox
 
 
@@ -53,6 +53,9 @@ func is_falling() -> bool:
 
 func is_dead() -> bool:
 	return not health_component.is_alive()
+	
+func on_attack_finished(attack: AttackDefinition) -> void:
+	pass
 	
 func physics_update(delta: float) -> void:
 

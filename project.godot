@@ -19,6 +19,15 @@ config/icon="res://icon.svg"
 
 input_setup="*res://scripts/core/input_setup.gd"
 
+[layer_names]
+
+2d_render/layer_1="World"
+2d_render/layer_2="Actors"
+2d_render/layer_3="Hitbox"
+2d_render/layer_4="Hurtbox"
+2d_render/layer_5="Projectile"
+2d_render/layer_6="Pickup"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
