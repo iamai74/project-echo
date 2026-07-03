@@ -42,14 +42,19 @@ func _connect_signals():
 	hurtbox.hit_received.connect(_on_hit_received)
 	
 func _on_hit_received(attack: AttackData):
-	health.take_damage(attack.damage)
-	if attack.knockback_force > 0:
-		velocity += attack.direction * attack.knockback_force
+	health.take_damage(attack)
+	_knockback_reaction(attack)
+	if not health.is_alive():
+		return
+	# статус получения урона
+	# state_machine.start("Hurt")
 
 func _on_died():
 	die()
 
 func die():
+	# статус смерти
+	# state_machine.start("Death")
 	queue_free()
 
 func move(direction: float):
@@ -82,3 +87,7 @@ func _update_facing_direction() -> void:
 		facing_direction = Vector2(velocity.x, 0)
 		if sprite:
 			sprite.flip_h = (sign(velocity.x) == -1)
+			
+func _knockback_reaction(attack: AttackData) -> void:
+	if attack.knockback_force > 0:
+		velocity += attack.direction * attack.knockback_force
