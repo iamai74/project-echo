@@ -1,10 +1,11 @@
-class_name PlayerHurtState
-extends PlayerState
+class_name EmenyHurtState
+extends EnemyState
 
 func physics_update(_delta: float) -> void:
 	if is_dead():
 		change_state("Dead")
 		return
+
 	if is_grounded():
 		if has_movement_input():
 			change_state("Move")

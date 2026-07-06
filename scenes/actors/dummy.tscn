@@ -2,9 +2,16 @@
 
 [ext_resource type="PackedScene" uid="uid://cwjq0xilttmd4" path="res://scenes/actors/actor.tscn" id="1_h8oti"]
 [ext_resource type="Texture2D" uid="uid://cidglj0w0vo2o" path="res://assets/sprites/acrots/test_dummy.png" id="2_8enio"]
+[ext_resource type="Script" uid="uid://cwc8dyuici7gw" path="res://scripts/actors/enemy/enemy.gd" id="2_dy8l6"]
 [ext_resource type="Script" uid="uid://dpe6ywrqwstan" path="res://scripts/core/components/health_component.gd" id="3_wkxlr"]
 [ext_resource type="Script" uid="uid://du4s86onrwg6v" path="res://scripts/core/components/hurtbox_component.gd" id="4_woq06"]
 [ext_resource type="Script" uid="uid://da4emyt1fxpgk" path="res://scripts/state_machine/state_machine.gd" id="5_wkxlr"]
+[ext_resource type="Script" uid="uid://bnyctb2vv4q03" path="res://scripts/state_machine/states/enemy_state/enemy_attack_state.gd" id="6_unx04"]
+[ext_resource type="Script" uid="uid://d2fnql8hgv3a1" path="res://scripts/state_machine/states/enemy_state/enemy_dead_state.gd" id="7_regid"]
+[ext_resource type="Script" uid="uid://1mmqfksksjkf" path="res://scripts/state_machine/states/enemy_state/enemy_fall_state.gd" id="8_regid"]
+[ext_resource type="Script" uid="uid://d0bu0fygn7bhi" path="res://scripts/state_machine/states/enemy_state/enemy_idle_state.gd" id="9_sqlej"]
+[ext_resource type="Script" uid="uid://bcacm4dv0eono" path="res://scripts/state_machine/states/enemy_state/enemy_move_state.gd" id="10_dy8l6"]
+[ext_resource type="Script" uid="uid://ddhvpm2nnnrq4" path="res://scripts/state_machine/states/enemy_state/enemy_hurt_state.gd" id="12_qc045"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_unx04"]
 radius = 24.0
@@ -18,6 +25,8 @@ height = 96.0
 
 [node name="CharacterBody2D" parent="." index="0" unique_id=635324780]
 collision_layer = 2
+script = ExtResource("2_dy8l6")
+debug_name = "Enemy"
 
 [node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" index="0" unique_id=1663040079]
 texture = ExtResource("2_8enio")
@@ -41,3 +50,27 @@ shape = SubResource("CapsuleShape2D_wkxlr")
 [node name="StateMachine" type="Node" parent="CharacterBody2D" index="4" unique_id=171640901]
 script = ExtResource("5_wkxlr")
 metadata/_custom_type_script = "uid://da4emyt1fxpgk"
+
+[node name="Attack" type="Node" parent="CharacterBody2D/StateMachine" index="0" unique_id=1056467910]
+script = ExtResource("6_unx04")
+metadata/_custom_type_script = "uid://bnyctb2vv4q03"
+
+[node name="Dead" type="Node" parent="CharacterBody2D/StateMachine" index="1" unique_id=1080244999]
+script = ExtResource("7_regid")
+metadata/_custom_type_script = "uid://d2fnql8hgv3a1"
+
+[node name="Fall" type="Node" parent="CharacterBody2D/StateMachine" index="2" unique_id=1184068375]
+script = ExtResource("8_regid")
+metadata/_custom_type_script = "uid://1mmqfksksjkf"
+
+[node name="Idle" type="Node" parent="CharacterBody2D/StateMachine" index="3" unique_id=1469516856]
+script = ExtResource("9_sqlej")
+metadata/_custom_type_script = "uid://d0bu0fygn7bhi"
+
+[node name="Move" type="Node" parent="CharacterBody2D/StateMachine" index="4" unique_id=692862618]
+script = ExtResource("10_dy8l6")
+metadata/_custom_type_script = "uid://bcacm4dv0eono"
+
+[node name="Hurt" type="Node" parent="CharacterBody2D/StateMachine" index="5" unique_id=795847711]
+script = ExtResource("12_qc045")
+metadata/_custom_type_script = "uid://ddhvpm2nnnrq4"

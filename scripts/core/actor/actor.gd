@@ -5,7 +5,6 @@ extends CharacterBody2D
 
 @onready var health: HealthComponent = $HealthComponent
 @onready var hurtbox: HurtboxComponent = $HurtboxComponent
-#@onready var hitbox: HitboxComponent = $HitboxComponent
 @onready var state_machine: StateMachine = $StateMachine
 @onready var sprite: Sprite2D = get_node_or_null("Sprite2D")
 @onready var weapon_component: WeaponComponent = get_node_or_null("WeaponComponent")
@@ -46,15 +45,12 @@ func _on_hit_received(attack: AttackData):
 	_knockback_reaction(attack)
 	if not health.is_alive():
 		return
-	# статус получения урона
-	# state_machine.start("Hurt")
+	state_machine.start("Hurt")
 
 func _on_died():
-	die()
+	state_machine.start("Dead")
 
 func die():
-	# статус смерти
-	# state_machine.start("Death")
 	queue_free()
 
 func move(direction: float):
