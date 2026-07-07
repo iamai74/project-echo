@@ -87,3 +87,6 @@ func _update_facing_direction() -> void:
 func _knockback_reaction(attack: AttackData) -> void:
 	if attack.knockback_force > 0:
 		velocity += attack.direction * attack.knockback_force
+
+func set_invulnerable(value: bool) -> void:
+	hurtbox.set_invulnerable(value)
