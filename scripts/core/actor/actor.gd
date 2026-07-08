@@ -88,5 +88,8 @@ func _knockback_reaction(attack: AttackData) -> void:
 	if attack.knockback_force > 0:
 		velocity += attack.direction * attack.knockback_force
 
+func distance_to(other: Actor) -> float:
+	return global_position.distance_to(other.global_position)
+
 func set_invulnerable(value: bool) -> void:
 	hurtbox.set_invulnerable(value)

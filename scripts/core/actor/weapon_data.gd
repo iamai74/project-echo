@@ -14,3 +14,6 @@ func initialize() -> void:
 
 func get_attack(type: AttackType.Type) -> AttackDefinition:
 	return _attack_map.get(type)
+
+func get_attack_types() -> Array[AttackType.Type]:
+	return _attack_map.keys()
