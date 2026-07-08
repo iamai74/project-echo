@@ -15,6 +15,9 @@
 [ext_resource type="Script" uid="uid://dod5jvm42hoev" path="res://scripts/core/components/detection_component.gd" id="13_guhuc"]
 [ext_resource type="Script" uid="uid://b3n24mqxg2wrb" path="res://scripts/state_machine/states/enemy_state/enemy_patrol_state.gd" id="14_guhuc"]
 [ext_resource type="Script" uid="uid://1t1h1dqw4hod" path="res://scripts/state_machine/states/enemy_state/enemy_chase_state.gd" id="14_knap0"]
+[ext_resource type="Script" uid="uid://dfwax5a84deud" path="res://scripts/core/components/weapon_component.gd" id="15_dy8l6"]
+[ext_resource type="Script" uid="uid://plqh1bnw5qfs" path="res://scripts/core/components/hitbox_component.gd" id="16_dy8l6"]
+[ext_resource type="Resource" uid="uid://bcy53mrjuyo5f" path="res://resources/actors/test_player_weapon_data.tres" id="17_dy8l6"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_unx04"]
 radius = 24.0
@@ -26,6 +29,10 @@ height = 96.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pt87d"]
 size = Vector2(74, 95)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_hitbox"]
+radius = 28.0
+height = 96.0
 
 [node name="Node2D" unique_id=1314009042 instance=ExtResource("1_h8oti")]
 
@@ -98,3 +105,17 @@ metadata/_custom_type_script = "uid://dod5jvm42hoev"
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/DetectionComponent" index="0" unique_id=1925035562]
 position = Vector2(1, 0)
 shape = SubResource("RectangleShape2D_pt87d")
+
+[node name="WeaponComponent" type="Node2D" parent="CharacterBody2D" index="6" unique_id=1144485181]
+script = ExtResource("15_dy8l6")
+weapon_data = ExtResource("17_dy8l6")
+metadata/_custom_type_script = "uid://dfwax5a84deud"
+
+[node name="HitboxComponent" type="Area2D" parent="CharacterBody2D/WeaponComponent" index="0" unique_id=1424276707]
+collision_layer = 4
+collision_mask = 8
+script = ExtResource("16_dy8l6")
+metadata/_custom_type_script = "uid://plqh1bnw5qfs"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/WeaponComponent/HitboxComponent" index="0" unique_id=436602589]
+shape = SubResource("CapsuleShape2D_hitbox")

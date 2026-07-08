@@ -9,6 +9,10 @@ func _setup_state_machine() -> void:
 	_last_position = global_position
 	state_machine.start("Idle")
 
+func _ready() -> void:
+	super()
+	weapon_component.attack_finished.connect(_on_attack_finished)
+
 func _physics_process(delta: float) -> void:
 	var previous_position := _last_position
 	super._physics_process(delta)

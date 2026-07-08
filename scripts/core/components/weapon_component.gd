@@ -15,6 +15,7 @@ enum AttackPhase {
 
 @onready var actor: Actor = get_parent() as Actor
 @onready var hitbox: HitboxComponent = $HitboxComponent
+@onready var hitbox_shape: CollisionShape2D = $HitboxComponent/CollisionShape2D
 
 var _phase: AttackPhase = AttackPhase.IDLE
 var _timer: float = 0.0
@@ -90,6 +91,16 @@ func interrupt_attack() -> void:
 func _enter_active() -> void:
 	_phase = AttackPhase.ACTIVE
 	_timer = _current_attack.active
+
+	var hitbox_offset = _current_attack.hitbox_offset
+	hitbox_offset.x *= actor.facing_direction.x
+	hitbox.position = hitbox_offset
+	var shape = hitbox_shape.shape
+	if shape is RectangleShape2D:
+		shape.size = _current_attack.hitbox_size
+	elif shape is CapsuleShape2D:
+		shape.radius = _current_attack.hitbox_size.x
+		shape.height = _current_attack.hitbox_size.y
 
 	hitbox.activate(_current_attack_data)
 
