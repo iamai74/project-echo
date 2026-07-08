@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://d0bu0fygn7bhi" path="res://scripts/state_machine/states/enemy_state/enemy_idle_state.gd" id="9_sqlej"]
 [ext_resource type="Script" uid="uid://bcacm4dv0eono" path="res://scripts/state_machine/states/enemy_state/enemy_move_state.gd" id="10_dy8l6"]
 [ext_resource type="Script" uid="uid://ddhvpm2nnnrq4" path="res://scripts/state_machine/states/enemy_state/enemy_hurt_state.gd" id="12_qc045"]
+[ext_resource type="Script" uid="uid://dod5jvm42hoev" path="res://scripts/core/components/detection_component.gd" id="13_guhuc"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_unx04"]
 radius = 24.0
@@ -20,6 +21,9 @@ height = 92.0
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_wkxlr"]
 radius = 26.0
 height = 96.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pt87d"]
+size = Vector2(74, 95)
 
 [node name="Node2D" unique_id=1314009042 instance=ExtResource("1_h8oti")]
 
@@ -74,3 +78,13 @@ metadata/_custom_type_script = "uid://bcacm4dv0eono"
 [node name="Hurt" type="Node" parent="CharacterBody2D/StateMachine" index="5" unique_id=795847711]
 script = ExtResource("12_qc045")
 metadata/_custom_type_script = "uid://ddhvpm2nnnrq4"
+
+[node name="DetectionComponent" type="Area2D" parent="CharacterBody2D" index="5" unique_id=2018323635]
+collision_layer = 4
+collision_mask = 8
+script = ExtResource("13_guhuc")
+metadata/_custom_type_script = "uid://dod5jvm42hoev"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/DetectionComponent" index="0" unique_id=1925035562]
+position = Vector2(1, 0)
+shape = SubResource("RectangleShape2D_pt87d")

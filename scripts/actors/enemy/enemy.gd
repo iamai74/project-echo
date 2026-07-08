@@ -1,6 +1,7 @@
 class_name Enemy
 extends Actor
 
+@onready var detection_component: DetectionComponent = $DetectionComponent
 @export var debug_name: String = "Enemy"
 
 func _ready() -> void:
