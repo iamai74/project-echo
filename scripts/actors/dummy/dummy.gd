@@ -23,7 +23,7 @@ func _try_start_patrol(previous_position: Vector2) -> void:
 		return
 
 	var state_name := state_machine.current_state.name
-	if state_name in ["Patrol", "Hurt", "Dead", "Attack"]:
+	if state_name in ["Patrol", "Hurt", "Dead", "Attack", "Chase"]:
 		return
 
 	state_machine.change_state("Patrol")

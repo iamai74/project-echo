@@ -3,9 +3,6 @@ extends Area2D
 
 signal hit_target(target)
 
-@export var damage: int = 5
-@export var knockback_force: float = 150.0
-
 var active := false
 var hit_targets := {}
 var _attackData: AttackData
