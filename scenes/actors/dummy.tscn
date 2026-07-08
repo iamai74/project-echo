@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://cwjq0xilttmd4" path="res://scenes/actors/actor.tscn" id="1_h8oti"]
 [ext_resource type="Texture2D" uid="uid://cidglj0w0vo2o" path="res://assets/sprites/acrots/test_dummy.png" id="2_8enio"]
-[ext_resource type="Script" uid="uid://cwc8dyuici7gw" path="res://scripts/actors/enemy/enemy.gd" id="2_dy8l6"]
+[ext_resource type="Script" uid="uid://bqx7m2k8n4pvd" path="res://scripts/actors/dummy/dummy.gd" id="2_dy8l6"]
 [ext_resource type="Script" uid="uid://dpe6ywrqwstan" path="res://scripts/core/components/health_component.gd" id="3_wkxlr"]
 [ext_resource type="Script" uid="uid://du4s86onrwg6v" path="res://scripts/core/components/hurtbox_component.gd" id="4_woq06"]
 [ext_resource type="Script" uid="uid://da4emyt1fxpgk" path="res://scripts/state_machine/state_machine.gd" id="5_wkxlr"]
@@ -13,6 +13,7 @@
 [ext_resource type="Script" uid="uid://bcacm4dv0eono" path="res://scripts/state_machine/states/enemy_state/enemy_move_state.gd" id="10_dy8l6"]
 [ext_resource type="Script" uid="uid://ddhvpm2nnnrq4" path="res://scripts/state_machine/states/enemy_state/enemy_hurt_state.gd" id="12_qc045"]
 [ext_resource type="Script" uid="uid://dod5jvm42hoev" path="res://scripts/core/components/detection_component.gd" id="13_guhuc"]
+[ext_resource type="Script" uid="uid://b3n24mqxg2wrb" path="res://scripts/state_machine/states/enemy_state/enemy_patrol_state.gd" id="14_guhuc"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_unx04"]
 radius = 24.0
@@ -30,7 +31,7 @@ size = Vector2(74, 95)
 [node name="CharacterBody2D" parent="." index="0" unique_id=635324780]
 collision_layer = 2
 script = ExtResource("2_dy8l6")
-debug_name = "Enemy"
+debug_name = "Dummy"
 
 [node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" index="0" unique_id=1663040079]
 texture = ExtResource("2_8enio")
@@ -78,6 +79,10 @@ metadata/_custom_type_script = "uid://bcacm4dv0eono"
 [node name="Hurt" type="Node" parent="CharacterBody2D/StateMachine" index="5" unique_id=795847711]
 script = ExtResource("12_qc045")
 metadata/_custom_type_script = "uid://ddhvpm2nnnrq4"
+
+[node name="Patrol" type="Node" parent="CharacterBody2D/StateMachine" index="6" unique_id=987654321]
+script = ExtResource("14_guhuc")
+metadata/_custom_type_script = "uid://b3n24mqxg2wrb"
 
 [node name="DetectionComponent" type="Area2D" parent="CharacterBody2D" index="5" unique_id=2018323635]
 collision_layer = 4
