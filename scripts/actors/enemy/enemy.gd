@@ -24,11 +24,17 @@ func _setup_state_machine() -> void:
 
 func _on_player_detected(player: Player) -> void:
 	target_player = player
-	state_machine.change_state("Chase")
+	_on_detection_success()
 
 func _on_player_lost() -> void:
 	target_player = null
-	state_machine.change_state("Patrol")
+	_on_detection_lost()
+
+func _on_detection_success() -> void:
+	pass
+
+func _on_detection_lost() -> void:
+	pass
 	
 func _process(delta: float) -> void:
 	state_machine.update(delta)

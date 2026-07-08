@@ -3,7 +3,7 @@ extends EnemyState
 
 func physics_update_state(_delta: float) -> void:
 	if not actor.is_on_floor():
-		change_state("Fall") # Check if change_state or change_to_state is the correct method name from earlier state files
+		change_state("Fall")
 		return
 
 	if enemy.target_player:
