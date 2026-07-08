@@ -3,55 +3,26 @@ extends RefCounted
 
 var move_direction: float = 0.0
 
-var jump_held: bool = false
-var attack_held: bool = false
+var commands: Array[Command] = []
 
-var jump_buffer: float = 0.0
-var attack_buffer: float = 0.0
-var dash_buffer: float = 0.0
-var interact_buffer: float = 0.0
+func has_command(type: CommandType.Type) -> bool:
+	for cmd in commands:
+		if cmd.type == type:
+			return true
+	return false
 
+func get_command(type: CommandType.Type) -> Command:
+	for cmd in commands:
+		if cmd.type == type:
+			return cmd
+	return null
 
-func has_jump() -> bool:
-	return jump_buffer > 0.0
+func consume_command(type: CommandType.Type) -> bool:
+	for i in range(commands.size()):
+		if commands[i].type == type:
+			commands.remove_at(i)
+			return true
+	return false
 
-
-func has_attack() -> bool:
-	return attack_buffer > 0.0
-
-
-func has_dash() -> bool:
-	return dash_buffer > 0.0
-
-
-func has_interact() -> bool:
-	return interact_buffer > 0.0
-
-
-func consume_jump() -> bool:
-	if jump_buffer <= 0.0:
-		return false
-
-	jump_buffer = 0.0
-	return true
-
-func consume_attack() -> bool:
-	if attack_buffer <= 0.0:
-		return false
-
-	attack_buffer = 0.0
-	return true
-
-func consume_dash() -> bool:
-	if dash_buffer <= 0.0:
-		return false
-
-	dash_buffer = 0.0
-	return true
-
-func consume_interact() -> bool:
-	if interact_buffer <= 0.0:
-		return false
-
-	interact_buffer = 0.0
-	return true
+func add_command(cmd: Command) -> void:
+	commands.append(cmd)

@@ -24,13 +24,13 @@ func movement_direction() -> float:
 	return command().move_direction
 
 func consume_jump() -> bool:
-	return command().consume_jump()
+	return command().consume_command(CommandType.Type.JUMP)
 
 func consume_attack() -> bool:
-	return command().consume_attack()
+	return command().consume_command(CommandType.Type.ATTACK)
 
 func consume_dash() -> bool:
-	return command().consume_dash()
+	return command().consume_command(CommandType.Type.DASH)
 
 func is_grounded() -> bool:
 	return player.is_on_floor()
@@ -68,15 +68,15 @@ func _handle_global_transitions() -> void:
 
 	var cmd := input_component.get_command()
 
-	if cmd.consume_jump() and player.jump_count > 0:
+	if cmd.consume_command(CommandType.Type.JUMP) and player.jump_count > 0:
 		player.jump_count -= 1
 		change_state("Jump")
 		return
 
-	if cmd.consume_attack():
+	if cmd.consume_command(CommandType.Type.ATTACK):
 		change_state("Attack")
 		return
 
-	if cmd.consume_dash():
+	if cmd.consume_command(CommandType.Type.DASH):
 		change_state("Dash")
 		return
