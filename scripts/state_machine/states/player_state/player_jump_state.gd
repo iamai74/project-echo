@@ -11,7 +11,7 @@ func physics_update_state(delta: float) -> void:
 	var direction := input_component.get_command().move_direction
 	player.move(direction)
 
-	if player.velocity.y < 0.0 and input_component.get_command().jump_held:
+	if player.velocity.y < 0.0 and input_component.is_action_held("jump"):
 		player.velocity.y -= player.data.gravity * delta * player.data.jump_hold_force
 
 	if player.velocity.y > 0:

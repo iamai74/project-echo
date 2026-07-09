@@ -15,7 +15,7 @@ func update_input(delta: float) -> void:
 	command.move_direction = _read_move_axis()
 	
 	if Input.is_action_just_pressed("jump"):
-		command.add_command(Command.new(CommandType.Type.MOVE)) # Note: using MOVE for jump is a placeholder, will need adjustment
+		command.add_command(Command.new(CommandType.Type.JUMP))
 	
 	if Input.is_action_just_pressed("attack"):
 		command.add_command(Command.new(CommandType.Type.ATTACK))
@@ -44,6 +44,9 @@ func _apply_deadzone(value: float) -> float:
 		return 0.0
 	return sign(value) * ((abs_value - stick_deadzone) 
 	/ (1.0 - stick_deadzone))
+
+func is_action_held(action: String) -> bool:
+	return Input.is_action_pressed(action)
 
 func set_input_enabled(enbled: bool) -> void:
 	if enbled:
