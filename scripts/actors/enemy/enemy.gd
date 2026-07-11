@@ -39,9 +39,7 @@ func _process(delta: float) -> void:
 	state_machine.update(delta)
 	
 func get_target_position() -> Vector2:
-	if detection_component.detected_player:
-		return detection_component.detected_player.global_position
-	return Vector2.INF
+	return detection_component.get_target_position()
 
 func is_attacking() -> bool:
 	var result := weapon_component.is_attacking()

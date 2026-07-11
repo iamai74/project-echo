@@ -4,7 +4,12 @@ extends Area2D
 signal player_detected(player: Player)
 signal player_lost()
 
-var detected_player: Player
+var _detected_player: Player
+
+func get_target_position() -> Vector2:
+	if _detected_player:
+		return _detected_player.global_position
+	return Vector2.INF
 
 func _ready():
 	print("detection ready")
@@ -15,18 +20,18 @@ func _on_area_entered(area: Area2D) -> void:
 	if not _check_is_player(area):
 		return
 	print("detect player")
-	if detected_player:
+	if _detected_player:
 		return
-	detected_player = area.get_parent()
-	player_detected.emit(detected_player)
+	_detected_player = area.get_parent()
+	player_detected.emit(_detected_player)
 
 func _on_area_exited(area: Area2D) -> void:
 	if not _check_is_player(area):
 		return
 	print("player lose")
-	if area.get_parent() != detected_player:
+	if area.get_parent() != _detected_player:
 		return
-	detected_player = null
+	_detected_player = null
 	player_lost.emit()
 
 func _check_is_player(area: Area2D) -> bool:
