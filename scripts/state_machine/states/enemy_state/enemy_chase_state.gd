@@ -6,12 +6,12 @@ func physics_update_state(_delta: float) -> void:
 		change_state("Fall")
 		return
 
-	if enemy.target_player:
-		var player = enemy.target_player
-		if actor.distance_to(player) <= _get_attack_range():
+	var target_pos = enemy.get_target_position()
+	if target_pos != Vector2.INF:
+		if actor.distance_to(target_pos) <= _get_attack_range():
 			change_state("Attack")
 			return
-		var direction = 1.0 if player.global_position.x > actor.global_position.x else -1.0
+		var direction = 1.0 if target_pos.x > actor.global_position.x else -1.0
 		actor.facing_direction.x = direction
 		actor.move(direction)
 	else:
