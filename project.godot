@@ -19,6 +19,21 @@ config/icon="res://icon.svg"
 
 input_setup="*res://scripts/core/input_setup.gd"
 
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg")
+
+[godot_ai]
+
+provider="Ollama"
+ollama_url="http://localhost:11434"
+model="codestral"
+
 [layer_names]
 
 2d_render/layer_1="World"
