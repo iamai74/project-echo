@@ -52,3 +52,5 @@ crashlog.txt
 
 # Backup files
 *.bak
+
+addons/godot_ai/
