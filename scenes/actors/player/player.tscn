@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://cwjq0xilttmd4" path="res://scenes/actors/actor.tscn" id="1_wmv1v"]
 [ext_resource type="Script" uid="uid://c8o1raul7aeig" path="res://scripts/actors/player/player.gd" id="2_5bhx7"]
 [ext_resource type="Texture2D" uid="uid://dystxy3rukecy" path="res://assets/sprites/acrots/player/player_1.png" id="2_l17oj"]
-[ext_resource type="Resource" uid="uid://cnrkmsqoiwygk" path="res://resources/actors/player_data.tres" id="3_i174x"]
+[ext_resource type="Resource" uid="uid://cnrkmsqoiwygk" path="res://resources/actors/player/player_data.tres" id="3_i174x"]
 [ext_resource type="Script" uid="uid://dpe6ywrqwstan" path="res://scripts/core/components/health_component.gd" id="3_oj104"]
 [ext_resource type="Script" uid="uid://du4s86onrwg6v" path="res://scripts/core/components/hurtbox_component.gd" id="4_qdyt2"]
 [ext_resource type="Script" uid="uid://plqh1bnw5qfs" path="res://scripts/core/components/hitbox_component.gd" id="5_g2g7f"]
@@ -18,7 +18,7 @@
 [ext_resource type="Script" uid="uid://cjvdm32hi23gj" path="res://scripts/state_machine/states/player_state/player_hurt_state.gd" id="14_hurt"]
 [ext_resource type="Script" uid="uid://bd4ydaxlvrgud" path="res://scripts/state_machine/states/player_state/player_jump_attack_state.gd" id="15_jumpattack"]
 [ext_resource type="Script" uid="uid://dfwax5a84deud" path="res://scripts/core/components/weapon_component.gd" id="18_5mkge"]
-[ext_resource type="Resource" uid="uid://bcy53mrjuyo5f" path="res://resources/actors/test_player_weapon_data.tres" id="18_q2guw"]
+[ext_resource type="Resource" uid="uid://bcy53mrjuyo5f" path="res://resources/actors/player/player_weapon_data.tres" id="18_q2guw"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_l17oj"]
 radius = 16.0

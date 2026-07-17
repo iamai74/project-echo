@@ -1,0 +1,123 @@
+[gd_scene format=3 uid="uid://c5xqurlj8262w"]
+
+[ext_resource type="PackedScene" uid="uid://cwjq0xilttmd4" path="res://scenes/actors/actor.tscn" id="1_actor"]
+[ext_resource type="Texture2D" uid="uid://cidglj0w0vo2o" path="res://assets/sprites/acrots/test_walker.png" id="2_sprite"]
+[ext_resource type="Script" uid="uid://bsamq7g8t2mcg" path="res://scripts/actors/enemy/heavy/heavy.gd" id="3_script"]
+[ext_resource type="Script" uid="uid://dpe6ywrqwstan" path="res://scripts/core/components/health_component.gd" id="4_health"]
+[ext_resource type="Script" uid="uid://du4s86onrwg6v" path="res://scripts/core/components/hurtbox_component.gd" id="5_hurtbox"]
+[ext_resource type="Script" uid="uid://da4emyt1fxpgk" path="res://scripts/state_machine/state_machine.gd" id="6_sm"]
+[ext_resource type="Script" uid="uid://bnyctb2vv4q03" path="res://scripts/state_machine/states/enemy_state/enemy_attack_state.gd" id="7_atk"]
+[ext_resource type="Script" uid="uid://d2fnql8hgv3a1" path="res://scripts/state_machine/states/enemy_state/enemy_dead_state.gd" id="8_dead"]
+[ext_resource type="Script" uid="uid://1mmqfksksjkf" path="res://scripts/state_machine/states/enemy_state/enemy_fall_state.gd" id="9_fall"]
+[ext_resource type="Script" uid="uid://d0bu0fygn7bhi" path="res://scripts/state_machine/states/enemy_state/enemy_idle_state.gd" id="10_idle"]
+[ext_resource type="Script" uid="uid://bcacm4dv0eono" path="res://scripts/state_machine/states/enemy_state/enemy_move_state.gd" id="11_move"]
+[ext_resource type="Script" uid="uid://ddhvpm2nnnrq4" path="res://scripts/state_machine/states/enemy_state/enemy_hurt_state.gd" id="12_hurt"]
+[ext_resource type="Script" uid="uid://dod5jvm42hoev" path="res://scripts/core/components/detection_component.gd" id="13_detect"]
+[ext_resource type="Script" uid="uid://b3n24mqxg2wrb" path="res://scripts/state_machine/states/enemy_state/enemy_patrol_state.gd" id="14_patrol"]
+[ext_resource type="Script" uid="uid://1t1h1dqw4hod" path="res://scripts/state_machine/states/enemy_state/enemy_chase_state.gd" id="15_chase"]
+[ext_resource type="Script" uid="uid://dfwax5a84deud" path="res://scripts/core/components/weapon_component.gd" id="16_weapon"]
+[ext_resource type="Script" uid="uid://plqh1bnw5qfs" path="res://scripts/core/components/hitbox_component.gd" id="17_hitbox"]
+[ext_resource type="Resource" path="res://resources/actors/enemy/heavy/heavy_weapon_data.tres" id="18_wpn"]
+[ext_resource type="Resource" path="res://resources/actors/enemy/heavy/heavy_data.tres" id="19_data"]
+
+[sub_resource type="CapsuleShape2D" id="body_shape"]
+radius = 24.0
+height = 96.0
+
+[sub_resource type="CapsuleShape2D" id="hurtbox_shape"]
+radius = 26.0
+height = 96.0
+
+[sub_resource type="RectangleShape2D" id="detect_shape"]
+size = Vector2(74, 95)
+
+[sub_resource type="CapsuleShape2D" id="hitbox_shape"]
+radius = 28.0
+height = 96.0
+
+[node name="Node2D" unique_id=1314009042 instance=ExtResource("1_actor")]
+
+[node name="CharacterBody2D" parent="." index="0" unique_id=635324780]
+collision_layer = 2
+script = ExtResource("3_script")
+debug_name = "Heavy"
+data = ExtResource("19_data")
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" index="0" unique_id=1663040079]
+texture = ExtResource("2_sprite")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" index="1" unique_id=2090370841]
+shape = SubResource("body_shape")
+
+[node name="HealthComponent" type="Node" parent="CharacterBody2D" index="2" unique_id=1190539147]
+script = ExtResource("4_health")
+metadata/_custom_type_script = "uid://dpe6ywrqwstan"
+
+[node name="HurtboxComponent" type="Area2D" parent="CharacterBody2D" index="3" unique_id=1698941831]
+collision_layer = 8
+collision_mask = 4
+script = ExtResource("5_hurtbox")
+metadata/_custom_type_script = "uid://du4s86onrwg6v"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/HurtboxComponent" index="0" unique_id=1035761704]
+shape = SubResource("hurtbox_shape")
+
+[node name="StateMachine" type="Node" parent="CharacterBody2D" index="4" unique_id=171640901]
+script = ExtResource("6_sm")
+metadata/_custom_type_script = "uid://da4emyt1fxpgk"
+
+[node name="Attack" type="Node" parent="CharacterBody2D/StateMachine" index="0" unique_id=1056467910]
+script = ExtResource("7_atk")
+metadata/_custom_type_script = "uid://bnyctb2vv4q03"
+
+[node name="Dead" type="Node" parent="CharacterBody2D/StateMachine" index="1" unique_id=1080244999]
+script = ExtResource("8_dead")
+metadata/_custom_type_script = "uid://d2fnql8hgv3a1"
+
+[node name="Fall" type="Node" parent="CharacterBody2D/StateMachine" index="2" unique_id=1184068375]
+script = ExtResource("9_fall")
+metadata/_custom_type_script = "uid://1mmqfksksjkf"
+
+[node name="Idle" type="Node" parent="CharacterBody2D/StateMachine" index="3" unique_id=1469516856]
+script = ExtResource("10_idle")
+metadata/_custom_type_script = "uid://d0bu0fygn7bhi"
+
+[node name="Move" type="Node" parent="CharacterBody2D/StateMachine" index="4" unique_id=692862618]
+script = ExtResource("11_move")
+metadata/_custom_type_script = "uid://bcacm4dv0eono"
+
+[node name="Hurt" type="Node" parent="CharacterBody2D/StateMachine" index="5" unique_id=795847711]
+script = ExtResource("12_hurt")
+metadata/_custom_type_script = "uid://ddhvpm2nnnrq4"
+
+[node name="Patrol" type="Node" parent="CharacterBody2D/StateMachine" index="6" unique_id=987654321]
+script = ExtResource("14_patrol")
+metadata/_custom_type_script = "uid://b3n24mqxg2wrb"
+
+[node name="Chase" type="Node" parent="CharacterBody2D/StateMachine" index="7" unique_id=2099441084]
+script = ExtResource("15_chase")
+metadata/_custom_type_script = "uid://1t1h1dqw4hod"
+
+[node name="DetectionComponent" type="Area2D" parent="CharacterBody2D" index="5" unique_id=2018323635]
+collision_layer = 4
+collision_mask = 8
+script = ExtResource("13_detect")
+metadata/_custom_type_script = "uid://dod5jvm42hoev"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/DetectionComponent" index="0" unique_id=1925035562]
+position = Vector2(1, 0)
+shape = SubResource("detect_shape")
+
+[node name="WeaponComponent" type="Node2D" parent="CharacterBody2D" index="6" unique_id=1144485181]
+script = ExtResource("16_weapon")
+weapon_data = ExtResource("18_wpn")
+metadata/_custom_type_script = "uid://dfwax5a84deud"
+
+[node name="HitboxComponent" type="Area2D" parent="CharacterBody2D/WeaponComponent" index="0" unique_id=1424276707]
+collision_layer = 4
+collision_mask = 8
+script = ExtResource("17_hitbox")
+metadata/_custom_type_script = "uid://plqh1bnw5qfs"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/WeaponComponent/HitboxComponent" index="0" unique_id=436602589]
+shape = SubResource("hitbox_shape")

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3 uid="uid://heavyWeaponData1"]
+
+[ext_resource type="Script" uid="uid://sihngm58leek" path="res://scripts/core/actor/attack_definition.gd" id="1_atk"]
+[ext_resource type="Resource" uid="uid://heavyAttackDef1" path="res://resources/actors/enemy/heavy/heavy_attack_definition.tres" id="2_def"]
+[ext_resource type="Script" uid="uid://qg671drlx7nc" path="res://scripts/core/actor/weapon_data.gd" id="3_wpn"]
+
+[resource]
+script = ExtResource("3_wpn")
+weapon_name = "heavy_default"
+attacks = Array[ExtResource("1_atk")]([ExtResource("2_def")])
+metadata/_custom_type_script = "uid://qg671drlx7nc"

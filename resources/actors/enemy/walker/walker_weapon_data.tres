@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3 uid="uid://cys1ao8ixrau"]
 
 [ext_resource type="Script" uid="uid://sihngm58leek" path="res://scripts/core/actor/attack_definition.gd" id="1_3stop"]
-[ext_resource type="Resource" uid="uid://dl6loi4npp7bc" path="res://resources/actors/test_player_attack_definition.tres" id="2_b2n3f"]
+[ext_resource type="Resource" uid="uid://dl6loi4npp7bc" path="res://resources/actors/enemy/walker/walker_attack_definition.tres" id="2_b2n3f"]
 [ext_resource type="Script" uid="uid://qg671drlx7nc" path="res://scripts/core/actor/weapon_data.gd" id="2_w3mjo"]
 
 [resource]
 script = ExtResource("2_w3mjo")
-weapon_name = "dummy_default"
+weapon_name = "walker_default"
 attacks = Array[ExtResource("1_3stop")]([ExtResource("2_b2n3f")])
 metadata/_custom_type_script = "uid://qg671drlx7nc"

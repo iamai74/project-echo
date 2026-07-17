@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ActorData" format=3 uid="uid://walkerData1"]
+
+[ext_resource type="Script" uid="uid://cqg2cqlhvv4td" path="res://scripts/core/actor/actor_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+max_health = 10
+move_speed = 220.0
+jump_velocity = -400.0
+gravity = 1200.0
+coyote_time = 0.1
+max_jumps = 2
+jump_hold_force = 0.3
+metadata/_custom_type_script = "uid://cqg2cqlhvv4td"

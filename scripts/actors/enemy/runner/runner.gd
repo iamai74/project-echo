@@ -1,4 +1,4 @@
-class_name Dummy
+class_name Runner
 extends Enemy
 
 var _last_position: Vector2
