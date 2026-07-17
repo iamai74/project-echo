@@ -24,10 +24,6 @@ input_setup="*res://scripts/core/input_setup.gd"
 window/size/viewport_width=1920
 window/size/viewport_height=1080
 
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg")
-
 [godot_ai]
 
 provider="Ollama"
