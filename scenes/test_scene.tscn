@@ -12,6 +12,7 @@
 [ext_resource type="Texture2D" uid="uid://c7d2ondu1txmb" path="res://assets/sprites/tiles/test/wall4.png" id="10_ap2hy"]
 [ext_resource type="Texture2D" uid="uid://bqgeok5yy1lq5" path="res://assets/sprites/tiles/test/wall5.png" id="11_nlwlv"]
 [ext_resource type="PackedScene" uid="uid://c0ukpjjim8vil" path="res://scenes/actors/dummy.tscn" id="12_gthg3"]
+[ext_resource type="PackedScene" uid="uid://c8fkxnk62o8nb" path="res://scenes/camera_rig.tscn" id="14_ntc4i"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6gkjt"]
 texture = ExtResource("2_gthg3")
@@ -87,9 +88,10 @@ tile_set = SubResource("TileSet_fftn7")
 [node name="Character" parent="." unique_id=1314009042 instance=ExtResource("1_6qxox")]
 position = Vector2(24, -52)
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=1876647382]
-offset = Vector2(350, -200)
-zoom = Vector2(1.3, 1.3)
-
 [node name="Dummy" parent="." unique_id=361335394 instance=ExtResource("12_gthg3")]
 position = Vector2(534, -51)
+
+[node name="CameraRig" parent="." unique_id=810206809 node_paths=PackedStringArray("target", "room") instance=ExtResource("14_ntc4i")]
+target = NodePath("../Character")
+zoom = Vector2(2, 2)
+room = NodePath("..")
