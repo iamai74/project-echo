@@ -23,6 +23,9 @@ func _setup_state_machine() -> void:
 	
 func _process(delta: float) -> void:
 	state_machine.update(delta)
+
+func _physics_process(delta: float) -> void:
+	super(delta)
 	
 func get_input() -> InputComponent:
 	return input_component
