@@ -7,6 +7,7 @@ var input_component: InputComponent
 var health_component: HealthComponent
 var hurtbox_component: HurtboxComponent
 
+
 func setup() -> void:
 	player = actor as Player
 
@@ -14,36 +15,47 @@ func setup() -> void:
 	health_component = player.health
 	hurtbox_component = player.hurtbox
 
+
 func command() -> InputCommand:
 	return input_component.get_command()
+
 
 func has_movement_input() -> bool:
 	return abs(command().move_direction) > 0.01
 
+
 func movement_direction() -> float:
 	return command().move_direction
+
 
 func consume_jump() -> bool:
 	return command().consume_command(CommandType.Type.JUMP)
 
+
 func consume_attack() -> bool:
 	return command().consume_command(CommandType.Type.ATTACK)
+
 
 func consume_dash() -> bool:
 	return command().consume_command(CommandType.Type.DASH)
 
+
 func is_grounded() -> bool:
 	return player.is_on_floor()
+
 
 func is_falling() -> bool:
 	return player.velocity.y > 0.0
 
+
 func is_dead() -> bool:
 	return not health_component.is_alive()
-	
+
+
 func on_attack_finished(attack: AttackDefinition) -> void:
 	pass
-	
+
+
 func physics_update(delta: float) -> void:
 	var previous_state := state_machine.current_state
 	_handle_global_transitions()
@@ -52,12 +64,13 @@ func physics_update(delta: float) -> void:
 		return
 
 	physics_update_state(delta)
-	
+
+
 func physics_update_state(_delta: float) -> void:
 	pass
-	
-func _handle_global_transitions() -> void:
 
+
+func _handle_global_transitions() -> void:
 	if is_dead():
 		change_state("Dead")
 		return

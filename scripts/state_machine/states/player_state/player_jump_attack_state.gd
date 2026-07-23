@@ -7,7 +7,6 @@ func enter() -> void:
 
 
 func physics_update(_delta: float) -> void:
-
 	if not player.is_attack_finished():
 		return
 

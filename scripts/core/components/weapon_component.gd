@@ -13,18 +13,20 @@ enum AttackPhase {
 
 @export var weapon_data: WeaponData
 
-@onready var actor: Actor = get_parent() as Actor
-@onready var hitbox: HitboxComponent = $HitboxComponent
-@onready var hitbox_shape: CollisionShape2D = $HitboxComponent/CollisionShape2D
-
 var _phase: AttackPhase = AttackPhase.IDLE
 var _timer: float = 0.0
 
 var _current_attack: AttackDefinition
 var _current_attack_data: AttackData
 
+@onready var actor: Actor = get_parent() as Actor
+@onready var hitbox: HitboxComponent = $HitboxComponent
+@onready var hitbox_shape: CollisionShape2D = $HitboxComponent/CollisionShape2D
+
+
 func _ready() -> void:
 	weapon_data.initialize()
+
 
 func _physics_process(delta: float) -> void:
 	if _phase == AttackPhase.IDLE:
@@ -64,16 +66,14 @@ func start_attack(type: AttackType.Type) -> void:
 		return
 
 	_current_attack_data = AttackData.new(
-		_current_attack.damage,
-		_current_attack.knockback_force,
-		actor,
-		actor.facing_direction
+		_current_attack.damage, _current_attack.knockback_force, actor, actor.facing_direction
 	)
 
 	_phase = AttackPhase.STARTUP
 	_timer = _current_attack.startup
 
 	attack_started.emit(_current_attack)
+
 
 func interrupt_attack() -> void:
 	if not is_attacking():

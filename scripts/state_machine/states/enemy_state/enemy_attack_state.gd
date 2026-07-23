@@ -1,12 +1,14 @@
 class_name EnemyAttackState
 extends EnemyState
 
+
 func enter() -> void:
 	actor.attack(AttackType.Type.LIGHT)
 
 
 func exit() -> void:
 	pass
+
 
 func on_attack_finished(attack: AttackDefinition) -> void:
 	if not is_grounded():

@@ -1,5 +1,5 @@
-extends Node2D
 class_name CameraRig
+extends Node2D
 
 @export var target: Node2D
 @export var enabled: bool = true

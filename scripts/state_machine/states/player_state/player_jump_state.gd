@@ -7,7 +7,6 @@ func enter() -> void:
 
 
 func physics_update_state(delta: float) -> void:
-
 	var direction := input_component.get_command().move_direction
 	player.move(direction)
 

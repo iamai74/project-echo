@@ -1,6 +1,7 @@
 class_name EnemyChaseState
 extends EnemyState
 
+
 func physics_update_state(_delta: float) -> void:
 	if not actor.is_on_floor():
 		change_state("Fall")
@@ -16,6 +17,7 @@ func physics_update_state(_delta: float) -> void:
 		actor.move(direction)
 	else:
 		change_state("Patrol")
+
 
 func _get_attack_range(attack_type: AttackType.Type = AttackType.Type.LIGHT) -> float:
 	var weapon := enemy.weapon_component

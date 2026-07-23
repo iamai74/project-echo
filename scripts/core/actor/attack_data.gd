@@ -6,6 +6,7 @@ var knockback_force: float
 var source: Node
 var direction: Vector2
 
+
 func _init(
 	damage_value: int,
 	knockback_value: float = 0.0,
