@@ -6,4 +6,8 @@ extends SemanticBrush
 
 
 func _draw_preview() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), BRUSH_COLOR, false, 2.0)
+	draw_rect(Rect2(Vector2.ZERO, size), get_brush_color(), false, 2.0)
+
+
+func get_brush_color() -> Color:
+	return Color.WHITE
