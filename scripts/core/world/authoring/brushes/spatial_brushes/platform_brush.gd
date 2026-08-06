@@ -14,7 +14,7 @@ func get_brush_type() -> BrushType:
 	return BrushType.FLOOR
 
 
-func get_brush_color() -> Color:
+func get_fill_color() -> Color:
 	return Color.BLUE
 
 
@@ -27,3 +27,12 @@ func has_trait(flag: int) -> bool:
 
 func _is_valid_trait(flag: int) -> bool:
 	return Trait.values().has(flag)
+
+
+func get_label() -> String:
+	var label := super()
+	if has_trait(Trait.ONE_WAY):
+		label += "\nOne Way"
+	if has_trait(Trait.BREAKABLE):
+		label += "\nBreakable"
+	return label

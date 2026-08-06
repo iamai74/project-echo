@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="WorldSettings" format=3 uid="uid://1k7oiwwjxpd4"]
+
+[ext_resource type="Script" uid="uid://tap4aknvtr8e" path="res://resources/world/world_settings.gd" id="1_ukw1v"]
+
+[resource]
+script = ExtResource("1_ukw1v")
+metadata/_custom_type_script = "uid://tap4aknvtr8e"

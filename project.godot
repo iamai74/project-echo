@@ -18,6 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 input_setup="*res://scripts/core/input/input_setup.gd"
+World="*uid://c0mgxjpji6rqx"
 
 [display]
 
