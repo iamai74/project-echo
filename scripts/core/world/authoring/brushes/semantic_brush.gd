@@ -36,6 +36,31 @@ func get_brush_type() -> BrushType:
 	return BrushType.UNKNOWN
 
 
+func get_grid_position() -> Vector2i:
+	var tile_size := World.settings.tile_size
+	return Vector2i(int(position.x / tile_size), int(position.y / tile_size))
+
+
+func get_grid_size() -> Vector2i:
+	return size
+
+
+func get_grid_rect() -> Rect2i:
+	return Rect2i(get_grid_position(), get_grid_size())
+
+
+func get_pixel_position() -> Vector2:
+	return position
+
+
+func get_pixel_size() -> Vector2:
+	return Vector2(size * World.settings.tile_size)
+
+
+func get_pixel_rect() -> Rect2:
+	return Rect2(Vector2.ZERO, get_pixel_size())
+
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSFORM_CHANGED:
 		queue_redraw()
