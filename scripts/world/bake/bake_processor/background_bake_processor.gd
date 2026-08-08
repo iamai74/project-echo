@@ -14,7 +14,7 @@ func _bake_platform(brush: BackgroundBrush, semantic_room: SemanticRoomData) -> 
 		for x in rect.size.x:
 			var cell := rect.position + Vector2i(x, y)
 			platform_cells.append(_create_cell(cell))
-	semantic_room.spatial_layers.add_cells(SpatialLayer.SpatialType.FLOOR, platform_cells)
+	semantic_room.spatial_layers.add_cells(SpatialLayer.SpatialType.BACKGROUND, platform_cells)
 
 
 func _create_cell(cell: Vector2i) -> SemanticSpatialCell:
