@@ -1,4 +1,4 @@
-class_name BackgroundProcessor
+class_name BackgroundBakeProcessor
 extends BakeProcessor
 
 
