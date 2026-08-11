@@ -1,4 +1,4 @@
-class_name BakePipline
+class_name BakePipeline
 extends RefCounted
 
 var _steps: Array[BakeStep] = []
@@ -12,6 +12,12 @@ func _init() -> void:
 		InitSemanticDataStep.new(),
 		BakeSemanticLayerStep.new(registry)
 	]
+
+
+func run(context: RoomBakeContext) -> RoomBakeContext:
+	for step in _steps:
+		step.run(context)
+	return context
 
 
 func _create_brush_collector() -> BrushCollector:

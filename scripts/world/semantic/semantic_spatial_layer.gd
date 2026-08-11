@@ -8,7 +8,8 @@ var _layers: Dictionary = {}
 
 func add_cells(type: SpatialType, vector_array: Array[SemanticSpatialCell]) -> void:
 	if !_layers.has(type):
-		_layers[type] = Array[SemanticSpatialCell].new()
+		var empty_cells: Array[SemanticSpatialCell] = []
+		_layers[type] = empty_cells
 	_layers[type].append_array(vector_array)
 
 
@@ -17,4 +18,5 @@ func set_cells(type: SpatialType, vector_array: Array[SemanticSpatialCell]) -> v
 
 
 func get_cells(type: SpatialType) -> Array[SemanticSpatialCell]:
-	return _layers.get(type, Array[SemanticSpatialCell].new())
+	var empty_cells: Array[SemanticSpatialCell] = []
+	return _layers.get(type, empty_cells)

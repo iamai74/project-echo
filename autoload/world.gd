@@ -1,5 +1,8 @@
+@tool
 extends Node
 
-var settings: WorldSettings = preload("res://resources/world/world_settings.tres"):
+var _settings: WorldSettings = preload("res://resources/world/world_settings.tres")
+
+var settings: WorldSettings:
 	get:
-		return settings
+		return _settings

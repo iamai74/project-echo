@@ -9,9 +9,11 @@ func add_brush(brush: SemanticBrush) -> void:
 	if type == SemanticBrush.BrushType.UNKNOWN:
 		return
 	if !_brushes.has(type):
-		_brushes[type] = []
+		var empty_brushes: Array[SemanticBrush] = []
+		_brushes[type] = empty_brushes
 	_brushes[type].append(brush)
 
 
 func get_brushes(type: SemanticBrush.BrushType) -> Array[SemanticBrush]:
-	return _brushes.get(type, [])
+	var empty_brushes: Array[SemanticBrush] = []
+	return _brushes.get(type, empty_brushes)
