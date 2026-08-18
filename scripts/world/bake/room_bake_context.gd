@@ -4,3 +4,4 @@ extends RefCounted
 var room: Node
 var brushes: BrushCollection
 var semantic_data: SemanticRoomData
+var report: BakeReport

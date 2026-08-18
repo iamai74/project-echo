@@ -12,3 +12,7 @@ func get_display_name() -> String:
 
 func run(context: RoomBakeContext) -> RoomBakeContext:
 	return context
+
+
+func can_run_with_errors() -> bool:
+	return true
