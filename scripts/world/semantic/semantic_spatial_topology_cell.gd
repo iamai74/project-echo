@@ -1,0 +1,4 @@
+class_name SemanticSpatialTopologyCell
+extends SemanticSpatialCell
+
+var topology: SpatialTopology

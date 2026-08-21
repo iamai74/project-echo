@@ -10,7 +10,8 @@ func _init() -> void:
 	_steps = [
 		CollectBrushesStep.new(collector),
 		InitSemanticDataStep.new(),
-		BakeSemanticLayerStep.new(registry)
+		BakeSemanticLayerStep.new(registry),
+		PostProcessStep.new()
 	]
 
 

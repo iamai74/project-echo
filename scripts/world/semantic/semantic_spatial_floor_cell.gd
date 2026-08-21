@@ -1,5 +1,5 @@
 class_name SemanticSpatialFloorCell
-extends SemanticSpatialCell
+extends SemanticSpatialTopologyCell
 enum Trait {
 	ONE_WAY,
 	BREAKABLE,
