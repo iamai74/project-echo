@@ -12,7 +12,10 @@ func get_display_name() -> String:
 
 func run(context: RoomBakeContext) -> RoomBakeContext:
 	var validators: Array[BakeValidator] = [
-		DuplicateCellValidator.new(), SemanticOverlapValidator.new(), TopologyValidator.new()
+		DuplicateCellValidator.new(),
+		SemanticOverlapValidator.new(),
+		TopologyValidator.new(),
+		SemanticCellValidator.new()
 	]
 	for validator in validators:
 		validator.validate(context)
