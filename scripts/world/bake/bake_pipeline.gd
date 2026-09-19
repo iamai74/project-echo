@@ -11,7 +11,8 @@ func _init() -> void:
 		CollectBrushesStep.new(collector),
 		InitSemanticDataStep.new(),
 		BakeSemanticLayerStep.new(registry),
-		PostProcessStep.new()
+		PostProcessStep.new(),
+		ValidateStep.new()
 	]
 
 

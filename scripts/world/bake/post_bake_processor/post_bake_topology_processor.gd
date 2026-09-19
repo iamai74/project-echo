@@ -49,16 +49,16 @@ func _check_neigbhors(cell: Vector2i) -> Dictionary[NeighborType, bool]:
 
 func _check_shape(neighbors: Dictionary[NeighborType, bool]) -> SpatialTopology.Shape:
 	var horizontal = !neighbors[NeighborType.TOP] && !neighbors[NeighborType.BOTTOM]
-	var vertical = !neighbors[NeighborType.LEFT] && !neighbors[NeighborType.LEFT]
+	var vertical = !neighbors[NeighborType.LEFT] && !neighbors[NeighborType.RIGHT]
 	if horizontal || vertical:
 		return SpatialTopology.Shape.SINGLE
 	if !neighbors[NeighborType.TOP]:
-		return SpatialTopology.Shape.BOTTOM
-	if !neighbors[NeighborType.BOTTOM]:
 		return SpatialTopology.Shape.TOP
-	if !neighbors[NeighborType.RIGHT]:
-		return SpatialTopology.Shape.LEFT
+	if !neighbors[NeighborType.BOTTOM]:
+		return SpatialTopology.Shape.BOTTOM
 	if !neighbors[NeighborType.LEFT]:
+		return SpatialTopology.Shape.LEFT
+	if !neighbors[NeighborType.RIGHT]:
 		return SpatialTopology.Shape.RIGHT
 	return SpatialTopology.Shape.FULL
 
