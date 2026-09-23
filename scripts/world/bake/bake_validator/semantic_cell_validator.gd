@@ -148,13 +148,13 @@ func _is_acceptable_combination(
 		elif corner == SpatialTopology.Corner.RIGHT:
 			result = shape in [SpatialTopology.Shape.LEFT, SpatialTopology.Shape.RIGHT]
 		elif corner == SpatialTopology.Corner.TOP_LEFT:
-			result = shape in [SpatialTopology.Shape.BOTTOM, SpatialTopology.Shape.RIGHT]
-		elif corner == SpatialTopology.Corner.TOP_RIGHT:
-			result = shape in [SpatialTopology.Shape.BOTTOM, SpatialTopology.Shape.LEFT]
-		elif corner == SpatialTopology.Corner.BOTTOM_LEFT:
-			result = shape in [SpatialTopology.Shape.TOP, SpatialTopology.Shape.RIGHT]
-		elif corner == SpatialTopology.Corner.BOTTOM_RIGHT:
 			result = shape in [SpatialTopology.Shape.TOP, SpatialTopology.Shape.LEFT]
+		elif corner == SpatialTopology.Corner.TOP_RIGHT:
+			result = shape in [SpatialTopology.Shape.TOP, SpatialTopology.Shape.RIGHT]
+		elif corner == SpatialTopology.Corner.BOTTOM_LEFT:
+			result = shape in [SpatialTopology.Shape.BOTTOM, SpatialTopology.Shape.LEFT]
+		elif corner == SpatialTopology.Corner.BOTTOM_RIGHT:
+			result = shape in [SpatialTopology.Shape.BOTTOM, SpatialTopology.Shape.RIGHT]
 		else:
 			result = false
 
