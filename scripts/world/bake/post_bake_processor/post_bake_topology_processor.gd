@@ -18,10 +18,10 @@ func execute(cells: Array[SemanticSpatialCell]) -> Array[SemanticSpatialCell]:
 		var topology = SpatialTopology.new()
 		var neighbors = _check_neigbhors(cell.cell)
 		topology.shape = _check_shape(neighbors)
-		topology.corner = SpatialTopology.Corner.NO
-		if topology.shape == SpatialTopology.Shape.SINGLE:
+		topology.corner = CellCorner.Value.NO
+		if topology.shape == CellShape.Value.SINGLE:
 			topology.corner = check_corners_for_single(neighbors)
-		elif topology.shape != SpatialTopology.Shape.FULL:
+		elif topology.shape != CellShape.Value.FULL:
 			topology.corner = check_basic_corners(neighbors)
 		cell.topology = topology
 
@@ -47,57 +47,57 @@ func _check_neigbhors(cell: Vector2i) -> Dictionary[NeighborType, bool]:
 	return neighbors
 
 
-func _check_shape(neighbors: Dictionary[NeighborType, bool]) -> SpatialTopology.Shape:
+func _check_shape(neighbors: Dictionary[NeighborType, bool]) -> CellShape.Value:
 	var horizontal = !neighbors[NeighborType.TOP] && !neighbors[NeighborType.BOTTOM]
 	var vertical = !neighbors[NeighborType.LEFT] && !neighbors[NeighborType.RIGHT]
 	if horizontal || vertical:
-		return SpatialTopology.Shape.SINGLE
+		return CellShape.Value.SINGLE
 	if !neighbors[NeighborType.TOP]:
-		return SpatialTopology.Shape.TOP
+		return CellShape.Value.TOP
 	if !neighbors[NeighborType.BOTTOM]:
-		return SpatialTopology.Shape.BOTTOM
+		return CellShape.Value.BOTTOM
 	if !neighbors[NeighborType.LEFT]:
-		return SpatialTopology.Shape.LEFT
+		return CellShape.Value.LEFT
 	if !neighbors[NeighborType.RIGHT]:
-		return SpatialTopology.Shape.RIGHT
-	return SpatialTopology.Shape.FULL
+		return CellShape.Value.RIGHT
+	return CellShape.Value.FULL
 
 
-func check_basic_corners(neighbors: Dictionary[NeighborType, bool]) -> SpatialTopology.Corner:
+func check_basic_corners(neighbors: Dictionary[NeighborType, bool]) -> CellCorner.Value:
 	if !neighbors[NeighborType.TOP]:
 		if !neighbors[NeighborType.LEFT]:
-			return SpatialTopology.Corner.TOP_LEFT
+			return CellCorner.Value.TOP_LEFT
 		if !neighbors[NeighborType.RIGHT]:
-			return SpatialTopology.Corner.TOP_RIGHT
+			return CellCorner.Value.TOP_RIGHT
 	if !neighbors[NeighborType.BOTTOM]:
 		if !neighbors[NeighborType.LEFT]:
-			return SpatialTopology.Corner.BOTTOM_LEFT
+			return CellCorner.Value.BOTTOM_LEFT
 		if !neighbors[NeighborType.RIGHT]:
-			return SpatialTopology.Corner.BOTTOM_RIGHT
-	return SpatialTopology.Corner.NO
+			return CellCorner.Value.BOTTOM_RIGHT
+	return CellCorner.Value.NO
 
 
-func check_corners_for_single(neighbors: Dictionary[NeighborType, bool]) -> SpatialTopology.Corner:
+func check_corners_for_single(neighbors: Dictionary[NeighborType, bool]) -> CellCorner.Value:
 	var full_single = true
 	for key in NeighborType.keys():
 		if neighbors[NeighborType.get(key)]:
 			full_single = false
 			break
 	if full_single:
-		return SpatialTopology.Corner.ALL
-
+		return CellCorner.Value.ALL
+	
 	if !neighbors[NeighborType.TOP]:
 		if !neighbors[NeighborType.LEFT]:
 			if !neighbors[NeighborType.BOTTOM]:
-				return SpatialTopology.Corner.LEFT
+				return CellCorner.Value.LEFT
 			if !neighbors[NeighborType.RIGHT]:
-				return SpatialTopology.Corner.TOP
+				return CellCorner.Value.TOP
 		if !neighbors[NeighborType.RIGHT] && !neighbors[NeighborType.BOTTOM]:
-			return SpatialTopology.Corner.RIGHT
+			return CellCorner.Value.RIGHT
 	if !neighbors[NeighborType.BOTTOM]:
 		if !neighbors[NeighborType.LEFT] && !neighbors[NeighborType.RIGHT]:
-			return SpatialTopology.Corner.BOTTOM
-	return SpatialTopology.Corner.NO
+			return CellCorner.Value.BOTTOM
+	return CellCorner.Value.NO
 
 
 func _empty_neigbors_dict() -> Dictionary[NeighborType, bool]:

@@ -34,20 +34,20 @@ func _validate_cell_shape(cell: SemanticSpatialTopologyCell, neighbors: Dictiona
 	return cell.topology.shape == _expected_shape(neighbors)
 
 
-func _expected_shape(neighbors: Dictionary) -> SpatialTopology.Shape:
+func _expected_shape(neighbors: Dictionary) -> CellShape.Value:
 	var no_vertical: bool = !neighbors[Vector2i.UP] && !neighbors[Vector2i.DOWN]
 	var no_horizontal: bool = !neighbors[Vector2i.LEFT] && !neighbors[Vector2i.RIGHT]
 	if no_vertical || no_horizontal:
-		return SpatialTopology.Shape.SINGLE
+			return CellShape.Value.SINGLE
 	if !neighbors[Vector2i.UP]:
-		return SpatialTopology.Shape.TOP
+			return CellShape.Value.TOP
 	if !neighbors[Vector2i.DOWN]:
-		return SpatialTopology.Shape.BOTTOM
+			return CellShape.Value.BOTTOM
 	if !neighbors[Vector2i.LEFT]:
-		return SpatialTopology.Shape.LEFT
+			return CellShape.Value.LEFT
 	if !neighbors[Vector2i.RIGHT]:
-		return SpatialTopology.Shape.RIGHT
-	return SpatialTopology.Shape.FULL
+			return CellShape.Value.RIGHT
+	return CellShape.Value.FULL
 
 
 func _collect_occupied(layout: Array[SemanticSpatialCell]) -> Dictionary:
@@ -70,70 +70,70 @@ func _validate_cell_corner(cell: SemanticSpatialTopologyCell, neighbors: Diction
 	return cell.topology.corner == _expected_corner(neighbors)
 
 
-func _expected_corner(neighbors: Dictionary) -> SpatialTopology.Corner:
+func _expected_corner(neighbors: Dictionary) -> CellCorner.Value:
 	var shape = _expected_shape(neighbors)
-	if shape == SpatialTopology.Shape.FULL:
-		return SpatialTopology.Corner.NO
-	if shape == SpatialTopology.Shape.SINGLE:
+	if shape == CellShape.Value.FULL:
+		return CellCorner.Value.NO
+	if shape == CellShape.Value.SINGLE:
 		return _expected_single_corner(neighbors)
 	return _expected_edge_corner(neighbors)
 
 
-func _expected_single_corner(neighbors: Dictionary) -> SpatialTopology.Corner:
+func _expected_single_corner(neighbors: Dictionary) -> CellCorner.Value:
 	var top = neighbors[Vector2i.UP]
 	var bottom = neighbors[Vector2i.DOWN]
 	var left = neighbors[Vector2i.LEFT]
 	var right = neighbors[Vector2i.RIGHT]
-	var corner := SpatialTopology.Corner.NO
+	var corner := CellCorner.Value.NO
 
 	if !top and !bottom:
 		if !left and !right:
-			corner = SpatialTopology.Corner.ALL
+			corner = CellCorner.Value.ALL
 		elif !left:
-			corner = SpatialTopology.Corner.LEFT
+			corner = CellCorner.Value.LEFT
 		elif !right:
-			corner = SpatialTopology.Corner.RIGHT
+			corner = CellCorner.Value.RIGHT
 	elif !left and !right:
 		if !top:
-			corner = SpatialTopology.Corner.TOP
+			corner = CellCorner.Value.TOP
 		elif !bottom:
-			corner = SpatialTopology.Corner.BOTTOM
+			corner = CellCorner.Value.BOTTOM
 
 	return corner
 
 
-func _expected_edge_corner(neighbors: Dictionary) -> SpatialTopology.Corner:
+func _expected_edge_corner(neighbors: Dictionary) -> CellCorner.Value:
 	var top = neighbors[Vector2i.UP]
 	var bottom = neighbors[Vector2i.DOWN]
 	var left = neighbors[Vector2i.LEFT]
 	var right = neighbors[Vector2i.RIGHT]
 
 	if !top and !left:
-		return SpatialTopology.Corner.TOP_LEFT
+			return CellCorner.Value.TOP_LEFT
 	if !top and !right:
-		return SpatialTopology.Corner.TOP_RIGHT
+			return CellCorner.Value.TOP_RIGHT
 	if !bottom and !left:
-		return SpatialTopology.Corner.BOTTOM_LEFT
+			return CellCorner.Value.BOTTOM_LEFT
 	if !bottom and !right:
-		return SpatialTopology.Corner.BOTTOM_RIGHT
-	return SpatialTopology.Corner.NO
+			return CellCorner.Value.BOTTOM_RIGHT
+	return CellCorner.Value.NO
 
 
 func _describe_corner_mismatch(cell: SemanticSpatialTopologyCell, neighbors: Dictionary) -> String:
 	return (
 		"cell topology corner "
-		+ SpatialTopology.Corner.keys()[cell.topology.corner]
+		+ CellCorner.Value.keys()[cell.topology.corner]
 		+ " does not match neighbors, expected "
-		+ SpatialTopology.Corner.keys()[_expected_corner(neighbors)]
+		+ CellCorner.Value.keys()[_expected_corner(neighbors)]
 	)
 
 
 func _describe_shape_mismatch(cell: SemanticSpatialTopologyCell, neighbors: Dictionary) -> String:
 	return (
 		"cell topology shape "
-		+ SpatialTopology.Shape.keys()[cell.topology.shape]
+		+ CellShape.Value.keys()[cell.topology.shape]
 		+ " does not match neighbors, expected "
-		+ SpatialTopology.Shape.keys()[_expected_shape(neighbors)]
+		+ CellShape.Value.keys()[_expected_shape(neighbors)]
 	)
 
 
