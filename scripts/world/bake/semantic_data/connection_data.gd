@@ -1,9 +1,9 @@
 class_name ConnectionData
-extends RefCounted
+extends Resource
 
 enum Side { TOP, BOTTOM, RIGHT, LEFT }
 
-var id: StringName
-var side: Side
-var position: Vector2i
-var size: Vector2i
+@export var id: StringName
+@export var side: Side
+@export var position: Vector2i
+@export var size: Vector2i

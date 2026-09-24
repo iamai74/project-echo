@@ -1,7 +1,7 @@
 class_name SemanticCell
-extends RefCounted
+extends Resource
 
-var position: Vector2i
-var shape: CellShape.Value
-var corners: CellCorner.Value
-var flags: int
+@export var position: Vector2i
+@export var shape: CellShape.Value
+@export var corners: CellCorner.Value
+@export var flags: int

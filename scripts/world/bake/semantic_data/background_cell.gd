@@ -1,4 +1,4 @@
 class_name BackgroundCell
-extends RefCounted
+extends Resource
 
-var position: Vector2i
+@export var position: Vector2i
