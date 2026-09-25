@@ -6,3 +6,4 @@ var brushes: BrushCollection
 var semantic_data: SemanticRoomData
 var report: BakeReport
 var runtime_room_data: RoomData
+var runtime_room: Node2D

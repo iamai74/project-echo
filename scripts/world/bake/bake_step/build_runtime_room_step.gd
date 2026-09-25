@@ -21,6 +21,10 @@ func run(context: RoomBakeContext) -> RoomBakeContext:
 		context.report.add_error(issue)
 		return context
 
-	var builder = RoomDataBuilder.new()
-	context.runtime_room_data = builder.build(context.semantic_data)
+	var data_builder = RoomDataBuilder.new()
+	context.runtime_room_data = data_builder.build(context.semantic_data)
+
+	var runtime_builder = RuntimeRoomBuilder.new()
+	context.runtime_room = runtime_builder.build(context.runtime_room_data)
+
 	return context
