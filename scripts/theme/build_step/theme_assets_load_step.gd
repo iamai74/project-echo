@@ -36,7 +36,11 @@ func run(context: ThemeBuildContext) -> ThemeBuildContext:
 
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		push_error("ThemeAssetsLoadStep: Cannot open ", path)
+		context.report.add_error(ThemeBuildIssue.new(
+			ThemeBuildIssue.IssueType.FILE_NOT_FOUND,
+			ThemeBuildIssue.Severity.FATAL,
+			"Cannot open theme assets file: " + path
+		))
 		return context
 
 	var json_text := file.get_as_text()
@@ -45,12 +49,20 @@ func run(context: ThemeBuildContext) -> ThemeBuildContext:
 	var json := JSON.new()
 	var error := json.parse(json_text)
 	if error != OK:
-		push_error("ThemeAssetsLoadStep: JSON parse error in ", path, " at line ", json.get_error_line())
+		context.report.add_error(ThemeBuildIssue.new(
+			ThemeBuildIssue.IssueType.JSON_PARSE_ERROR,
+			ThemeBuildIssue.Severity.FATAL,
+			"JSON parse error in %s at line %d" % [path, json.get_error_line()]
+		))
 		return context
 
 	var data := json.get_data()
 	if data == null or not data.has("meta"):
-		push_error("ThemeAssetsLoadStep: Invalid theme JSON structure in ", path)
+		context.report.add_error(ThemeBuildIssue.new(
+			ThemeBuildIssue.IssueType.INVALID_JSON_STRUCTURE,
+			ThemeBuildIssue.Severity.FATAL,
+			"Invalid theme JSON structure in " + path
+		))
 		return context
 
 	var slices: Array = data["meta"].get("slices", [])
@@ -64,6 +76,11 @@ func run(context: ThemeBuildContext) -> ThemeBuildContext:
 		var name: String = slice.get("name", "")
 		var parsed := _parse_slice_name(name)
 		if parsed == null:
+			context.report.add_warning(ThemeBuildIssue.new(
+				ThemeBuildIssue.IssueType.INVALID_SLICE_NAME,
+				ThemeBuildIssue.Severity.WARNING,
+				"Cannot parse slice name: " + name
+			))
 			continue
 
 		var category: String = parsed["category"]
