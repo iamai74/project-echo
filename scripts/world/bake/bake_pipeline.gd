@@ -56,10 +56,5 @@ func _print_errors(context: RoomBakeContext) -> void:
 			var issues = all_issues[key] as Array[BakeIssue]
 			print(BakeIssue.IssueType.keys()[key])
 			for issue in issues:
-				print(
-					BakeIssue.Severity.keys()[issue.severity],
-					" ",
-					issue.message,
-					" ",
-					issue.position
-				)
+				var severity = BakeIssue.Severity.keys()[issue.severity]
+				print(severity, " ", issue.message, " ", issue.position)
