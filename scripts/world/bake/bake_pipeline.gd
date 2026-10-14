@@ -13,7 +13,8 @@ func _init() -> void:
 		BakeSemanticLayerStep.new(registry),
 		PostProcessStep.new(),
 		ValidateStep.new(),
-		BuildRuntimeRoomStep.new()
+		BuildRuntimeRoomStep.new(),
+		SaveRoomDataStep.new()
 	]
 
 
