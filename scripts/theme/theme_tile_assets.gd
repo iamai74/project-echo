@@ -1,6 +1,6 @@
 class_name ThemeTileAssets
 extends Resource
 
-var platforms: TilePack
-var walls: TilePack
+var platforms: TileAssetsPack
+var walls: TileAssetsPack
 var background: Array[String]

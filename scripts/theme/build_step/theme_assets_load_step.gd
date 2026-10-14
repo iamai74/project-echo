@@ -1,7 +1,6 @@
 class_name ThemeAssetsLoadStep
 extends BuildStep
 
-
 const ASSETS_PATH := "res://assets/sprites/themes/{theme}/{theme}.json"
 
 const KNOWN_TILE_TYPES := [
@@ -32,15 +31,17 @@ func get_display_name() -> String:
 
 
 func run(context: ThemeBuildContext) -> ThemeBuildContext:
-	var path := ASSETS_PATH.format({theme: context.theme_name})
+	var path := ASSETS_PATH.format({"theme": context.theme_name})
 
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		context.report.add_error(ThemeBuildIssue.new(
-			ThemeBuildIssue.IssueType.FILE_NOT_FOUND,
-			ThemeBuildIssue.Severity.FATAL,
-			"Cannot open theme assets file: " + path
-		))
+		context.report.add_error(
+			ThemeBuildIssue.new(
+				ThemeBuildIssue.IssueType.FILE_NOT_FOUND,
+				ThemeBuildIssue.Severity.FATAL,
+				"Cannot open theme assets file: " + path
+			)
+		)
 		return context
 
 	var json_text := file.get_as_text()
@@ -49,38 +50,44 @@ func run(context: ThemeBuildContext) -> ThemeBuildContext:
 	var json := JSON.new()
 	var error := json.parse(json_text)
 	if error != OK:
-		context.report.add_error(ThemeBuildIssue.new(
-			ThemeBuildIssue.IssueType.JSON_PARSE_ERROR,
-			ThemeBuildIssue.Severity.FATAL,
-			"JSON parse error in %s at line %d" % [path, json.get_error_line()]
-		))
+		context.report.add_error(
+			ThemeBuildIssue.new(
+				ThemeBuildIssue.IssueType.JSON_PARSE_ERROR,
+				ThemeBuildIssue.Severity.FATAL,
+				"JSON parse error in %s at line %d" % [path, json.get_error_line()]
+			)
+		)
 		return context
 
-	var data := json.get_data()
+	var data: Variant = json.get_data()
 	if data == null or not data.has("meta"):
-		context.report.add_error(ThemeBuildIssue.new(
-			ThemeBuildIssue.IssueType.INVALID_JSON_STRUCTURE,
-			ThemeBuildIssue.Severity.FATAL,
-			"Invalid theme JSON structure in " + path
-		))
+		context.report.add_error(
+			ThemeBuildIssue.new(
+				ThemeBuildIssue.IssueType.INVALID_JSON_STRUCTURE,
+				ThemeBuildIssue.Severity.FATAL,
+				"Invalid theme JSON structure in " + path
+			)
+		)
 		return context
 
 	var slices: Array = data["meta"].get("slices", [])
 
 	var assets := ThemeTileAssets.new()
-	assets.platforms = TilePack.new()
-	assets.walls = TilePack.new()
+	assets.platforms = TileAssetsPack.new()
+	assets.walls = TileAssetsPack.new()
 	assets.background = []
 
 	for slice in slices:
 		var name: String = slice.get("name", "")
 		var parsed := _parse_slice_name(name)
-		if parsed == null:
-			context.report.add_warning(ThemeBuildIssue.new(
-				ThemeBuildIssue.IssueType.INVALID_SLICE_NAME,
-				ThemeBuildIssue.Severity.WARNING,
-				"Cannot parse slice name: " + name
-			))
+		if parsed.is_empty():
+			context.report.add_warning(
+				ThemeBuildIssue.new(
+					ThemeBuildIssue.IssueType.INVALID_SLICE_NAME,
+					ThemeBuildIssue.Severity.WARNING,
+					"Cannot parse slice name: " + name
+				)
+			)
 			continue
 
 		var category: String = parsed["category"]
@@ -101,19 +108,22 @@ func run(context: ThemeBuildContext) -> ThemeBuildContext:
 func _parse_slice_name(name: String) -> Dictionary:
 	var variant := _extract_variant(name)
 	if variant == "":
-		return null
+		return {}
 
 	var name_without_variant := name.substr(0, name.length() - variant.length() - 1)
 
 	var category := _extract_category(name_without_variant)
 	if category == "":
-		return null
+		return {}
+
+	if category == "background":
+		return {"category": category, "tile_type": "", "variant": variant}
 
 	var remainder := name_without_variant.substr(category.length() + 1)
 	var tile_type := _match_tile_type(remainder)
 
 	if tile_type == "":
-		return null
+		return {}
 
 	return {"category": category, "tile_type": tile_type, "variant": variant}
 
@@ -140,10 +150,12 @@ func _match_tile_type(remainder: String) -> String:
 	return ""
 
 
-func _assign_to_pack(pack: TilePack, tile_type: String, variant: String) -> void:
+func _assign_to_pack(pack: TileAssetsPack, tile_type: String, variant: String) -> void:
 	match tile_type:
-		"single", "single_all":
+		"single":
 			pack.single.append(variant)
+		"single_all":
+			pack.single_all.append(variant)
 		"single_top":
 			pack.single_top.append(variant)
 		"single_bottom":

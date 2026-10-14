@@ -1,7 +1,7 @@
 class_name ThemeInfo
 extends Resource
 
-var tileset: String
+var tileset: StringName
 var platforms: TilePack
 var walls: TilePack
-var background: Array[String]
+var background: Array[TileId]
