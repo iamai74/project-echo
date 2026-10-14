@@ -5,7 +5,11 @@ var _steps: Array[BuildStep]
 
 
 func _init() -> void:
-	_steps = []
+	_steps = [
+		ThemeAssetsLoadStep.new(),
+		TileSetBuildStep.new(),
+		ThemeSaveStep.new(),
+	]
 
 
 func run(context: ThemeBuildContext) -> ThemeBuildContext:

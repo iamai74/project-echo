@@ -2,7 +2,6 @@ class_name TileSetBuildStep
 extends BuildStep
 
 const TILE_SIZE := 32
-const PLATFORM_COLLISION_HEIGHT := 4
 
 
 func get_id() -> StringName:
@@ -37,7 +36,7 @@ func run(context: ThemeBuildContext) -> ThemeBuildContext:
 	context.tileset = tileset
 
 	var theme_info := ThemeInfo.new()
-	theme_info.tileset = ""
+	theme_info.tileset = context.get_resource_prefix() + "_tileset.tres"
 	theme_info.platforms = _build_tile_pack_from_maps(
 		context.theme_tile_assets.platforms, tile_map, "platform"
 	)
@@ -89,10 +88,8 @@ func _build_tile_map(
 		tile_map[tile_name] = tile_id_val
 
 		var category := tile_info["category"] as String
-		if category == "platform":
-			_add_platform_collision(source, Vector2i.ZERO)
-		elif category == "walls":
-			_add_wall_collision(source, Vector2i.ZERO)
+		if category == "platform" or category == "walls":
+			_add_solid_collision(source, Vector2i.ZERO)
 
 	return tile_map
 
@@ -200,21 +197,7 @@ func _create_tile_source(texture: Texture2D) -> TileSetAtlasSource:
 	return source
 
 
-func _add_platform_collision(source: TileSetAtlasSource, atlas_coords: Vector2i) -> void:
-	var tile_data := source.get_tile_data(atlas_coords, 0)
-	if tile_data == null:
-		return
-	var half := TILE_SIZE / 2.0
-	tile_data.add_collision_polygon(0)
-	tile_data.set_collision_polygon_points(0, 0, PackedVector2Array([
-		Vector2(-half, -half),
-		Vector2(half, -half),
-		Vector2(half, -half + PLATFORM_COLLISION_HEIGHT),
-		Vector2(-half, -half + PLATFORM_COLLISION_HEIGHT),
-	]))
-
-
-func _add_wall_collision(source: TileSetAtlasSource, atlas_coords: Vector2i) -> void:
+func _add_solid_collision(source: TileSetAtlasSource, atlas_coords: Vector2i) -> void:
 	var tile_data := source.get_tile_data(atlas_coords, 0)
 	if tile_data == null:
 		return

@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="ThemeTileAssets" format=3]
+
+[ext_resource type="Script" path="res://scripts/theme/tile_assets_pack.gd" id="1_qa5ut"]
+[ext_resource type="Script" path="res://scripts/theme/theme_tile_assets.gd" id="2_t1xdh"]
+
+[sub_resource type="Resource" id="Resource_3rc83"]
+script = ExtResource("1_qa5ut")
+single = Array[String](["01"])
+single_all = Array[String](["01"])
+single_top = Array[String](["01"])
+single_bottom = Array[String](["01"])
+single_left = Array[String](["01"])
+single_right = Array[String](["01"])
+top = Array[String](["01"])
+bottom = Array[String](["01"])
+left = Array[String](["01"])
+right = Array[String](["01"])
+full = Array[String](["01"])
+top_left = Array[String](["01"])
+top_right = Array[String](["01"])
+bottom_left = Array[String](["01"])
+bottom_right = Array[String](["01"])
+
+[sub_resource type="Resource" id="Resource_arifp"]
+script = ExtResource("1_qa5ut")
+single = Array[String](["01"])
+single_all = Array[String](["01"])
+single_top = Array[String](["01"])
+single_bottom = Array[String](["01"])
+single_left = Array[String](["01"])
+single_right = Array[String](["01"])
+top = Array[String](["01"])
+bottom = Array[String](["01"])
+left = Array[String](["01"])
+right = Array[String](["01"])
+full = Array[String](["01"])
+top_left = Array[String](["01"])
+top_right = Array[String](["01"])
+bottom_left = Array[String](["01"])
+bottom_right = Array[String](["01"])
+
+[resource]
+script = ExtResource("2_t1xdh")
+platforms = SubResource("Resource_3rc83")
+walls = SubResource("Resource_arifp")
+background = Array[String](["01", "02", "03"])

@@ -1,10 +1,11 @@
 class_name TileId
-extends RefCounted
+extends Resource
 
-var source_id: int
-var atlas_coords: Vector2i
+@export var source_id: int
+@export var atlas_coords: Vector2i
 
-func _init(p_source_id: int, p_atlas_coords: Vector2i) -> void:
+
+func _init(p_source_id: int = 0, p_atlas_coords: Vector2i = Vector2i.ZERO) -> void:
 	source_id = p_source_id
 	atlas_coords = p_atlas_coords
 

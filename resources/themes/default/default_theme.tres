@@ -1,0 +1,179 @@
+[gd_resource type="Resource" script_class="ThemeInfo" format=3]
+
+[ext_resource type="Script" path="res://scripts/theme/tile_id.gd" id="1_a76r4"]
+[ext_resource type="Script" path="res://scripts/theme/tile_pack.gd" id="2_sckfy"]
+[ext_resource type="Script" path="res://scripts/theme/theme_info.gd" id="3_1al45"]
+
+[sub_resource type="Resource" id="Resource_hjwpn"]
+script = ExtResource("1_a76r4")
+
+[sub_resource type="Resource" id="Resource_dhpm5"]
+script = ExtResource("1_a76r4")
+source_id = 1
+
+[sub_resource type="Resource" id="Resource_3xx3h"]
+script = ExtResource("1_a76r4")
+source_id = 2
+
+[sub_resource type="Resource" id="Resource_bhdu3"]
+script = ExtResource("1_a76r4")
+source_id = 10
+
+[sub_resource type="Resource" id="Resource_2wtij"]
+script = ExtResource("1_a76r4")
+source_id = 16
+
+[sub_resource type="Resource" id="Resource_pk8eh"]
+script = ExtResource("1_a76r4")
+source_id = 17
+
+[sub_resource type="Resource" id="Resource_56bxi"]
+script = ExtResource("1_a76r4")
+source_id = 13
+
+[sub_resource type="Resource" id="Resource_n1ltl"]
+script = ExtResource("1_a76r4")
+source_id = 11
+
+[sub_resource type="Resource" id="Resource_awvl5"]
+script = ExtResource("1_a76r4")
+source_id = 12
+
+[sub_resource type="Resource" id="Resource_gv88x"]
+script = ExtResource("1_a76r4")
+source_id = 3
+
+[sub_resource type="Resource" id="Resource_pau0q"]
+script = ExtResource("1_a76r4")
+source_id = 4
+
+[sub_resource type="Resource" id="Resource_p5mu3"]
+script = ExtResource("1_a76r4")
+source_id = 6
+
+[sub_resource type="Resource" id="Resource_ub34c"]
+script = ExtResource("1_a76r4")
+source_id = 7
+
+[sub_resource type="Resource" id="Resource_wbts5"]
+script = ExtResource("1_a76r4")
+source_id = 8
+
+[sub_resource type="Resource" id="Resource_3lj1t"]
+script = ExtResource("1_a76r4")
+source_id = 5
+
+[sub_resource type="Resource" id="Resource_05nsp"]
+script = ExtResource("1_a76r4")
+source_id = 9
+
+[sub_resource type="Resource" id="Resource_4fexf"]
+script = ExtResource("1_a76r4")
+source_id = 14
+
+[sub_resource type="Resource" id="Resource_dnfox"]
+script = ExtResource("1_a76r4")
+source_id = 15
+
+[sub_resource type="Resource" id="Resource_76vtx"]
+script = ExtResource("2_sckfy")
+single = Array[ExtResource("1_a76r4")]([SubResource("Resource_gv88x")])
+single_all = Array[ExtResource("1_a76r4")]([SubResource("Resource_pau0q")])
+single_top = Array[ExtResource("1_a76r4")]([SubResource("Resource_3lj1t")])
+single_bottom = Array[ExtResource("1_a76r4")]([SubResource("Resource_p5mu3")])
+single_left = Array[ExtResource("1_a76r4")]([SubResource("Resource_ub34c")])
+single_right = Array[ExtResource("1_a76r4")]([SubResource("Resource_wbts5")])
+top = Array[ExtResource("1_a76r4")]([SubResource("Resource_05nsp")])
+bottom = Array[ExtResource("1_a76r4")]([SubResource("Resource_bhdu3")])
+left = Array[ExtResource("1_a76r4")]([SubResource("Resource_n1ltl")])
+right = Array[ExtResource("1_a76r4")]([SubResource("Resource_awvl5")])
+full = Array[ExtResource("1_a76r4")]([SubResource("Resource_56bxi")])
+top_left = Array[ExtResource("1_a76r4")]([SubResource("Resource_4fexf")])
+top_right = Array[ExtResource("1_a76r4")]([SubResource("Resource_dnfox")])
+bottom_left = Array[ExtResource("1_a76r4")]([SubResource("Resource_2wtij")])
+bottom_right = Array[ExtResource("1_a76r4")]([SubResource("Resource_pk8eh")])
+
+[sub_resource type="Resource" id="Resource_s8kc1"]
+script = ExtResource("1_a76r4")
+source_id = 25
+
+[sub_resource type="Resource" id="Resource_hj02s"]
+script = ExtResource("1_a76r4")
+source_id = 31
+
+[sub_resource type="Resource" id="Resource_sjtu2"]
+script = ExtResource("1_a76r4")
+source_id = 32
+
+[sub_resource type="Resource" id="Resource_4pnkh"]
+script = ExtResource("1_a76r4")
+source_id = 28
+
+[sub_resource type="Resource" id="Resource_8aqb1"]
+script = ExtResource("1_a76r4")
+source_id = 26
+
+[sub_resource type="Resource" id="Resource_ievjh"]
+script = ExtResource("1_a76r4")
+source_id = 27
+
+[sub_resource type="Resource" id="Resource_debud"]
+script = ExtResource("1_a76r4")
+source_id = 18
+
+[sub_resource type="Resource" id="Resource_u831a"]
+script = ExtResource("1_a76r4")
+source_id = 19
+
+[sub_resource type="Resource" id="Resource_6qq0x"]
+script = ExtResource("1_a76r4")
+source_id = 21
+
+[sub_resource type="Resource" id="Resource_h6d3h"]
+script = ExtResource("1_a76r4")
+source_id = 22
+
+[sub_resource type="Resource" id="Resource_xxumw"]
+script = ExtResource("1_a76r4")
+source_id = 23
+
+[sub_resource type="Resource" id="Resource_x6oo1"]
+script = ExtResource("1_a76r4")
+source_id = 20
+
+[sub_resource type="Resource" id="Resource_i82ix"]
+script = ExtResource("1_a76r4")
+source_id = 24
+
+[sub_resource type="Resource" id="Resource_a47f5"]
+script = ExtResource("1_a76r4")
+source_id = 29
+
+[sub_resource type="Resource" id="Resource_e1ddx"]
+script = ExtResource("1_a76r4")
+source_id = 30
+
+[sub_resource type="Resource" id="Resource_qt2ki"]
+script = ExtResource("2_sckfy")
+single = Array[ExtResource("1_a76r4")]([SubResource("Resource_debud")])
+single_all = Array[ExtResource("1_a76r4")]([SubResource("Resource_u831a")])
+single_top = Array[ExtResource("1_a76r4")]([SubResource("Resource_x6oo1")])
+single_bottom = Array[ExtResource("1_a76r4")]([SubResource("Resource_6qq0x")])
+single_left = Array[ExtResource("1_a76r4")]([SubResource("Resource_h6d3h")])
+single_right = Array[ExtResource("1_a76r4")]([SubResource("Resource_xxumw")])
+top = Array[ExtResource("1_a76r4")]([SubResource("Resource_i82ix")])
+bottom = Array[ExtResource("1_a76r4")]([SubResource("Resource_s8kc1")])
+left = Array[ExtResource("1_a76r4")]([SubResource("Resource_8aqb1")])
+right = Array[ExtResource("1_a76r4")]([SubResource("Resource_ievjh")])
+full = Array[ExtResource("1_a76r4")]([SubResource("Resource_4pnkh")])
+top_left = Array[ExtResource("1_a76r4")]([SubResource("Resource_a47f5")])
+top_right = Array[ExtResource("1_a76r4")]([SubResource("Resource_e1ddx")])
+bottom_left = Array[ExtResource("1_a76r4")]([SubResource("Resource_hj02s")])
+bottom_right = Array[ExtResource("1_a76r4")]([SubResource("Resource_sjtu2")])
+
+[resource]
+script = ExtResource("3_1al45")
+tileset = &"res://resources/themes/default/default_tileset.tres"
+platforms = SubResource("Resource_76vtx")
+walls = SubResource("Resource_qt2ki")
+background = Array[ExtResource("1_a76r4")]([SubResource("Resource_hjwpn"), SubResource("Resource_dhpm5"), SubResource("Resource_3xx3h")])

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://de6xa6aycouvj"
-path="res://.godot/imported/walls_top_righ_01.png-722e50c28b8706662cc3c11f524770b5.ctex"
+uid="uid://bn6bjuy6o7kix"
+path="res://.godot/imported/walls_top_right_01.png-2ff18bab00bac1625721ae8b79f7a769.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/themes/default/walls_top_righ_01.png"
-dest_files=["res://.godot/imported/walls_top_righ_01.png-722e50c28b8706662cc3c11f524770b5.ctex"]
+source_file="res://assets/sprites/themes/default/walls_top_right_01.png"
+dest_files=["res://.godot/imported/walls_top_right_01.png-2ff18bab00bac1625721ae8b79f7a769.ctex"]
 
 [params]
 
