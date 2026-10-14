@@ -6,7 +6,7 @@ func build(semantic_data: SemanticRoomData) -> RoomData:
 	var room_data = RoomData.new()
 
 	room_data.platforms = _to_semantic_cells(
-		semantic_data.spatial_layers.get_cells(SpatialLayer.SpatialType.FLOOR)
+		semantic_data.spatial_layers.get_cells(SpatialLayer.SpatialType.PLATFORM)
 	)
 	room_data.walls = _to_semantic_cells(
 		semantic_data.spatial_layers.get_cells(SpatialLayer.SpatialType.WALL)
@@ -55,7 +55,7 @@ func _read_corner(cell: SemanticSpatialCell) -> CellCorner.Value:
 
 func _compute_bounds(spatial_layers: SpatialLayer) -> Rect2i:
 	var all_cells: Array[SemanticSpatialCell] = []
-	all_cells.append_array(spatial_layers.get_cells(SpatialLayer.SpatialType.FLOOR))
+	all_cells.append_array(spatial_layers.get_cells(SpatialLayer.SpatialType.PLATFORM))
 	all_cells.append_array(spatial_layers.get_cells(SpatialLayer.SpatialType.WALL))
 
 	if all_cells.is_empty():

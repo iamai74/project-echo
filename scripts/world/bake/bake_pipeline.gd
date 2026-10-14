@@ -36,7 +36,7 @@ func _create_brush_collector() -> BrushCollector:
 
 func _create_registry() -> BakeProcessorRegistry:
 	var registry = BakeProcessorRegistry.new()
-	registry.register(SemanticBrush.BrushType.FLOOR, PlatformBakeProcessor.new())
+	registry.register(SemanticBrush.BrushType.PLATFORM, PlatformBakeProcessor.new())
 	registry.register(SemanticBrush.BrushType.WALL, WallBakeProcessor.new())
 	registry.register(SemanticBrush.BrushType.BACKGROUND, BackgroundBakeProcessor.new())
 	return registry

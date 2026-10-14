@@ -2,7 +2,7 @@ class_name TopologyValidator
 extends BakeValidator
 
 const _VALIDATE_TYPES: Array[SpatialLayer.SpatialType] = [
-	SpatialLayer.SpatialType.FLOOR, SpatialLayer.SpatialType.WALL
+	SpatialLayer.SpatialType.PLATFORM, SpatialLayer.SpatialType.WALL
 ]
 
 

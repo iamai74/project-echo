@@ -48,7 +48,7 @@ Gameplay Logic
 
 # Possible Semantic Types
 
-- Floor
+- Platform
 - Wall
 - Platform
 - Hazard

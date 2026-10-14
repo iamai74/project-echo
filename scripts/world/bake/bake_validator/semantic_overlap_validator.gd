@@ -3,7 +3,7 @@ extends BakeValidator
 
 
 func validate(context: RoomBakeContext) -> void:
-	_validate_two_layers(SpatialLayer.SpatialType.FLOOR, SpatialLayer.SpatialType.WALL, context)
+	_validate_two_layers(SpatialLayer.SpatialType.PLATFORM, SpatialLayer.SpatialType.WALL, context)
 
 
 func _validate_two_layers(

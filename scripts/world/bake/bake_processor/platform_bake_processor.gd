@@ -12,9 +12,9 @@ func _bake_platform(brush: PlatformBrush, semantic_room: SemanticRoomData) -> vo
 	for y in rect.size.y:
 		for x in rect.size.x:
 			var cell := rect.position + Vector2i(x, y)
-			var new_floor_cell = _create_cell(brush, cell)
+			var new_platform_cell = _create_cell(brush, cell)
 			if !semantic_room.spatial_layers.add_cell(
-				SpatialLayer.SpatialType.FLOOR, new_floor_cell
+				SpatialLayer.SpatialType.PLATFORM, new_platform_cell
 			):
 				var issue = BakeIssue.new(
 					BakeIssue.IssueType.BRUSH_OVERLAP,
@@ -25,11 +25,11 @@ func _bake_platform(brush: PlatformBrush, semantic_room: SemanticRoomData) -> vo
 				issue_found.emit(issue)
 
 
-func _create_cell(brush: PlatformBrush, cell: Vector2i) -> SemanticSpatialFloorCell:
-	var tile := SemanticSpatialFloorCell.new()
+func _create_cell(brush: PlatformBrush, cell: Vector2i) -> SemanticSpatialPlatformCell:
+	var tile := SemanticSpatialPlatformCell.new()
 	if brush.has_trait(PlatformBrush.Trait.ONE_WAY):
-		tile.traits.append(SemanticSpatialFloorCell.Trait.ONE_WAY)
+		tile.traits.append(SemanticSpatialPlatformCell.Trait.ONE_WAY)
 	if brush.has_trait(PlatformBrush.Trait.BREAKABLE):
-		tile.traits.append(SemanticSpatialFloorCell.Trait.BREAKABLE)
+		tile.traits.append(SemanticSpatialPlatformCell.Trait.BREAKABLE)
 	tile.cell = cell
 	return tile

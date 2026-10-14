@@ -1,7 +1,7 @@
 class_name SemanticCellValidator
 extends BakeValidator
 
-const _FLOOR_SHAPES: Array[CellShape.Value] = [
+const _PLATFORM_SHAPES: Array[CellShape.Value] = [
 	CellShape.Value.SINGLE,
 	CellShape.Value.TOP,
 	CellShape.Value.BOTTOM,
@@ -19,7 +19,7 @@ const _WALL_SHAPES: Array[CellShape.Value] = [
 	CellShape.Value.FULL,
 ]
 
-const _FLOOR_CORNERS: Array[CellCorner.Value] = [
+const _PLATFORM_CORNERS: Array[CellCorner.Value] = [
 	CellCorner.Value.NO,
 	CellCorner.Value.ALL,
 	CellCorner.Value.TOP,
@@ -46,7 +46,7 @@ const _WALL_CORNERS: Array[CellCorner.Value] = [
 ]
 
 const _VALIDATE_TYPES: Array[SpatialLayer.SpatialType] = [
-	SpatialLayer.SpatialType.FLOOR,
+	SpatialLayer.SpatialType.PLATFORM,
 	SpatialLayer.SpatialType.WALL,
 ]
 
@@ -101,14 +101,14 @@ func _validate_type(type: SpatialLayer.SpatialType, context: RoomBakeContext) ->
 
 func _is_acceptable_shape(shape: CellShape.Value, type: SpatialLayer.SpatialType) -> bool:
 	return (
-		type == SpatialLayer.SpatialType.FLOOR && shape in _FLOOR_SHAPES
+		type == SpatialLayer.SpatialType.PLATFORM && shape in _PLATFORM_SHAPES
 		|| type == SpatialLayer.SpatialType.WALL && shape in _WALL_SHAPES
 	)
 
 
 func _is_acceptable_corner(corner: CellCorner.Value, type: SpatialLayer.SpatialType) -> bool:
 	return (
-		type == SpatialLayer.SpatialType.FLOOR && corner in _FLOOR_CORNERS
+		type == SpatialLayer.SpatialType.PLATFORM && corner in _PLATFORM_CORNERS
 		|| type == SpatialLayer.SpatialType.WALL && corner in _WALL_CORNERS
 	)
 
@@ -158,12 +158,12 @@ func _is_acceptable_combination(shape: CellShape.Value, corner: CellCorner.Value
 
 
 func _are_valid_traits(cell: SemanticSpatialCell) -> bool:
-	var floor_cell := cell as SemanticSpatialFloorCell
-	if floor_cell == null:
+	var platform_cell := cell as SemanticSpatialPlatformCell
+	if platform_cell == null:
 		return true
 
-	for item in floor_cell.traits:
-		if item < 0 || item >= SemanticSpatialFloorCell.Trait.keys().size():
+	for item in platform_cell.traits:
+		if item < 0 || item >= SemanticSpatialPlatformCell.Trait.keys().size():
 			return false
 
 	return true

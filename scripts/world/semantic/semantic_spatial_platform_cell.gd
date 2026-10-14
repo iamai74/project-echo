@@ -1,4 +1,4 @@
-class_name SemanticSpatialFloorCell
+class_name SemanticSpatialPlatformCell
 extends SemanticSpatialTopologyCell
 enum Trait {
 	ONE_WAY,

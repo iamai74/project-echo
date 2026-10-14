@@ -175,7 +175,7 @@ Semantic information allows the same gameplay structure to receive different vis
 Example:
 
 ```text
-Semantic Floor
+Semantic Platform
 
 ↓
 
@@ -189,7 +189,7 @@ Grass Tiles
 or:
 
 ```text
-Semantic Floor
+Semantic Platform
 
 ↓
 
@@ -384,7 +384,7 @@ Designer assigns gameplay meaning.
 Example:
 
 ```text
-This tile is a Floor
+This tile is a Platform
 
 This area is Enemy Spawn
 

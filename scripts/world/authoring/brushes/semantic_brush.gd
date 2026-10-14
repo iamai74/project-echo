@@ -5,7 +5,7 @@ extends Node2D
 enum BrushType {
 	UNKNOWN,
 	#spatial
-	FLOOR,
+	PLATFORM,
 	WALL,
 	BACKGROUND,
 	#marker

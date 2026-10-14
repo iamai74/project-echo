@@ -13,7 +13,7 @@ func get_display_name() -> String:
 func run(context: RoomBakeContext) -> RoomBakeContext:
 	var bake_topology_processor = PostBakeTopologyProcessor.new()
 	var update_layers: Array[SpatialLayer.SpatialType] = [
-		SpatialLayer.SpatialType.FLOOR, SpatialLayer.SpatialType.WALL
+		SpatialLayer.SpatialType.PLATFORM, SpatialLayer.SpatialType.WALL
 	]
 	for type in update_layers:
 		var old_data = context.semantic_data.spatial_layers.get_cells(type)

@@ -11,7 +11,7 @@ enum Trait {
 
 
 func get_brush_type() -> BrushType:
-	return BrushType.FLOOR
+	return BrushType.PLATFORM
 
 
 func get_fill_color() -> Color:

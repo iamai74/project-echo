@@ -4,7 +4,7 @@ extends BakeValidator
 
 func validate(context: RoomBakeContext) -> void:
 	var validate_types: Array[SpatialLayer.SpatialType] = [
-		SpatialLayer.SpatialType.FLOOR,
+		SpatialLayer.SpatialType.PLATFORM,
 		SpatialLayer.SpatialType.WALL,
 		SpatialLayer.SpatialType.BACKGROUND
 	]

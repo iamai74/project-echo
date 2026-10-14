@@ -1,7 +1,7 @@
 class_name SpatialLayer
 extends RefCounted
 
-enum SpatialType { FLOOR, WALL, BACKGROUND }
+enum SpatialType { PLATFORM, WALL, BACKGROUND }
 
 var _layers: Dictionary = {}
 
