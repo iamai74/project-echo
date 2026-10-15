@@ -14,6 +14,7 @@ func _init() -> void:
 		PostProcessStep.new(),
 		ValidateStep.new(),
 		BuildRuntimeRoomStep.new(),
+		ApplyDefaultThemeStep.new(),
 		SaveRoomDataStep.new()
 	]
 
