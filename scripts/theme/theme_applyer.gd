@@ -33,9 +33,7 @@ func _find_tile_map(room_node: Node) -> TileMapLayer:
 
 
 func _apply_background(
-	tile_map: TileMapLayer,
-	background_ids: Array[TileId],
-	background_cells: Array[BackgroundCell]
+	tile_map: TileMapLayer, background_ids: Array[TileId], background_cells: Array[BackgroundCell]
 ) -> void:
 	for cell in background_cells:
 		var idx := _index(cell.position.y, background_ids)
@@ -45,11 +43,7 @@ func _apply_background(
 		_place(tile_map, tile_id, cell.position)
 
 
-func _apply_platforms(
-	tile_map: TileMapLayer,
-	pack: TilePack,
-	cells: Array[SemanticCell]
-) -> void:
+func _apply_platforms(tile_map: TileMapLayer, pack: TilePack, cells: Array[SemanticCell]) -> void:
 	for cell in cells:
 		var shape_name: String = CellShape.Value.keys()[cell.shape]
 		var corner_name: String = CellCorner.Value.keys()[cell.corners]
@@ -64,11 +58,7 @@ func _apply_platforms(
 		_place(tile_map, tile_id, cell.position)
 
 
-func _apply_walls(
-	tile_map: TileMapLayer,
-	pack: TilePack,
-	cells: Array[SemanticCell]
-) -> void:
+func _apply_walls(tile_map: TileMapLayer, pack: TilePack, cells: Array[SemanticCell]) -> void:
 	for cell in cells:
 		var shape_name: String = CellShape.Value.keys()[cell.shape]
 		var corner_name: String = CellCorner.Value.keys()[cell.corners]
@@ -136,10 +126,10 @@ func _get_pack_array(pack: TilePack, key: String) -> Array[TileId]:
 	return []
 
 
-func _index(position_y: int, array: Array) -> int:
+func _index(_position_y: int, array: Array) -> int:
 	if array.is_empty():
 		return -1
-	return position_y % array.size()
+	return randi() % array.size()
 
 
 func _place(tile_map: TileMapLayer, tile_id: TileId, cell_pos: Vector2i) -> void:
