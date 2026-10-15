@@ -16,20 +16,34 @@ func run(context: RoomBakeContext) -> RoomBakeContext:
 			"Runtime room data is null, cannot save"))
 		return context
 
-	var save_path = _get_save_path(context.room)
-	DirAccess.make_dir_recursive_absolute(save_path.get_base_dir())
+	var room_dir = _get_room_dir(context.room)
+	DirAccess.make_dir_recursive_absolute(room_dir)
 
-	var err = ResourceSaver.save(context.runtime_room_data, save_path)
+	var room_data_path = room_dir.path_join("%s_room_data.tres" % _get_room_filename(context.room))
+	var err = ResourceSaver.save(context.runtime_room_data, room_data_path)
 	if err != OK:
 		context.report.add_error(_error(BakeIssue.IssueType.BAKE_FAILED,
-			"Failed to save room data to %s (error %d)" % [save_path, err]))
+			"Failed to save room data to %s (error %d)" % [room_data_path, err]))
+
+	if context.runtime_room != null:
+		var runtime_path = room_dir.path_join("%s_runtime.tscn" % _get_room_filename(context.room))
+		var packed_scene = PackedScene.new()
+		packed_scene.pack(context.runtime_room)
+		var err_scene = ResourceSaver.save(packed_scene, runtime_path)
+		if err_scene != OK:
+			context.report.add_error(_error(BakeIssue.IssueType.BAKE_FAILED,
+				"Failed to save runtime room scene to %s (error %d)" % [runtime_path, err_scene]))
 
 	return context
 
 
-func _get_save_path(room: Node) -> String:
+func _get_room_dir(room: Node) -> String:
 	var filename = room.scene_file_path.get_file().get_basename()
-	return "res://scenes/rooms/%s/%s_room_data.tres" % [filename, filename]
+	return "res://scenes/rooms/%s" % filename
+
+
+func _get_room_filename(room: Node) -> String:
+	return room.scene_file_path.get_file().get_basename()
 
 
 func _error(issue_type: BakeIssue.IssueType, message: String) -> BakeIssue:
