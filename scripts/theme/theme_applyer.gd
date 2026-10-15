@@ -8,7 +8,7 @@ func apply(room_node: Node, theme: ThemeInfo, room_data: RoomData) -> void:
 		push_error("ThemeApplyer: TileMapLayer not found")
 		return
 
-	var tileset := load(theme.tileset as String) as TileSet
+	var tileset := load(theme.tileset) as TileSet
 	if tileset == null:
 		push_error("ThemeApplyer: Cannot load TileSet from ", theme.tileset)
 		return
@@ -51,8 +51,8 @@ func _apply_platforms(
 	cells: Array[SemanticCell]
 ) -> void:
 	for cell in cells:
-		var shape_name := CellShape.Value.keys()[cell.shape]
-		var corner_name := CellCorner.Value.keys()[cell.corners]
+		var shape_name: String = CellShape.Value.keys()[cell.shape]
+		var corner_name: String = CellCorner.Value.keys()[cell.corners]
 
 		var key := _select_key(shape_name, corner_name)
 		var ids := _get_pack_array(pack, key)
@@ -70,8 +70,8 @@ func _apply_walls(
 	cells: Array[SemanticCell]
 ) -> void:
 	for cell in cells:
-		var shape_name := CellShape.Value.keys()[cell.shape]
-		var corner_name := CellCorner.Value.keys()[cell.corners]
+		var shape_name: String = CellShape.Value.keys()[cell.shape]
+		var corner_name: String = CellCorner.Value.keys()[cell.corners]
 
 		var key := _select_key(shape_name, corner_name)
 		var ids := _get_pack_array(pack, key)
@@ -143,10 +143,4 @@ func _index(position_y: int, array: Array) -> int:
 
 
 func _place(tile_map: TileMapLayer, tile_id: TileId, cell_pos: Vector2i) -> void:
-	var source := tile_map.tile_set.get_source(tile_id.source_id)
-	if source == null:
-		push_error("ThemeApplyer: TileSet source ", tile_id.source_id, " not found for cell ", cell_pos)
-		return
-
-	var transform := Transform2D.IDENTITY
-	tile_map.set_cell(cell_pos, source, tile_id.atlas_coords, transform)
+	tile_map.set_cell(cell_pos, tile_id.source_id, tile_id.atlas_coords)
