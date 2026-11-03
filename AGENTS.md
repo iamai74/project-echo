@@ -24,6 +24,12 @@ Do not treat the current prototype code as permission to introduce shortcuts tha
 
 Before making architectural or non-trivial implementation changes, inspect the relevant documentation in `docs/`.
 
+Primary references:
+
+- `docs/architecture/` — gameplay architecture and conventions
+- `docs/world/` — world authoring, rooms, semantic data and bake pipeline
+- `docs/adr/` — accepted architectural decisions
+
 Documentation is the project's source of truth for:
 
 - architecture
@@ -105,6 +111,7 @@ General rules:
 - Keep scripts focused on one responsibility.
 - Follow existing naming and directory conventions.
 - Do not introduce third-party dependencies without explicit approval.
+- Manage approved Godot addons through gd-plug; do not edit managed addon files by hand.
 
 Do not rewrite working code merely to apply a personal coding style.
 
@@ -116,17 +123,30 @@ Consistency with the existing project is more important than stylistic preferenc
 
 The repository currently contains major areas such as:
 
-- `addons/` — Godot editor addons
+- `addons/` — third-party Godot addons; managed by gd-plug except the tracked `gd-plug` bootstrap
 - `assets/` — source and game assets
-- `autoload/` — autoload/singleton systems
+- `autoload/` — autoload/singleton systems (`input_setup`, `World`)
 - `docs/` — architecture and technical documentation
-- `resources/` — reusable Godot resources/data
+- `resources/` — reusable Godot resources and configuration data
 - `scenes/` — Godot scenes
 - `scripts/` — GDScript implementation
+- `plug.gd` — gd-plug dependency declarations
+- `.plugged/` — gd-plug repository cache (generated, ignored)
 
 Before creating a new directory or moving existing files, inspect the current project structure and relevant documentation.
 
 Do not introduce a new organizational convention if an existing one already solves the problem.
+
+### Dependency and plugin management
+
+Third-party Godot addons are managed with gd-plug.
+
+- Declare dependencies in `plug.gd`.
+- Install or update them with `godot --headless -s plug.gd install`.
+- Treat `.plugged/` and installed addon files as generated artifacts; do not edit them manually.
+- `addons/gd-plug/` is the tracked bootstrap. Other managed addon directories are ignored by git.
+- Enable editor plugins in `project.godot` under `[editor_plugins]`.
+- Project-specific code must never be placed in `addons/`.
 
 ---
 
@@ -156,7 +176,7 @@ Important concepts include:
 - semantic brushes
 - semantic cells/layers
 - room data
-- room database
+- room database (planned; implementation not fixed)
 - bake pipeline
 - bake steps
 - bake processors
@@ -227,6 +247,14 @@ Themes are visual/content configuration applied to already-defined room data.
 A room should be reusable across different biome themes.
 
 Theme application should primarily determine visual representation from existing room/semantic coordinates.
+
+Theme building and theme application are separate responsibilities:
+
+- `ThemeBuilder` runs its own `BuildStep` pipeline to produce theme/TileSet data.
+- `ThemeApplyer` maps built theme data onto existing room/semantic cells.
+- The theme build pipeline is not part of the world `BakePipeline` and must not mutate room topology.
+
+Theme source assets live under `assets/sprites/themes/`; built theme resources live under `resources/themes/`.
 
 Do not encode room topology or gameplay semantics into a biome theme.
 
@@ -324,6 +352,10 @@ Prefer:
 4. build/import checks;
 5. targeted runtime testing.
 
+Gut is installed as a dev dependency through gd-plug and is the preferred framework for new unit tests. Targeted test scenes currently live under `scripts/**/test/`.
+
+For parser/import validation, run Godot in headless editor mode with `godot --headless --editor --quit`.
+
 Do not consider code complete merely because it looks syntactically correct.
 
 If a required check cannot be executed, report that explicitly rather than claiming the change was verified.
@@ -373,7 +405,8 @@ Do not:
 - reformat large parts of the project unnecessarily;
 - remove existing functionality without a reason;
 - overwrite user changes;
-- reset or discard changes you did not create.
+- reset or discard changes you did not create;
+- commit `.plugged/` or gd-plug-managed addon files (`plug.gd` and `addons/gd-plug/` are the source of truth).
 
 Before considering a task complete, inspect the final diff.
 
