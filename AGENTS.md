@@ -352,7 +352,7 @@ Prefer:
 4. build/import checks;
 5. targeted runtime testing.
 
-Gut is installed as a dev dependency through gd-plug and is the preferred framework for new unit tests. Targeted test scenes currently live under `scripts/**/test/`.
+GdUnit4 is installed as a dev dependency through gd-plug and is the preferred framework for new unit tests. All test suites live under `scripts/test/`.
 
 For parser/import validation, run Godot in headless editor mode with `godot --headless --editor --quit`.
 

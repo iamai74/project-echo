@@ -60,3 +60,7 @@ crashlog.txt
 addons/*
 !addons/gd-plug/
 
+# GdUnit4 test results
+reports/
+GdUnitRunner.cfg
+
