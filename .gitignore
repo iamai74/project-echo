@@ -56,3 +56,7 @@ crashlog.txt
 # gd-plug
 .plugged/
 
+# Godot addons - ignore managed dependencies, keep gd-plug tracked
+addons/*
+!addons/gd-plug/
+
