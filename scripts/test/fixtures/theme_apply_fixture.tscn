@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[node name="ThemeApplyFixture" type="Node2D"]
+
+[node name="Semantic" type="Node2D" parent="."]
+
+[node name="Tiles" type="TileMapLayer" parent="Semantic"]

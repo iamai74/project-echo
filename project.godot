@@ -33,6 +33,7 @@ enabled=PackedStringArray("res://addons/beautify_code_on_save/plugin.cfg", "res:
 
 settings/test/test_suite_naming_convention=1
 ui/inspector/tree_view_mode=1
+ui/inspector/tree_sort_mode=1
 
 [godot_ai]
 

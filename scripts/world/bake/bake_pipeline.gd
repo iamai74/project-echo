@@ -4,19 +4,22 @@ extends RefCounted
 var _steps: Array[BakeStep] = []
 
 
-func _init() -> void:
-	var registry = _create_registry()
-	var collector = _create_brush_collector()
-	_steps = [
-		CollectBrushesStep.new(collector),
-		InitSemanticDataStep.new(),
-		BakeSemanticLayerStep.new(registry),
-		PostProcessStep.new(),
-		ValidateStep.new(),
-		BuildRuntimeRoomStep.new(),
-		ApplyDefaultThemeStep.new(),
-		SaveRoomDataStep.new()
-	]
+func _init(custom_steps: Array[BakeStep] = []) -> void:
+	if custom_steps.is_empty():
+		var registry = _create_registry()
+		var collector = _create_brush_collector()
+		_steps = [
+			CollectBrushesStep.new(collector),
+			InitSemanticDataStep.new(),
+			BakeSemanticLayerStep.new(registry),
+			PostProcessStep.new(),
+			ValidateStep.new(),
+			BuildRuntimeRoomStep.new(),
+			ApplyDefaultThemeStep.new(),
+			SaveRoomDataStep.new()
+		]
+	else:
+		_steps = custom_steps
 
 
 func run(context: RoomBakeContext) -> RoomBakeContext:
