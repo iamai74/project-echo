@@ -41,7 +41,7 @@ func consume_dash() -> bool:
 
 
 func is_grounded() -> bool:
-	return player.is_on_floor()
+	return player.is_grounded()
 
 
 func is_falling() -> bool:

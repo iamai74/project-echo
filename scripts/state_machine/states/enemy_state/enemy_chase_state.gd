@@ -3,13 +3,13 @@ extends EnemyState
 
 
 func physics_update_state(_delta: float) -> void:
-	if not actor.is_on_floor():
+	if not actor.is_grounded():
 		change_state("Fall")
 		return
 
 	var target_pos = enemy.get_target_position()
 	if target_pos != Vector2.INF:
-		if actor.distance_to(enemy) <= _get_attack_range():
+		if actor.global_position.distance_to(target_pos) <= _get_attack_range():
 			change_state("Attack")
 			return
 		var direction = 1.0 if target_pos.x > actor.global_position.x else -1.0

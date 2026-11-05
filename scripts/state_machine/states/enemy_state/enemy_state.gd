@@ -16,7 +16,7 @@ func setup() -> void:
 
 
 func is_grounded() -> bool:
-	return enemy.is_on_floor()
+	return enemy.is_grounded()
 
 
 func is_falling() -> bool:

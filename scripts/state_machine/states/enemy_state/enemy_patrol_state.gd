@@ -13,11 +13,11 @@ func enter() -> void:
 
 
 func physics_update_state(_delta: float) -> void:
-	if not actor.is_on_floor():
+	if not actor.is_grounded():
 		change_state("Fall")
 		return
 
-	if actor.is_on_wall():
+	if actor.is_touching_wall():
 		_direction *= -1.0
 	else:
 		var offset := actor.global_position.x - _patrol_origin_x

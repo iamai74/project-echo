@@ -3,6 +3,6 @@ extends EnemyState
 
 
 func physics_update_state(_delta: float) -> void:
-	if actor.is_on_floor():
+	if actor.is_grounded():
 		change_state("Idle")
 		return

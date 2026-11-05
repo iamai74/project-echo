@@ -61,6 +61,14 @@ func die():
 	queue_free()
 
 
+func is_grounded() -> bool:
+	return is_on_floor()
+
+
+func is_touching_wall() -> bool:
+	return is_on_wall()
+
+
 func move(direction: float):
 	velocity.x = (direction * data.move_speed)
 
@@ -80,7 +88,7 @@ func light_attack() -> void:
 
 
 func _update_coyote_timer(delta: float) -> void:
-	if is_on_floor():
+	if is_grounded():
 		coyote_timer = data.coyote_time
 		jump_count = data.max_jumps
 	else:
@@ -88,7 +96,7 @@ func _update_coyote_timer(delta: float) -> void:
 
 
 func _apply_gravity(delta: float) -> void:
-	if not is_on_floor():
+	if not is_grounded():
 		velocity.y += data.gravity * delta
 
 

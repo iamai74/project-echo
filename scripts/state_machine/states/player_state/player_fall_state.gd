@@ -3,7 +3,7 @@ extends PlayerState
 
 
 func physics_update_state(_delta: float) -> void:
-	if player.is_on_floor():
+	if player.is_grounded():
 		change_state("Idle")
 		return
 
