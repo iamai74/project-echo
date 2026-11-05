@@ -11,9 +11,11 @@ var _layers: Dictionary = {}
 
 func add_item(type: VolumeType, item: SemanticVolume) -> void:
 	if !_layers.has(type):
-		_layers[type] = []
+		var empty_volumes: Array[SemanticVolume] = []
+		_layers[type] = empty_volumes
 	_layers[type].append(item)
 
 
 func get_items(type: VolumeType) -> Array[SemanticVolume]:
-	return _layers.get(type, [])
+	var empty_volumes: Array[SemanticVolume] = []
+	return _layers.get(type, empty_volumes)

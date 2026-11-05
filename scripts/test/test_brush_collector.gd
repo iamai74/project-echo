@@ -5,7 +5,7 @@ extends GdUnitTestSuite
 
 
 func test_collects_brush_at_root_node() -> void:
-	var root = PlatformBrush.new()
+	var root = auto_free(PlatformBrush.new())
 	root.position = Vector2(0, 0)
 	root.size = Vector2i(1, 1)
 	
@@ -16,7 +16,7 @@ func test_collects_brush_at_root_node() -> void:
 
 
 func test_recursively_collects_nested_brushes() -> void:
-	var root = Node2D.new()
+	var root = auto_free(Node2D.new())
 	var child = Node2D.new()
 	root.add_child(child)
 	
@@ -38,7 +38,7 @@ func test_recursively_collects_nested_brushes() -> void:
 
 
 func test_ignores_non_brush_nodes() -> void:
-	var root = Node2D.new()
+	var root = auto_free(Node2D.new())
 	var non_brush = Node2D.new()
 	root.add_child(non_brush)
 	
@@ -54,7 +54,7 @@ func test_ignores_non_brush_nodes() -> void:
 
 
 func test_preserves_collection_when_no_brushes_exist() -> void:
-	var root = Node2D.new()
+	var root = auto_free(Node2D.new())
 	
 	var collector = BrushCollector.new()
 	var collection = collector.collect(root)
@@ -65,7 +65,7 @@ func test_preserves_collection_when_no_brushes_exist() -> void:
 
 
 func test_does_not_collect_disabled_brushes() -> void:
-	var root = Node2D.new()
+	var root = auto_free(Node2D.new())
 	var brush = PlatformBrush.new()
 	brush.position = Vector2(0, 0)
 	brush.size = Vector2i(1, 1)

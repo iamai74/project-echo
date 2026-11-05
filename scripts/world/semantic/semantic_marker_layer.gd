@@ -12,9 +12,11 @@ var _layers: Dictionary = {}
 
 func add_marker(type: MarkerType, marker: SemanticMarker) -> void:
 	if !_layers.has(type):
-		_layers[type] = []
+		var empty_markers: Array[SemanticMarker] = []
+		_layers[type] = empty_markers
 	_layers[type].append(marker)
 
 
 func get_markers(type: MarkerType) -> Array[SemanticMarker]:
-	return _layers.get(type, [])
+	var empty_markers: Array[SemanticMarker] = []
+	return _layers.get(type, empty_markers)
