@@ -1,4 +1,4 @@
-class_name EmenyHurtState
+class_name EnemyHurtState
 extends EnemyState
 
 

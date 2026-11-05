@@ -156,7 +156,7 @@ static func add_enemy_states(enemy: StubEnemy) -> void:
 	add_state(enemy.state_machine, "Patrol", EnemyPatrolState.new())
 	add_state(enemy.state_machine, "Chase", EnemyChaseState.new())
 	add_state(enemy.state_machine, "Attack", EnemyAttackState.new())
-	add_state(enemy.state_machine, "Hurt", EmenyHurtState.new())
+	add_state(enemy.state_machine, "Hurt", EnemyHurtState.new())
 	add_state(enemy.state_machine, "Dead", EnemyDeadState.new())
 
 
