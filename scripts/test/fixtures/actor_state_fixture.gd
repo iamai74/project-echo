@@ -53,6 +53,27 @@ class StubEnemy:
 		return target_position
 
 
+class StubWalker:
+	extends Walker
+
+	var grounded := false
+	var on_wall := false
+	var died := false
+	var target_position := Vector2.INF
+
+	func is_grounded() -> bool:
+		return grounded
+
+	func is_touching_wall() -> bool:
+		return on_wall
+
+	func die() -> void:
+		died = true
+
+	func get_target_position() -> Vector2:
+		return target_position
+
+
 class StubInputComponent:
 	extends InputComponent
 
@@ -137,6 +158,35 @@ static func build_enemy() -> StubEnemy:
 	return enemy
 
 
+static func build_walker() -> StubWalker:
+	var walker := StubWalker.new()
+	walker.data = ActorData.new()
+
+	var health := HealthComponent.new()
+	health.name = "HealthComponent"
+	walker.add_child(health)
+
+	var hurtbox := HurtboxComponent.new()
+	hurtbox.name = "HurtboxComponent"
+	walker.add_child(hurtbox)
+
+	var state_machine := StateMachine.new()
+	state_machine.name = "StateMachine"
+	walker.add_child(state_machine)
+
+	var weapon := StubWeaponComponent.new()
+	weapon.name = "WeaponComponent"
+	walker.add_child(weapon)
+
+	walker.health = health
+	walker.hurtbox = hurtbox
+	walker.state_machine = state_machine
+	walker.weapon_component = weapon
+
+	health.initialize(walker.data.max_health)
+	return walker
+
+
 static func add_player_states(player: StubPlayer) -> void:
 	add_state(player.state_machine, "Idle", PlayerIdleState.new())
 	add_state(player.state_machine, "Move", PlayerMoveState.new())
@@ -149,7 +199,7 @@ static func add_player_states(player: StubPlayer) -> void:
 	add_state(player.state_machine, "Dash", State.new())
 
 
-static func add_enemy_states(enemy: StubEnemy) -> void:
+static func add_enemy_states(enemy: Enemy) -> void:
 	add_state(enemy.state_machine, "Idle", EnemyIdleState.new())
 	add_state(enemy.state_machine, "Move", EnemyMoveState.new())
 	add_state(enemy.state_machine, "Fall", EnemyFallState.new())
@@ -175,3 +225,9 @@ static func start_enemy(enemy: Enemy, initial_state: String = "Idle") -> void:
 	enemy.state_machine.initialize(enemy)
 	enemy.state_machine.setup_states()
 	enemy.state_machine.start(initial_state)
+
+
+static func start_walker(walker: Walker, initial_state: String = "Idle") -> void:
+	walker.state_machine.initialize(walker)
+	walker.state_machine.setup_states()
+	walker.state_machine.start(initial_state)

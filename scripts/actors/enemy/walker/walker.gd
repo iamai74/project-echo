@@ -24,7 +24,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _try_start_patrol(previous_position: Vector2) -> void:
-	if not is_on_floor():
+	if not is_grounded():
 		return
 
 	if global_position.is_equal_approx(previous_position):
