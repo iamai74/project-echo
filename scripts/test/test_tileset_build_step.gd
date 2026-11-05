@@ -4,6 +4,25 @@
 extends GdUnitTestSuite
 
 
+const TILE_PACK_FIELDS := [
+	"single",
+	"single_all",
+	"single_top",
+	"single_bottom",
+	"single_left",
+	"single_right",
+	"top",
+	"bottom",
+	"left",
+	"right",
+	"full",
+	"top_left",
+	"top_right",
+	"bottom_left",
+	"bottom_right",
+]
+
+
 # ── Missing ThemeTileAssets adds fatal issue ─────────────────────────
 
 func test_missing_theme_tile_assets_adds_fatal_issue() -> void:
@@ -16,6 +35,7 @@ func test_missing_theme_tile_assets_adds_fatal_issue() -> void:
 	step.run(context)
 	
 	assert_bool(context.report.has_fatal()).is_true()
+	assert_object(context.tileset).is_null()
 
 
 # ── Tile collection helpers ──────────────────────────────────────────
@@ -23,23 +43,25 @@ func test_missing_theme_tile_assets_adds_fatal_issue() -> void:
 func test_collect_all_tiles_includes_background_platform_walls() -> void:
 	var step = TileSetBuildStep.new()
 	var assets = ThemeTileAssets.new()
-	assets.platforms = TileAssetsPack.new()
-	assets.walls = TileAssetsPack.new()
+	var platforms := TileAssetsPack.new()
+	var platform_single: Array[String] = ["p1"]
+	platforms.single = platform_single
+	assets.platforms = platforms
+	var walls := TileAssetsPack.new()
+	var wall_single: Array[String] = ["w1"]
+	walls.single = wall_single
+	assets.walls = walls
 	var background: Array[String] = ["bg1", "bg2"]
 	assets.background = background
 	
 	# Use a reflected call to access the private method
 	var result: Array = step._collect_all_tiles(assets)
 	
-	# Should include background variants and platform/wall variants
 	assert_bool(result is Array).is_true()
-	# Background tiles are present
-	var has_background := false
+	var categories: Array[String] = []
 	for tile_info: Dictionary in result:
-		if tile_info["category"] == "background":
-			has_background = true
-			break
-	assert_bool(has_background).is_true()
+		categories.append(tile_info["category"])
+	assert_array(categories).contains_exactly(["background", "background", "platform", "walls"])
 
 
 func test_collect_all_tiles_duplicate_names_added_once() -> void:
@@ -122,3 +144,75 @@ func test_map_ids_with_suffix_returns_only_present_ids() -> void:
 func test_tile_size_is_32() -> void:
 	var step = TileSetBuildStep.new()
 	assert_int(step.TILE_SIZE).is_equal(32)
+
+
+# ── Full build against the default theme assets ──────────────────────
+
+func _build_default_theme_context() -> ThemeBuildContext:
+	var context := ThemeBuildContext.new()
+	context.theme_name = "default"
+	context.report = ThemeBuildReport.new()
+	ThemeAssetsLoadStep.new().run(context)
+	return context
+
+
+func _collect_tile_ids(pack: TilePack) -> Array[TileId]:
+	var result: Array[TileId] = []
+	for field in TILE_PACK_FIELDS:
+		var ids: Array = pack.get(field)
+		result.append_array(ids)
+	return result
+
+
+func _assert_has_collision(tileset: TileSet, tile_id: TileId) -> void:
+	var source := tileset.get_source(tile_id.source_id) as TileSetAtlasSource
+	assert_object(source).is_not_null()
+	var tile_data := source.get_tile_data(tile_id.atlas_coords, 0)
+	assert_object(tile_data).is_not_null()
+	assert_int(tile_data.get_collision_polygons_count(0)).is_equal(1)
+
+
+func _assert_has_no_collision(tileset: TileSet, tile_id: TileId) -> void:
+	var source := tileset.get_source(tile_id.source_id) as TileSetAtlasSource
+	assert_object(source).is_not_null()
+	var tile_data := source.get_tile_data(tile_id.atlas_coords, 0)
+	assert_object(tile_data).is_not_null()
+	assert_int(tile_data.get_collision_polygons_count(0)).is_zero()
+
+
+func test_output_theme_info_references_generated_tileset_path() -> void:
+	var context := _build_default_theme_context()
+	assert_bool(context.report.has_fatal()).is_false()
+
+	TileSetBuildStep.new().run(context)
+
+	assert_bool(context.report.has_fatal()).is_false()
+	assert_str(context.theme_info.tileset).is_equal(
+		"res://resources/themes/default/default_tileset.tres"
+	)
+
+
+func test_platform_and_wall_sources_receive_solid_collision() -> void:
+	var context := _build_default_theme_context()
+
+	TileSetBuildStep.new().run(context)
+
+	var platform_ids := _collect_tile_ids(context.theme_info.platforms)
+	var wall_ids := _collect_tile_ids(context.theme_info.walls)
+	assert_bool(platform_ids.is_empty()).is_false()
+	assert_bool(wall_ids.is_empty()).is_false()
+
+	for tile_id in platform_ids:
+		_assert_has_collision(context.tileset, tile_id)
+	for tile_id in wall_ids:
+		_assert_has_collision(context.tileset, tile_id)
+
+
+func test_background_sources_receive_no_collision() -> void:
+	var context := _build_default_theme_context()
+
+	TileSetBuildStep.new().run(context)
+
+	assert_bool(context.theme_info.background.is_empty()).is_false()
+	for tile_id in context.theme_info.background:
+		_assert_has_no_collision(context.tileset, tile_id)

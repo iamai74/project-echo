@@ -51,14 +51,16 @@ func _make_context() -> ThemeBuildContext:
 
 func test_default_constructor_creates_expected_steps_in_order() -> void:
 	var builder = ThemeBuilder.new()
-	
-	# The builder creates 3 steps: ThemeAssetsLoadStep, TileSetBuildStep, ThemeSaveStep
-	# We can't directly access _steps, but we can verify by running the builder
-	# with a context and checking the steps execute in order.
-	var context = _make_context()
-	# ThemeAssetsLoadStep will fail without assets file, so we verify by checking
-	# that the builder has been constructed.
-	assert_object(builder).is_not_null()
+
+	var step_ids: Array[StringName] = []
+	for step in builder._steps:
+		step_ids.append(step.get_id())
+
+	assert_array(step_ids).contains_exactly([
+		&"theme_assets_load",
+		&"tileset_build",
+		&"theme_save",
+	])
 
 
 func test_fatal_report_prevents_later_steps() -> void:

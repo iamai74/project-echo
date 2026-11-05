@@ -150,22 +150,29 @@ func test_save_room_data_step_fatal_when_data_null() -> void:
 	assert_bool(context.report.is_has_fatal()).is_true
 
 
-func test_save_room_data_step_derives_paths_from_scene() -> void:
+func test_save_room_data_step_derives_room_filename_from_scene_path() -> void:
 	var step = SaveRoomDataStep.new()
-	var context = _make_empty_context()
+	var room = auto_free(
+		load("res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn")
+		.instantiate()
+	)
 
-	# Set up a room node with a fake scene path
-	var room = auto_free(Node2D.new())
-	# We can't set scene_file_path directly, but we can test the helper methods
-	# by calling them through the step. The step uses room.scene_file_path internally.
-	# Since we can't mock scene_file_path easily in headless, test that a null
-	# runtime_room_data is caught before any path logic runs.
-	context.room = room
+	assert_str(room.scene_file_path).is_equal(
+		"res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn"
+	)
+	assert_str(step._get_room_filename(room)).is_equal("test_scene_for_bake_runtime")
 
-	step.run(context)
 
-	# Should fail because runtime_room_data is null
-	assert_bool(context.report.is_has_fatal()).is_true
+func test_save_room_data_step_derives_room_dir_from_scene_path() -> void:
+	var step = SaveRoomDataStep.new()
+	var room = auto_free(
+		load("res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn")
+		.instantiate()
+	)
+
+	assert_str(step._get_room_dir(room)).is_equal(
+		"res://scenes/rooms/test_scene_for_bake_runtime"
+	)
 
 
 # ── Helpers ───────────────────────────────────────────────────────
