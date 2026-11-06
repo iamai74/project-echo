@@ -1,15 +1,17 @@
 # Resources
 
-> **Last Updated:** 2026-07-20
+> **Status:** In Progress
 >
-> **Related**
+> **Last Updated:** 2026-11-06
 >
-> - resources-catalog.md
-> - actor.md
-> - components.md
-> - combat-architecture.md
-> - world/room-data.md
-> - ADR-004 — Store RoomData as a Godot Resource
+> **Related:**
+> - [resources-catalog.md](resources-catalog.md)
+> - [actor.md](actor.md)
+> - [components.md](components.md)
+> - [combat-architecture.md](combat-architecture.md)
+> - [world/room-data.md](../world/room-data.md)
+> - [world/themes.md](../world/themes.md)
+> - [ADR-004 — Store RoomData as a Godot Resource](../adr/ADR-004-room-data-as-resource.md)
 
 ---
 
@@ -17,25 +19,24 @@
 
 This document defines how **Godot Resources** are used throughout Project Echo.
 
-Resources are the primary mechanism for storing gameplay configuration.
-
-They separate static project data from runtime behaviour, allowing gameplay systems to remain modular, reusable and data-driven.
+Resources separate static project data from runtime behaviour, allowing gameplay and world systems to remain modular, reusable and data-driven.
 
 ---
 
 # What is a Resource?
 
-A Resource is a serializable data object that describes gameplay configuration.
+A Resource is a serializable data object. Resources describe data; they do not execute gameplay logic.
 
-Resources do not execute gameplay logic.
+Current examples include:
 
-Instead, runtime systems read Resources and use them to perform gameplay behaviour.
+- `ActorData`
+- `WeaponData`
+- `AttackDefinition`
+- `RoomData`
+- `ThemeInfo`
+- `WorldSettings`
 
-Examples include:
-
-- WeaponData
-- AttackDefinition
-- RoomData
+Runtime systems read Resources and use them to perform behaviour.
 
 ---
 
@@ -44,61 +45,57 @@ Examples include:
 Resources are used to:
 
 - separate data from code;
-- make gameplay configurable;
+- make configuration editable in the Godot Inspector;
 - reduce hardcoded values;
 - simplify balancing;
 - improve reusability;
-- expose editable properties in the Godot Inspector.
+- preserve baked world data between runs.
 
 ---
 
-# Core Principles
+# Core Separation
 
-Project Echo follows a strict separation between:
+Project Echo separates data from execution:
 
 ```text
-Configuration
+Configuration / Baked Data
 
-↓
+        ↓
 
 Runtime Execution
 
-↓
+        ↓
 
 Gameplay Result
 ```
 
-Resources belong to the **Configuration** layer.
-
-Components and States belong to the **Runtime Execution** layer.
+Resources belong to the data layer. Components, states, builders and applyers belong to the runtime execution layer.
 
 ---
 
 # Responsibilities
 
-Resources are responsible for describing gameplay objects.
-
-Typical information includes:
+Resources describe gameplay or world data. Typical contents include:
 
 - gameplay parameters;
-- metadata;
 - timing values;
-- references to assets;
+- asset references;
+- semantic room data;
+- theme tile mappings;
+- world settings;
 - designer-authored configuration.
 
-Resources should be deterministic.
-
-The same input should always produce the same configuration.
+Baked Resources such as `RoomData` and `ThemeInfo` are produced by pipelines and should be regenerated from their sources.
 
 ---
 
 # Non-Responsibilities
 
-Resources should **never** be responsible for:
+Resources should never own:
 
 - gameplay logic;
-- AI;
-- physics;
+- AI decisions;
+- physics processing;
 - state transitions;
 - timers;
 - runtime state;
@@ -108,81 +105,141 @@ Those responsibilities belong to runtime systems.
 
 ---
 
-# Configuration vs Runtime
+# Resource Categories
 
-Project Echo explicitly separates configuration from runtime objects.
+Project Echo currently uses five conceptual categories.
 
-```text
-Configuration
+## Gameplay Configuration
 
-WeaponData
+Describes actor and combat behaviour.
 
-AttackDefinition
+Examples:
 
-RoomData
-
-↓
-
-Runtime
-
-WeaponComponent
-
-AttackData
-
-RuntimeRoom
-```
-
-Resources describe behaviour.
-
-Runtime objects execute behaviour.
+- `ActorData` — health, movement, jump and gravity parameters;
+- `WeaponData` — weapon identity and available attacks;
+- `AttackDefinition` — damage, timing, animation and hitbox configuration.
 
 ---
 
-# Lifetime
+## World Settings
 
-Resources typically exist for the entire lifetime of the project.
+Global world configuration.
 
-They are:
+Example:
 
-- saved as project assets;
-- loaded when needed;
-- shared by multiple runtime objects;
-- reused across scenes.
+- `WorldSettings` — currently exposes `tile_size` (default `32`);
+- exposed at runtime through the `World` autoload as `World.settings`.
 
-Runtime objects are created and destroyed during gameplay.
+`World.settings.tile_size` is used by authoring brushes to convert pixel positions and sizes into grid coordinates.
+
+---
+
+## Baked World Data
+
+Produced by the room bake pipeline and consumed by runtime room construction and theme application.
+
+Examples:
+
+- `RoomData`;
+- `SemanticCell`;
+- `BackgroundCell`;
+- `ConnectionData`.
+
+`RoomData` is stored as a project asset and describes the validated semantic layout of a room. It contains no runtime gameplay state.
+
+---
+
+## Theme Data
+
+Produced by the theme build pipeline and used to apply visual representation to baked room data.
+
+Examples:
+
+- `ThemeInfo` — TileSet path plus platform, wall and background tile mappings;
+- `TilePack` — tile variants for one category (`platform` or `walls`);
+- `ThemeTileAssets` — loaded asset names before TileSet construction;
+- `TileAssetsPack` — variant names grouped by tile type;
+- `TileId` — a source ID and atlas coordinate pair.
+
+Theme data must not encode room topology or gameplay semantics.
+
+---
+
+## Runtime Data
+
+Temporary objects created during execution. Most are not Godot Resources.
+
+Examples:
+
+- `AttackData` — `RefCounted` combat payload;
+- `SemanticRoomData` — in-memory semantic room during bake;
+- `SpatialTopology` — computed shape and corner data;
+- `SpatialLayer`, `MarkerLayer`, `VolumeLayer` — in-memory semantic layers;
+- `BakeReport`, `ThemeBuildReport` — pipeline diagnostics;
+- `InputCommand`, `Command` — input intent.
+
+These objects follow the same data/behaviour separation as Resources even when they are not serialized.
+
+---
+
+# Configuration vs Runtime
+
+```text
+Configuration / Baked Data
+
+ActorData
+WeaponData
+AttackDefinition
+RoomData
+ThemeInfo
+
+        ↓
+
+Runtime
+
+Actor
+WeaponComponent
+AttackData
+RuntimeRoom
+ThemeApplyer
+```
+
+Resources describe data. Runtime objects execute behaviour.
 
 ---
 
 # Ownership
 
-Resources never own gameplay systems.
-
-Instead, gameplay systems reference Resources.
-
-Example:
+Resources do not own gameplay systems. Gameplay systems reference Resources.
 
 ```text
 Actor
 │
+├── ActorData
+├── HealthComponent
+├── HurtboxComponent
+├── StateMachine
 └── WeaponComponent
-		│
-		▼
-	WeaponData
-			│
-			▼
-	AttackDefinition
+        │
+        ├── WeaponData
+        └── AttackDefinition
 ```
-
-Example:
 
 ```text
-RuntimeRoom
-		│
-		▼
-	RoomData
+Runtime room construction
+        │
+        ▼
+RoomData
 ```
 
-Resources have no knowledge of who owns them.
+```text
+ThemeApplyer
+        │
+        ├── ThemeInfo
+        └── RoomData
+```
+
+A Resource has no knowledge of who uses it.
 
 ---
 
@@ -190,162 +247,49 @@ Resources have no knowledge of who owns them.
 
 Resources should generally be treated as immutable during gameplay.
 
-Configuration should not change while the game is running.
-
 Good:
 
 ```text
-WeaponData
+ActorData
 
-damage = 20
+max_health = 5
+move_speed = 220.0
 ```
 
 Bad:
 
 ```text
-WeaponData
+ActorData
 
-current_combo = 2
+current_health = 3
 ```
 
-Current combo is runtime state.
+Current health belongs to `HealthComponent`.
 
-It belongs inside WeaponComponent.
+Baked data such as `RoomData` and `ThemeInfo` is also immutable at runtime. Regenerating it is a bake/build operation, not a gameplay operation.
 
 ---
 
 # Runtime Data
 
-Not every gameplay data object is a Resource.
+Not every data object is a Resource.
 
-Example:
+`AttackData`, for example, is a `RefCounted` object created when `WeaponComponent.start_attack()` begins an attack. It transports:
 
-```text
-AttackData
-```
+- `damage`;
+- `knockback_force`;
+- `source`;
+- `direction`.
 
-AttackData is implemented as a `RefCounted` runtime object.
-
-Its purpose is transporting combat information during a single attack.
-
-Unlike Resources:
-
-- it is created at runtime;
-- it is short-lived;
-- it is never saved as an asset.
-
-This distinction keeps configuration separate from gameplay execution.
-
----
-
-# Resource Categories
-
-Project Echo currently uses three conceptual categories.
-
-## Gameplay Configuration
-
-Describes gameplay behaviour.
-
-Examples:
-
-- WeaponData
-- AttackDefinition
-
----
-
-## World Configuration
-
-Describes authored world content.
-
-Examples:
-
-- RoomData
-
----
-
-## Runtime Data
-
-Temporary gameplay objects created during execution.
-
-Examples:
-
-- AttackData *(RefCounted, not a Resource)*
-
-Although Runtime Data is not implemented as a Godot Resource, it follows the same architectural goal of separating data from behaviour.
-
----
-
-# Data Ownership
-
-The following rule should always be respected.
-
-Configuration belongs to Resources.
-
-Runtime state belongs to runtime systems.
-
-Example:
-
-Configuration:
-
-```text
-AttackDefinition
-
-damage
-
-startup
-
-active
-
-recovery
-```
-
-Runtime:
-
-```text
-WeaponComponent
-
-current_attack
-
-attack_timer
-
-combo_index
-```
-
----
-
-Configuration:
-
-```text
-RoomData
-
-difficulty
-
-allowed_biomes
-
-tags
-```
-
-Runtime:
-
-```text
-RuntimeRoom
-
-visited
-
-doors_open
-
-enemies_alive
-```
+It is short-lived and never saved as a project asset.
 
 ---
 
 # Communication
 
-Resources do not communicate with gameplay systems.
+Resources do not communicate with gameplay systems. They expose data only.
 
-They expose data only.
-
-Components decide how that data is interpreted.
+Components, states and builders decide how that data is interpreted.
 
 ---
 
@@ -353,42 +297,31 @@ Components decide how that data is interpreted.
 
 ## Data-Driven Architecture
 
-Gameplay behaviour should be defined through configuration rather than hardcoded values.
-
----
+Gameplay and world behaviour should be defined through configuration and baked data rather than hardcoded values.
 
 ## Reusability
 
-The same Resource should be reusable by multiple gameplay objects.
-
----
+The same Resource should be reusable by multiple runtime objects.
 
 ## Separation of Concerns
 
-Resources describe.
-
-Components execute.
-
-States coordinate.
-
-Actors own.
-
----
+Resources describe. Components execute. States coordinate. Actors own. Bake steps transform. Theme building and application remain separate.
 
 ## Inspector-Friendly
 
-Whenever practical, gameplay configuration should be editable through the Godot Inspector.
+Whenever practical, configuration should be editable through the Godot Inspector.
 
 ---
 
 # Best Practices
 
-- Store only configuration inside Resources.
+- Store only configuration or baked data inside Resources.
 - Keep Resources immutable during gameplay.
 - Prefer typed Resources over generic dictionaries.
 - Avoid runtime state inside Resources.
-- Keep Resources focused on a single responsibility.
-- Expose designer-editable values through exported properties.
+- Keep Resources focused on one responsibility.
+- Regenerate baked Resources from their pipelines.
+- Keep theme data separate from room topology.
 
 ---
 
@@ -396,48 +329,44 @@ Whenever practical, gameplay configuration should be editable through the Godot 
 
 Avoid:
 
-- storing timers inside Resources;
-- storing current gameplay state;
+- storing timers or current gameplay state in Resources;
 - implementing gameplay logic inside Resources;
-- referencing scene instances from Resources;
+- treating generated Resources as a second source of truth;
+- putting theme asset layout into `RoomData`;
 - creating circular Resource dependencies;
 - using Resources as global managers.
 
 ---
 
-# Future Extensions
-
-New gameplay systems should follow the same architectural principles.
+# Planned Resources
 
 Possible future Resources include:
 
-- EnemyData
-- AbilityData
-- ItemData
-- LootTable
-- BiomeData
+- `EnemyData`;
+- `AbilityData`;
+- `ItemData`;
+- `LootTable`;
+- `BiomeData`;
+- a room database Resource or registry.
 
-Each Resource should remain focused on configuration only.
+Each should remain focused on its domain data.
 
 ---
 
 # Decision Summary
 
-Resources are the configuration layer of Project Echo.
+Resources are the data layer of Project Echo.
 
-They describe gameplay but never execute it.
-
-Runtime systems own behaviour.
-
-Maintaining a clear separation between configuration and runtime execution is one of the fundamental architectural principles of the project.
+They describe gameplay, world and theme data but never execute it. Runtime systems own behaviour. Baked Resources are generated by the world and theme pipelines and consumed at runtime.
 
 ---
 
 # Related Documents
 
-- Resources Catalog
-- Combat Architecture
-- Actor
-- Components
-- Room Data
-- ADR-004
+- [Resources Catalog](resources-catalog.md)
+- [Combat Architecture](combat-architecture.md)
+- [Actor](actor.md)
+- [Components](components.md)
+- [Room Data](../world/room-data.md)
+- [Themes](../world/themes.md)
+- [ADR-004](../adr/ADR-004-room-data-as-resource.md)

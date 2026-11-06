@@ -5,10 +5,10 @@
 > **Date:** 2026-07-19
 >
 > **Related:**
-> - architecture/overview.md
-> - architecture/actor.md
-> - architecture/components.md
-> - architecture/state-machine.md
+> - [../architecture/overview.md](../architecture/overview.md)
+> - [../architecture/actor.md](../architecture/actor.md)
+> - [../architecture/components.md](../architecture/components.md)
+> - [../architecture/state-machine.md](../architecture/state-machine.md)
 
 ---
 
@@ -357,8 +357,8 @@ The project fundamentally changes its gameplay architecture.
 
 # Related Documents
 
-- Architecture Overview
-- Actor
-- Components
-- State Machine
-- Resources
+- [Architecture Overview](../architecture/overview.md)
+- [Actor](../architecture/actor.md)
+- [Components](../architecture/components.md)
+- [State Machine](../architecture/state-machine.md)
+- [Resources](../architecture/resources.md)

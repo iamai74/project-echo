@@ -1,17 +1,17 @@
 # Actor
 
-> **Status:** Stable
+> **Status:** In Progress
 >
-> **Last Updated:** 2026-07-20
+> **Last Updated:** 2026-11-06
 >
 > **Related:**
-> - overview.md
-> - components.md
-> - state-machine.md
-> - resources.md
-> - combat-architecture.md
-> - ADR-002 — Composition over Inheritance
-> - ADR-003 — Actor as the Base Gameplay Entity
+> - [overview.md](overview.md)
+> - [components.md](components.md)
+> - [state-machine.md](state-machine.md)
+> - [resources.md](resources.md)
+> - [combat-architecture.md](combat-architecture.md)
+> - [ADR-002 — Composition over Inheritance](../adr/ADR-002%20%E2%80%94%20Composition%20over%20Inheritance.md)
+> - [ADR-003 — Actor as the Base Gameplay Entity](../adr/ADR-003%20%E2%80%94%20Actor%20as%20the%20Base%20Gameplay%20Entity.md)
 
 ---
 
@@ -19,11 +19,7 @@
 
 This document defines the **Actor** concept used throughout Project Echo.
 
-Actor is the central gameplay abstraction of the project.
-
-Every gameplay system is designed around the assumption that active gameplay entities are represented by Actors.
-
-Actor provides a common architectural foundation while delegating gameplay functionality to reusable components.
+Actor is the central gameplay abstraction of the project. Every active gameplay entity is represented by an Actor, and gameplay functionality is delegated to reusable components and states.
 
 ---
 
@@ -33,31 +29,60 @@ An **Actor** is an active gameplay entity that:
 
 - exists inside the game world;
 - participates in gameplay;
-- owns behavior;
+- owns behaviour;
 - coordinates reusable gameplay components;
 - owns a State Machine;
 - has a gameplay lifecycle.
 
-An Actor is **not** a gameplay system.
+An Actor is **not** a gameplay system. It is the object that brings gameplay systems together.
 
-It is the object that brings gameplay systems together.
+---
+
+# Implemented Class
+
+```gdscript
+class_name Actor
+extends CharacterBody2D
+
+@export var data: ActorData
+
+@onready var health: HealthComponent = $HealthComponent
+@onready var hurtbox: HurtboxComponent = $HurtboxComponent
+@onready var state_machine: StateMachine = $StateMachine
+@onready var sprite: Sprite2D = get_node_or_null("Sprite2D")
+@onready var weapon_component: WeaponComponent = get_node_or_null("WeaponComponent")
+```
+
+`Actor` requires:
+
+- a `HealthComponent` child;
+- a `HurtboxComponent` child;
+- a `StateMachine` child.
+
+`WeaponComponent` and `Sprite2D` are optional.
+
+Implemented subclasses:
+
+- `Player`;
+- `Enemy` (with `Walker`, `Runner` and `Heavy` prototypes).
 
 ---
 
 # Responsibilities
 
-Actor is responsible for coordinating gameplay systems.
+The Actor is responsible for:
 
-Its responsibilities include:
+- initializing `HealthComponent` from `ActorData.max_health`;
+- connecting health and hurtbox signals;
+- assigning itself to its state children;
+- applying gravity;
+- tracking coyote time and jump count;
+- moving the `CharacterBody2D`;
+- updating facing direction and sprite flip;
+- exposing common actions such as `move`, `jump` and `attack`;
+- applying knockback and entering the hurt/dead states when damaged.
 
-- owning Components;
-- owning a State Machine;
-- initializing owned systems;
-- exposing common gameplay interfaces;
-- managing its own lifecycle;
-- providing access to configuration resources.
-
-Actor intentionally avoids implementing gameplay mechanics.
+It does not implement per-actor AI, attack timing or damage calculation.
 
 ---
 
@@ -66,164 +91,190 @@ Actor intentionally avoids implementing gameplay mechanics.
 Actor is **not** responsible for:
 
 - calculating combat damage;
-- implementing AI;
-- implementing inventory;
-- applying status effects;
-- controlling procedural generation;
-- managing user interface;
-- handling save/load logic.
+- attack phase timing;
+- AI target detection;
+- input handling;
+- inventory or status effects;
+- world generation;
+- UI;
+- save/load.
 
-These responsibilities belong to dedicated gameplay systems.
-
----
-
-# Architecture
-
-The Actor acts as the composition root for gameplay entities.
-
-```mermaid
-flowchart TD
-
-	Actor --> StateMachine
-	Actor --> Components
-	Actor --> Resources
-
-	Components --> GameplaySystems
-```
-
-Each Actor assembles a unique set of reusable systems.
-
-Behavior emerges from composition rather than inheritance.
-
----
-
-# Ownership
-
-An Actor owns:
-
-```text
-Actor
-│
-├── Components
-├── State Machine
-├── Configuration Resources
-└── Visual Representation
-```
-
-Owned objects exist only while the Actor exists.
-
-The Actor is responsible for coordinating their lifecycle.
-
----
-
-# Lifecycle
-
-Every Actor follows the same high-level lifecycle.
-
-```mermaid
-flowchart LR
-
-Spawn --> Initialize --> Gameplay --> Death --> Cleanup
-```
-
-## Spawn
-
-The Actor enters the world.
-
----
-
-## Initialize
-
-The Actor initializes:
-
-- Components;
-- State Machine;
-- references;
-- configuration.
-
----
-
-## Gameplay
-
-The Actor participates in gameplay by coordinating its owned systems.
-
----
-
-## Death
-
-The Actor stops participating in gameplay.
-
-Components are notified and perform their own cleanup if necessary.
-
----
-
-## Cleanup
-
-The Actor is removed from the world.
+These belong to components, states or dedicated systems.
 
 ---
 
 # Composition
 
-Gameplay functionality is assembled from Components.
-
-Example:
-
-## Player
+## Player Scene
 
 ```text
-Actor
-
+Player (Actor)
+├── Sprite2D
+├── CollisionShape2D
 ├── HealthComponent
+├── HurtboxComponent
+│   └── CollisionShape2D
+├── StateMachine
+│   ├── Idle
+│   ├── Move
+│   ├── Fall
+│   ├── Jump
+│   ├── Attack
+│   ├── Dead
+│   ├── Hurt
+│   └── JumpAttack
+├── InputComponent
+└── WeaponComponent
+    └── HitboxComponent
+        └── CollisionShape2D
+```
+
+## Enemy Scene
+
+```text
+Enemy (Actor)
+├── Sprite2D
+├── CollisionShape2D
+├── HealthComponent
+├── HurtboxComponent
+│   └── CollisionShape2D
+├── StateMachine
+│   ├── Attack
+│   ├── Dead
+│   ├── Fall
+│   ├── Idle
+│   ├── Move
+│   ├── Hurt
+│   ├── Patrol
+│   └── Chase
 ├── WeaponComponent
-├── HurtboxComponent
-├── HitboxComponent
-├── MovementComponent
-└── StateMachine
+│   └── HitboxComponent
+│       └── CollisionShape2D
+└── DetectionComponent
 ```
 
-## Enemy
+Capabilities are defined by composition. The Actor class itself stays small.
+
+There is no implemented `MovementComponent`. Movement is currently handled by `Actor` and by states.
+
+---
+
+# Configuration
+
+Actor configuration is stored in `ActorData`:
+
+```gdscript
+class_name ActorData
+extends Resource
+
+@export var max_health: int = 5
+@export var move_speed: float = 220.0
+@export var jump_velocity: float = -420.0
+@export var gravity: float = 1200.0
+@export var coyote_time: float = 0.1
+@export var max_jumps: int = 2
+@export var jump_hold_force: float = 0.3
+```
+
+See [Resources](resources.md).
+
+---
+
+# Lifecycle
+
+```mermaid
+flowchart LR
+
+Spawn --> Ready --> Initialize --> Gameplay --> Death --> Cleanup
+```
+
+## Spawn
+
+The Actor node enters the scene tree.
+
+## Ready
+
+`Actor._ready()`:
+
+1. initializes `HealthComponent` with `data.max_health`;
+2. connects `HealthComponent.died` and `HurtboxComponent.hit_received`;
+3. assigns the Actor reference to each `State` child.
+
+Subclasses override the state-machine setup:
+
+- `Player` and `Enemy` call `initialize`, `setup_states` and `start("Idle")`.
+
+## Gameplay
+
+`_physics_process`:
+
+1. updates coyote timer;
+2. applies gravity when airborne;
+3. runs `state_machine.physics_update`;
+4. calls `move_and_slide`;
+5. updates facing direction.
+
+Subclasses may run `state_machine.update` from `_process`.
+
+## Death
+
+`HealthComponent.died` starts the `"Dead"` state. The current dead states call `Actor.die()`, which calls `queue_free()`.
+
+## Cleanup
+
+The Actor is removed from the scene tree.
+
+---
+
+# Public API
+
+Movement and combat helpers:
+
+```gdscript
+func is_grounded() -> bool
+func is_touching_wall() -> bool
+func move(direction: float) -> void
+func jump() -> void
+func attack(type: AttackType.Type) -> void
+func light_attack() -> void
+func distance_to(other: Actor) -> float
+func set_invulnerable(value: bool) -> void
+func die() -> void
+```
+
+Damage handling:
+
+```gdscript
+func _on_hit_received(attack: AttackData) -> void
+```
+
+The flow is:
 
 ```text
-Actor
-
-├── HealthComponent
-├── WeaponComponent
-├── DetectionComponent
-├── HurtboxComponent
-├── HitboxComponent
-└── StateMachine
+HurtboxComponent.hit_received
+        ↓
+Actor._on_hit_received
+        ↓
+HealthComponent.take_damage(attack)
+        ↓
+apply knockback
+        ↓
+state_machine.start("Hurt")
 ```
 
-## Training Dummy
-
-```text
-Actor
-
-├── HealthComponent
-├── HurtboxComponent
-└── StateMachine
-```
-
-The Actor itself remains almost identical.
-
-Capabilities are defined by composition.
+If the damage kills the actor, `HealthComponent.died` starts `"Dead"` instead.
 
 ---
 
 # Communication
 
-The Actor coordinates communication between its systems.
-
-Preferred communication methods:
+Actor coordinates communication between its owned systems through:
 
 - explicit public APIs;
-- Signals;
-- shared gameplay events.
+- Godot signals;
+- shared runtime data such as `AttackData`.
 
-Components should avoid direct dependencies on each other whenever possible.
-
-Instead, the Actor acts as the coordination point.
+Components avoid direct dependencies on each other where practical.
 
 ---
 
@@ -235,85 +286,13 @@ Components may depend on:
 - configuration Resources;
 - stable public APIs.
 
-Components should **never** depend on:
+Components should not depend on:
 
-- Player;
-- Enemy;
-- Boss;
-- World;
+- specific Actor subclasses;
+- the World;
 - UI.
 
-Components interact with the Actor abstraction rather than concrete implementations.
-
----
-
-# What Is an Actor?
-
-Typical Actors include:
-
-- Player
-- Enemy
-- Boss
-- NPC
-- Companion
-- Training Dummy
-- Interactive Mechanism (if it actively participates in gameplay)
-
-Every Actor owns behavior.
-
-Every Actor has a gameplay lifecycle.
-
----
-
-# What Is NOT an Actor?
-
-The following objects are intentionally **not** Actors.
-
-## World
-
-Owns gameplay areas.
-
-Does not participate in gameplay.
-
----
-
-## Room
-
-Contains gameplay.
-
-Does not perform gameplay.
-
----
-
-## TileMap
-
-Represents geometry.
-
-Contains no gameplay behavior.
-
----
-
-## Resource
-
-Stores configuration.
-
-Contains no runtime behavior.
-
----
-
-## UI
-
-Displays gameplay.
-
-Does not participate in gameplay.
-
----
-
-## Visual Effects
-
-Particles, shaders and animations support gameplay visually.
-
-They are not gameplay entities.
+The current `DetectionComponent` is an exception: it detects `Player` specifically.
 
 ---
 
@@ -321,57 +300,42 @@ They are not gameplay entities.
 
 ## Identity vs Capability
 
-Actor defines identity.
-
-Components define capabilities.
-
-Example:
+Actor defines identity. Components define capability.
 
 ```text
-Player
+Player           → what the object is
+HealthComponent  → what it can do
+WeaponComponent  → what it can do
 ```
-
-defines **what** the object is.
-
-```text
-HealthComponent
-WeaponComponent
-MovementComponent
-```
-
-define **what it can do**.
-
----
 
 ## Lightweight Coordinator
 
-The Actor should coordinate systems rather than implement them.
-
-Large gameplay systems belong inside Components.
-
----
+The Actor coordinates systems rather than implementing large gameplay systems.
 
 ## Stable Public Interface
 
-The Actor exposes a small, stable API that Components may safely use.
+The Actor exposes a small API that components and states may safely use.
 
-This reduces coupling between systems.
+---
+
+# Current Limitations
+
+- There is no `MovementComponent`; movement lives in `Actor` and states.
+- `ActorData.jump_hold_force` is declared but not used by the current actor implementation.
+- Attack input, AI decisions and state transitions are implemented per subclass/state rather than by Actor.
+- `Actor._setup_state_machine()` assigns state actors, but subclasses replace it with their own initialization.
+- The `Player` scene includes a `JumpAttack` state, but its implementation refers to methods that do not exist on `Player`. Treat it as incomplete.
 
 ---
 
 # Best Practices
 
-✔ Keep the Actor lightweight.
-
-✔ Delegate gameplay logic to Components.
-
-✔ Reuse Components across multiple Actors.
-
-✔ Prefer composition over subclassing.
-
-✔ Keep initialization centralized.
-
-✔ Maintain explicit ownership.
+- Keep the Actor lightweight.
+- Delegate gameplay logic to components and states.
+- Reuse components across multiple Actors.
+- Prefer composition over subclassing.
+- Keep initialization explicit.
+- Maintain explicit ownership.
 
 ---
 
@@ -379,90 +343,20 @@ This reduces coupling between systems.
 
 Avoid:
 
-❌ Large gameplay methods inside Actor.
-
-❌ Actor-specific implementations of reusable systems.
-
-❌ Components referencing concrete subclasses.
-
-❌ Business logic inside lifecycle methods.
-
-❌ Turning Actor into a "God Object".
-
----
-
-# Examples
-
-Good:
-
-```text
-Enemy
- ├── HealthComponent
- ├── DetectionComponent
- ├── WeaponComponent
- └── StateMachine
-```
-
-Good:
-
-```text
-Merchant
- ├── DialogueComponent
- ├── InteractionComponent
- └── StateMachine
-```
-
-Good:
-
-```text
-Boss
- ├── HealthComponent
- ├── WeaponComponent
- ├── PhaseComponent
- ├── DetectionComponent
- └── StateMachine
-```
-
-The architecture remains consistent regardless of gameplay role.
-
----
-
-# Future Extensions
-
-The Actor architecture is expected to support future systems without structural changes.
-
-Examples include:
-
-- InventoryComponent
-- AbilityComponent
-- BuffComponent
-- DebuffComponent
-- QuestComponent
-- DialogueComponent
-- InteractionComponent
-
-New gameplay systems should be introduced as Components whenever possible.
-
----
-
-# Decision Summary
-
-Actor is the central gameplay abstraction of Project Echo.
-
-It represents **identity**, coordinates gameplay systems and owns the lifecycle of reusable Components.
-
-Gameplay functionality belongs to Components.
-
-Behavior emerges from composition.
+- large gameplay methods inside Actor;
+- actor-specific implementations of reusable systems;
+- components referencing concrete subclasses;
+- business logic inside lifecycle methods;
+- turning Actor into a "God Object".
 
 ---
 
 # Related Documents
 
-- Architecture Overview
-- Components
-- State Machine
-- Resources
-- Combat Architecture
-- ADR-002
-- ADR-003
+- [Architecture Overview](overview.md)
+- [Components](components.md)
+- [State Machine](state-machine.md)
+- [Resources](resources.md)
+- [Combat Architecture](combat-architecture.md)
+- [ADR-002 — Composition over Inheritance](../adr/ADR-002%20%E2%80%94%20Composition%20over%20Inheritance.md)
+- [ADR-003 — Actor as the Base Gameplay Entity](../adr/ADR-003%20%E2%80%94%20Actor%20as%20the%20Base%20Gameplay%20Entity.md)

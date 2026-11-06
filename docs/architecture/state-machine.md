@@ -1,282 +1,206 @@
 # State Machine
 
-> **Status:** Stable
+> **Status:** In Progress
 >
-> **Last Updated:** 2026-07-20
+> **Last Updated:** 2026-11-06
 >
 > **Related:**
-> - overview.md
-> - actor.md
-> - components.md
-> - combat-architecture.md
+> - [overview.md](overview.md)
+> - [actor.md](actor.md)
+> - [components.md](components.md)
+> - [combat-architecture.md](combat-architecture.md)
+> - [ai-architecture.md](ai-architecture.md)
 
 ---
 
 # Purpose
 
-This document describes the State Machine architecture used by gameplay Actors in Project Echo.
+This document describes the state machine architecture used by gameplay Actors in Project Echo.
 
-The State Machine coordinates Actor behavior by determining **what the Actor is currently doing**.
-
-It does not implement gameplay mechanics itself.
-
-Instead, it orchestrates reusable Components to produce gameplay behavior.
+The state machine coordinates Actor behaviour by determining **what the Actor is currently doing**. It does not implement gameplay mechanics; it orchestrates components and actor APIs to produce behaviour.
 
 ---
 
 # Definition
 
-A **State Machine** is responsible for controlling the execution flow of an Actor.
+A **State Machine** controls the execution flow of an Actor. It determines:
 
-It determines:
-
-- which state is currently active;
+- which State is active;
 - when transitions occur;
-- which Components should be used by the active state.
+- which components the active State uses.
 
-Gameplay behavior emerges from the collaboration between States and Components.
-
----
-
-# Responsibilities
-
-The State Machine is responsible for:
-
-- managing the active State;
-- performing state transitions;
-- enforcing transition rules;
-- updating the active State;
-- coordinating high-level Actor behavior.
+Gameplay behaviour emerges from the collaboration between States and components.
 
 ---
 
-# Out of Scope
+# Implemented Classes
 
-The State Machine is **not** responsible for:
+## StateMachine
 
-- calculating combat damage;
-- detecting enemies;
-- moving physics bodies;
-- storing health;
-- applying status effects;
-- generating the world.
+```gdscript
+class_name StateMachine
+extends Node
 
-Those responsibilities belong to dedicated Components or Systems.
-
----
-
-# Architecture
-
-```mermaid
-flowchart TD
-
-	Actor --> StateMachine
-
-	Actor --> Components
-
-	StateMachine --> State
-
-	State --> Components
+var states: Dictionary = {}
+var actor: Actor
+var current_state: State
+var previous_state: State
 ```
 
-The Actor owns both the State Machine and its Components.
+Public API:
 
-The active State coordinates Components to perform gameplay actions.
+```gdscript
+func initialize(owner: Actor) -> void
+func setup_states() -> void
+func start(initial_state_name: StringName) -> void
+func update(delta: float) -> void
+func physics_update(delta: float) -> void
+func handle_input(event: InputEvent) -> void
+func handle_attack_finished(attack: AttackDefinition) -> void
+func change_state(new_state_name: StringName) -> void
+```
+
+States are registered by child node name. `change_state` validates the target name, exits the current State and enters the new one. Changing to the already-active State is ignored.
+
+## State
+
+```gdscript
+class_name State
+extends Node
+
+var actor: Actor
+var state_machine: StateMachine
+```
+
+Overridable hooks:
+
+```gdscript
+func enter() -> void
+func exit() -> void
+func update(delta: float) -> void
+func physics_update(delta: float) -> void
+func handle_input(event: InputEvent) -> void
+func on_attack_finished(attack: AttackDefinition) -> void
+```
+
+`change_state(name)` forwards to the state machine.
 
 ---
 
 # Ownership
 
-Each Actor owns exactly one State Machine.
+Each Actor owns exactly one `StateMachine` node. States are children of that node.
 
 ```text
 Actor
-│
-├── State Machine
-│     ├── Idle
-│     ├── Move
-│     ├── Jump
-│     ├── Fall
-│     ├── Attack
-│     └── Hurt
-│
+├── StateMachine
+│   ├── Idle
+│   ├── Move
+│   ├── ...
+│   └── Dead
 ├── HealthComponent
-├── WeaponComponent
-├── DetectionComponent
-└── HurtboxComponent
+├── HurtboxComponent
+└── WeaponComponent
 ```
 
-States belong to the State Machine.
-
-Components belong to the Actor.
+`Actor._ready()` assigns itself to every `State` child. `Player` and `Enemy` then call `state_machine.initialize(self)` and `setup_states()`, which lets subclass states such as `PlayerState` and `EnemyState` resolve their typed actor references.
 
 ---
 
 # State Lifecycle
 
-Each State follows the same lifecycle.
-
 ```mermaid
-stateDiagram-v2
+flowchart LR
 
-[*] --> Enter
-
-Enter --> Update
-
-Update --> PhysicsUpdate
-
-PhysicsUpdate --> Update
-
-Update --> Exit
-
-Exit --> [*]
+    Enter --> Update
+    Update --> PhysicsUpdate
+    PhysicsUpdate --> Update
+    Update --> Exit
 ```
 
-## Enter
+- **Enter** — once when the State becomes active.
+- **Update** — every frame, driven by `Actor` subclasses through `_process`.
+- **Physics Update** — during the physics step, driven by `Actor._physics_process`.
+- **Input** — forwarded through `handle_input` when used.
+- **Exit** — once before leaving the State.
 
-Executed once when the State becomes active.
-
-Typical responsibilities:
-
-- initialize timers;
-- reset temporary values;
-- start animations.
+Not every State overrides every hook.
 
 ---
 
-## Update
+# Implemented States
 
-Executed every frame.
+## Player
 
-Handles frame-dependent gameplay logic.
+| State | Behaviour |
+|-------|-----------|
+| `Idle` | Waits; transitions on movement, jump, attack or falling |
+| `Move` | Moves horizontally from input |
+| `Jump` | Applies jump velocity |
+| `Fall` | Applies air movement and landing transitions |
+| `Attack` | Locks input, starts a light attack, returns on `attack_finished` |
+| `JumpAttack` | Incomplete; calls methods that do not exist on `Player` |
+| `Hurt` | Locks input, enables invulnerability, returns after recovery |
+| `Dead` | Calls `Actor.die()` |
 
----
+## Enemy
 
-## Physics Update
+| State | Behaviour |
+|-------|-----------|
+| `Idle` | Waits for patrol/chase conditions |
+| `Patrol` | Moves back and forth within `patrol_distance` |
+| `Chase` | Moves toward the detected player; attacks in range |
+| `Move` | Basic movement state |
+| `Fall` | Airborne state |
+| `Attack` | Starts a light attack and transitions on finish |
+| `Hurt` | Enables invulnerability, returns after recovery |
+| `Dead` | Calls `Actor.die()` |
 
-Executed during the physics step.
-
-Handles:
-
-- movement;
-- collision-related logic;
-- physics interactions.
-
----
-
-## Exit
-
-Executed once before leaving the State.
-
-Typical responsibilities:
-
-- stop temporary effects;
-- release resources;
-- restore Actor configuration.
-
----
-
-# Transition Rules
-
-State transitions should be:
-
-- explicit;
-- deterministic;
-- easy to understand.
-
-A State should never silently transition to multiple destinations.
-
-Instead, transition conditions should be clearly defined.
-
-Example:
-
-```text
-Idle
-
-↓
-
-Move
-
-↓
-
-Jump
-
-↓
-
-Fall
-
-↓
-
-Idle
-```
+`PlayerState` and `EnemyState` provide shared helpers and global transitions (death, jump, attack, dash for player).
 
 ---
 
 # Components Interaction
 
-States do not implement gameplay systems directly.
-
-Instead, they coordinate Components.
-
-Example:
-
-AttackState
+States coordinate components; they do not reimplement them.
 
 ```text
-Enter
-
-↓
-
+PlayerAttackState.enter()
+        ↓
+Player.attack(LIGHT)
+        ↓
 WeaponComponent.start_attack()
-
-↓
-
-HitboxComponent.enable()
-
-↓
-
-AnimationPlayer.play()
-
-↓
-
-Exit
-
-↓
-
-HitboxComponent.disable()
+        ↓
+HitboxComponent.activate()
 ```
 
-The attack logic remains inside the Weapon and Hitbox Components.
+`WeaponComponent` emits `attack_finished`, which the Actor forwards to `state_machine.handle_attack_finished`. The active State decides the next state.
 
 ---
 
-Another example:
+# Transition Rules
 
-HurtState
+Transitions should be:
+
+- explicit;
+- deterministic;
+- easy to follow.
+
+A State should not silently transition to multiple destinations.
+
+Example player flow:
 
 ```text
-Enter
-
-↓
-
-HealthComponent
-
-↓
-
-Knockback
-
-↓
-
-Animation
-
-↓
-
-Return
+Idle ↔ Move
+  ↓
+Jump → Fall → Idle/Move
+  ↓
+Attack → Idle/Move/Fall
+  ↓
+Hurt → Idle/Move/Fall
+  ↓
+Dead
 ```
-
-The State controls timing.
-
-Components perform the work.
 
 ---
 
@@ -284,22 +208,16 @@ Components perform the work.
 
 States may communicate with:
 
-- the owning Actor;
-- Components;
-- AnimationPlayer;
-- Timers.
+- their owning Actor;
+- components reached through the Actor;
+- `InputComponent` (player states);
+- `DetectionComponent` indirectly through `Enemy.get_target_position()`.
 
-States should avoid direct communication with:
-
-- unrelated Actors;
-- UI;
-- World systems.
+States should avoid direct communication with unrelated Actors, UI or world systems.
 
 ---
 
 # State Categories
-
-Typical gameplay states include:
 
 ## Locomotion
 
@@ -307,36 +225,19 @@ Typical gameplay states include:
 - Move
 - Jump
 - Fall
-- Dash (future)
-
----
+- Dash (referenced by `PlayerState`, but no state or scene exists)
 
 ## Combat
 
 - Attack
+- JumpAttack (incomplete)
 - Hurt
-- Death
-
----
+- Dead
 
 ## AI
 
-Enemy-specific examples:
-
 - Patrol
 - Chase
-- Search
-
----
-
-## Interaction
-
-Future examples:
-
-- Dialogue
-- Interact
-- Climb
-- Use Lever
 
 ---
 
@@ -346,49 +247,37 @@ Future examples:
 
 Each State represents one clear gameplay intention.
 
-Examples:
-
-- Running
-- Jumping
-- Attacking
-
-A State should not attempt to represent multiple behaviors simultaneously.
-
----
-
 ## Components Perform Work
 
-States coordinate.
+States coordinate. Components execute.
 
-Components execute.
+## Explicit Transitions
 
-This keeps gameplay systems reusable.
-
----
-
-## Stateless Transitions
-
-Whenever practical, transition conditions should depend on observable Actor state rather than hidden flags.
-
----
+Transition conditions should be visible rather than hidden behind unrelated flags.
 
 ## Predictable Flow
 
-State transitions should be easy to visualize and debug.
+State flow should be easy to visualize and debug.
+
+---
+
+# Current Limitations
+
+- `PlayerState` attempts `change_state("Dash")`, but no `Dash` state node or script exists.
+- `PlayerJumpAttackState` calls `player.start_air_attack()` and `player.is_attack_finished()`, which are not implemented on `Player`. The state should be treated as incomplete.
+- Enemy `has_movement_input()` always returns `false`, so some shared transitions are placeholders.
+- The base `Enemy` starts in `Idle` and does not itself move to `Patrol` or `Chase`; prototype subclasses supply that behaviour.
+- Input is polled through `InputComponent`; `StateMachine.handle_input` exists but is not the main input path.
 
 ---
 
 # Best Practices
 
-✔ Keep States lightweight.
-
-✔ Delegate gameplay logic to Components.
-
-✔ Use Enter/Exit for temporary changes.
-
-✔ Make transitions explicit.
-
-✔ Keep responsibilities focused.
+- Keep States lightweight.
+- Delegate gameplay logic to components.
+- Use `enter`/`exit` for temporary changes.
+- Make transitions explicit.
+- Keep responsibilities focused.
 
 ---
 
@@ -396,89 +285,18 @@ State transitions should be easy to visualize and debug.
 
 Avoid:
 
-❌ Large gameplay systems inside States.
-
-❌ Direct damage calculations.
-
-❌ Hardcoded references to specific Actors.
-
-❌ State-specific implementations of reusable mechanics.
-
-❌ Circular transition logic.
-
----
-
-# Examples
-
-Player
-
-```text
-Idle
-
-Move
-
-Jump
-
-Fall
-
-Attack
-
-Hurt
-
-Death
-```
-
-Enemy
-
-```text
-Idle
-
-Patrol
-
-Chase
-
-Attack
-
-Hurt
-
-Death
-```
-
-Although the States differ, both Actors follow the same architecture.
-
----
-
-# Future Extensions
-
-The State Machine architecture is expected to support future gameplay systems such as:
-
-- climbing;
-- swimming;
-- wall sliding;
-- ledge grabbing;
-- abilities;
-- transformations;
-- scripted sequences.
-
-New States should coordinate existing Components whenever possible instead of introducing duplicate gameplay logic.
-
----
-
-# Decision Summary
-
-The State Machine controls **what an Actor is doing**.
-
-Components determine **how gameplay actions are performed**.
-
-The Actor owns both and coordinates their lifecycle.
-
-This separation creates a flexible, reusable and maintainable gameplay architecture.
+- large gameplay systems inside States;
+- direct damage calculations;
+- hardcoded references to specific Actors;
+- state-specific implementations of reusable mechanics;
+- circular transition logic.
 
 ---
 
 # Related Documents
 
-- Architecture Overview
-- Actor
-- Components
-- Combat Architecture
+- [Architecture Overview](overview.md)
+- [Actor](actor.md)
+- [Components](components.md)
+- [Combat Architecture](combat-architecture.md)
+- [AI Architecture](ai-architecture.md)

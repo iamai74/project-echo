@@ -5,8 +5,8 @@
 > **Date:** 2026-07-19
 >
 > **Related:**
-> - architecture/overview.md
-> - architecture/project-structure.md
+> - [../architecture/overview.md](../architecture/overview.md)
+> - [../architecture/project-structure.md](../architecture/project-structure.md)
 
 ---
 
@@ -209,11 +209,11 @@ This decision reinforces the project's core architectural principles:
 
 # Related Documents
 
-- Architecture Overview
-- Project Structure
-- Components
-- Actor
-- Resources
+- [Architecture Overview](../architecture/overview.md)
+- [Project Structure](../architecture/project-structure.md)
+- [Components](../architecture/components.md)
+- [Actor](../architecture/actor.md)
+- [Resources](../architecture/resources.md)
 
 ## Decision Snapshot
 

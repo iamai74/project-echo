@@ -1,294 +1,258 @@
 # Combat Architecture
 
-> **Last Updated:** 2026-07-20
+> **Status:** In Progress
 >
-> **Related**
+> **Last Updated:** 2026-11-06
 >
-> - actor.md
-> - components.md
-> - state-machine.md
-> - resources.md
-> - resources-catalog.md
+> **Related:**
+> - [actor.md](actor.md)
+> - [components.md](components.md)
+> - [state-machine.md](state-machine.md)
+> - [resources.md](resources.md)
+> - [resources-catalog.md](resources-catalog.md)
 
 ---
 
 # Purpose
 
-This document describes the combat architecture used throughout Project Echo.
+This document describes the combat architecture used in Project Echo.
 
-Combat is implemented as a modular, data-driven pipeline composed of reusable Components coordinated by an Actor's State Machine.
+Combat is a modular, data-driven pipeline composed of reusable components coordinated by an Actor and its state machine. The architecture separates:
 
-The architecture separates:
-
-- combat flow;
 - combat configuration;
 - runtime attack data;
-- combat execution.
-
-This separation keeps the combat system modular, extensible and easy to maintain.
+- attack execution;
+- damage resolution.
 
 ---
 
 # Combat Overview
 
-Combat in Project Echo is built around three architectural layers.
-
 ```text
-Configuration
+Configuration       WeaponData → AttackDefinition
         │
         ▼
-Runtime Execution
+Runtime Execution   WeaponComponent → AttackData → HitboxComponent
         │
         ▼
-Combat Resolution
+Combat Resolution   HurtboxComponent → Actor → HealthComponent → Hurt/Dead state
 ```
 
-Configuration Resources describe attacks.
-
-Runtime Components execute attacks.
-
-The combat pipeline resolves gameplay outcomes.
-
----
-
-# Combat Pipeline
-
-The combat architecture is organized as the following pipeline.
-
-```mermaid
-flowchart LR
-
-    Input["Player Input / AI"]
-        --> AttackState
-        --> WeaponComponent
-        --> WeaponData
-        --> AttackDefinition
-        --> AttackData
-        --> HitboxComponent
-        --> HurtboxComponent
-        --> HealthComponent
-        --> HurtState
-        --> Recovery["Recovery / Death"]
-```
-
-Each object owns exactly one responsibility.
+Configuration Resources describe attacks. `WeaponComponent` executes them. The target Actor resolves the outcome.
 
 ---
 
 # Combat Flow
 
-The following sequence illustrates how a single attack is processed.
-
 ```mermaid
 sequenceDiagram
 
-participant State as AttackState
+participant State as Attack State
 participant Weapon as WeaponComponent
 participant Data as WeaponData
 participant Definition as AttackDefinition
 participant Hitbox
 participant Hurtbox
-participant Health
+participant Actor as Target Actor
+participant Health as HealthComponent
 
-State->>Weapon: Execute Attack(LIGHT)
-
+State->>Weapon: start_attack(LIGHT)
 Weapon->>Data: get_attack(LIGHT)
 Data-->>Weapon: AttackDefinition
-
-Weapon->>Weapon: Create AttackData
-
-Weapon->>Hitbox: Activate Hitbox
-
-Hitbox->>Hurtbox: AttackData
-
-Hurtbox->>Health: Apply Damage
-
-Health-->>State: Damage Accepted
+Weapon->>Weapon: create AttackData
+Note over Weapon: STARTUP
+Weapon->>Hitbox: activate(AttackData)
+Note over Weapon: ACTIVE
+Hitbox->>Hurtbox: receive_hit(AttackData)
+Hurtbox-->>Actor: hit_received(AttackData)
+Actor->>Health: take_damage(AttackData)
+Actor->>Actor: apply knockback
+Actor->>State: start("Hurt") or "Dead"
+Weapon->>Hitbox: deactivate()
+Note over Weapon: RECOVERY → IDLE
 ```
 
 ---
 
-# Combat Pipeline
+# Pipeline
 
 ## 1. Attack Request
 
 Combat begins when an Actor requests an attack.
 
-Possible sources include:
+Sources:
 
-- player input;
-- enemy AI;
-- scripted gameplay.
+- player input through `PlayerState` helpers;
+- enemy AI states;
+- direct scripted calls to `Actor.attack`.
 
-The State Machine transitions into `AttackState`.
+`Actor.attack(type)` delegates to `WeaponComponent.start_attack(type)` when a weapon is present.
 
----
+## 2. Attack Selection
 
-## 2. Weapon Execution
+`WeaponComponent` owns a `WeaponData` resource. `WeaponData.initialize()` builds a map from `AttackType` to `AttackDefinition`.
 
-`AttackState` delegates execution to `WeaponComponent`.
-
-The WeaponComponent owns the currently equipped `WeaponData`.
-
----
-
-## 3. Attack Selection
-
-`WeaponComponent` requests the desired attack from the equipped weapon.
-
-Example:
-
-```text
-AttackType.LIGHT
-        │
-        ▼
-WeaponData.get_attack()
-        │
-        ▼
-AttackDefinition
+```gdscript
+func get_attack(type: AttackType.Type) -> AttackDefinition
+func get_attack_types() -> Array[AttackType.Type]
 ```
 
----
+If the requested type has no definition, `start_attack` logs an error and does nothing.
 
-## 4. Attack Definition
+## 3. Attack Definition
 
-`AttackDefinition` is a configuration Resource describing one attack.
+`AttackDefinition` is the configuration resource for one attack.
 
-It contains:
+```gdscript
+class_name AttackDefinition
+extends Resource
 
-### Damage
+@export_group("Damage")
+@export var damage: int = 10
+@export var knockback_force: float = 150.0
+@export var attack_type: AttackType.Type
 
-- damage
-- knockback_force
-- attack_type
+@export_group("Timing")
+@export var startup: float = 0.08
+@export var active: float = 0.10
+@export var recovery: float = 0.12
 
-### Timing
+@export_group("Animation")
+@export var animation_name: StringName
 
-- startup
-- active
-- recovery
-
-### Animation
-
-- animation_name
-
-### Hitbox
-
-- hitbox_offset
-- hitbox_size
-
-AttackDefinition is immutable during gameplay.
-
----
-
-## 5. Runtime Attack
-
-Immediately before the attack becomes active, `WeaponComponent` creates an `AttackData` instance.
-
-`AttackData` is **not** a Resource.
-
-It is implemented as a `RefCounted` runtime object.
-
-Current structure:
-
-```text
-damage
-
-knockback_force
-
-source
-
-direction
+@export_group("Hitbox")
+@export var hitbox_offset: Vector2
+@export var hitbox_size: Vector2 = Vector2(32, 24)
 ```
 
-Its only responsibility is transporting attack information through the combat pipeline.
+`animation_name` is declared but not yet consumed by the implemented combat pipeline.
 
-Once created, AttackData should be treated as immutable.
+## 4. Runtime Attack
 
----
+`WeaponComponent` creates one `AttackData` when the attack starts, before the `STARTUP` phase completes.
+
+```gdscript
+class_name AttackData
+extends RefCounted
+
+var damage: int
+var knockback_force: float
+var source: Node
+var direction: Vector2
+```
+
+`AttackData` is a runtime payload, not a Resource. It transports attack information through the pipeline and is treated as immutable after creation.
+
+## 5. Attack Phases
+
+`WeaponComponent` runs an internal phase machine:
+
+```text
+IDLE
+  ↓ start_attack
+STARTUP   (startup seconds)
+  ↓
+ACTIVE    (active seconds; hitbox enabled)
+  ↓
+RECOVERY  (recovery seconds; hitbox disabled)
+  ↓
+IDLE
+```
+
+On entering `ACTIVE`, the component:
+
+- mirrors `hitbox_offset.x` by the Actor's facing direction;
+- sets the hitbox position;
+- resizes a `RectangleShape2D` or `CapsuleShape2D`;
+- calls `HitboxComponent.activate(AttackData)`.
+
+On leaving `ACTIVE`, it deactivates the hitbox.
+
+`interrupt_attack()` immediately deactivates the hitbox and returns to `IDLE`.
 
 ## 6. Hit Detection
 
-`HitboxComponent` becomes active.
+`HitboxComponent` starts with monitoring disabled.
 
-Responsibilities:
+`activate(attack_data)`:
 
-- detect collisions;
-- identify valid targets;
-- forward AttackData.
+- sets `active = true`;
+- enables monitoring;
+- clears the per-attack `hit_targets` set;
+- checks already-overlapping areas.
 
-Hitboxes never modify gameplay state directly.
+For each overlapping `HurtboxComponent` it:
 
----
+- ignores its own Actor;
+- skips targets already hit during this activation;
+- calls `HurtboxComponent.receive_hit(attack_data)`;
+- emits `hit_target`.
+
+The hitbox never applies damage.
 
 ## 7. Damage Reception
 
-The target's `HurtboxComponent` receives `AttackData`.
+`HurtboxComponent.receive_hit(attack_data)`:
 
-Typical validation includes:
+- if invulnerable, emits `damage_blocked` and stops;
+- otherwise emits `hit_received(attack_data)`.
 
-- collision filtering;
-- invulnerability frames;
-- duplicate hit prevention.
+It does not apply damage or knockback itself.
 
-If accepted:
+Damage flow:
 
 ```text
-AttackData
-		│
-		▼
-HealthComponent
+HurtboxComponent.hit_received
+        ↓
+Actor._on_hit_received
+        ↓
+HealthComponent.take_damage(attack)
 ```
-
----
 
 ## 8. Damage Processing
 
-`HealthComponent` owns all health-related logic.
+`HealthComponent` owns health state:
 
-Responsibilities:
+- clamps health at zero;
+- emits `damaged` and `health_changed`;
+- emits `died` when health reaches zero;
+- supports healing and max-health changes.
 
-- apply damage;
-- apply healing;
-- clamp health values;
-- detect death.
-
-Health values are modified only inside HealthComponent.
-
----
+Health is modified only inside `HealthComponent`.
 
 ## 9. Hit Reaction
 
-If damage is successfully applied:
+`Actor._on_hit_received` performs the reaction:
 
-The Actor enters `HurtState`.
+1. call `health.take_damage(attack)`;
+2. apply knockback if `attack.knockback_force > 0`;
+3. if still alive, start the `"Hurt"` state;
+4. if dead, the `HealthComponent.died` signal starts `"Dead"`.
 
-Typical responsibilities include:
+Knockback is applied directly to `velocity` by `Actor`:
 
-- knockback;
-- hit animation;
-- temporary input lock;
-- invulnerability timer.
+```gdscript
+velocity += attack.direction * attack.knockback_force
+```
 
-Damage has already been processed before entering this State.
+The hurt states manage invulnerability:
 
----
+- `PlayerHurtState` locks input and sets the hurtbox invulnerable;
+- `EnemyHurtState` sets the hurtbox invulnerable;
+- both clear invulnerability on exit.
 
 ## 10. Recovery
 
-When `HurtState` finishes:
+When the hurt state finishes:
 
 ```text
 Hurt
- │
  ├──► Idle
- │
  ├──► Move
- │
- └──► Death
+ └──► Fall
 ```
 
-The next state depends on the Actor's current situation.
+Death leads to `Dead`, whose current implementation calls `Actor.die()` and frees the Actor.
 
 ---
 
@@ -296,174 +260,75 @@ The next state depends on the Actor's current situation.
 
 ## State Machine
 
-Responsible for:
+- decides when attacks occur;
+- enters attack and hurt states.
 
-- deciding when attacks occur;
-- entering AttackState;
-- entering HurtState.
-
-The State Machine coordinates combat but never performs combat calculations.
-
----
+It does not calculate damage.
 
 ## WeaponComponent
 
-Responsible for:
-
-- executing attacks;
-- selecting AttackDefinitions;
-- creating AttackData;
-- activating Hitboxes.
-
----
+- selects `AttackDefinition`;
+- creates `AttackData`;
+- runs attack timing;
+- positions and activates the hitbox.
 
 ## WeaponData
 
-Configuration Resource describing a weapon.
-
-Responsibilities:
-
-- store weapon metadata;
-- store available attacks;
-- map AttackType to AttackDefinition.
-
-Public API:
-
-```text
-get_attack(type)
-
-get_attack_types()
-```
-
-WeaponData contains no runtime logic.
-
----
+Configuration resource owning an `Array[AttackDefinition]`. It contains no runtime attack state.
 
 ## AttackDefinition
 
-Configuration Resource describing a single attack.
-
-Contains:
-
-- gameplay parameters;
-- timings;
-- animation reference;
-- hitbox configuration.
-
-AttackDefinition is shared by every instance of the same weapon.
-
----
+Shared configuration for one attack type.
 
 ## AttackData
 
-Runtime payload object.
-
-Implementation:
-
-```text
-RefCounted
-```
-
-Contains attack information that travels through the combat pipeline.
-
-AttackData is immutable after creation.
-
----
+Runtime payload for one attack instance. Not saved or shared beyond that attack.
 
 ## HitboxComponent
 
-Responsible for:
-
-- offensive collision detection.
-
-Never:
-
-- calculates damage;
-- modifies health.
-
----
+Offensive `Area2D`. Detects hurtboxes and forwards `AttackData`.
 
 ## HurtboxComponent
 
-Responsible for:
+Defensive `Area2D`. Applies invulnerability rules and forwards accepted hits.
 
-- receiving attacks;
-- validating attacks;
-- forwarding AttackData.
+## Actor
 
----
+Applies damage, knockback and state transitions after a hit.
 
 ## HealthComponent
 
-Responsible for:
+Owns health, damage, healing and death.
 
-- health;
-- damage;
-- healing;
-- death.
+## Hurt State
 
-The HealthComponent is the only system allowed to modify health.
-
----
-
-## HurtState
-
-Responsible for:
-
-- hit reaction;
-- knockback timing;
-- recovery timing;
-- invulnerability timing.
+Controls reaction timing and invulnerability.
 
 ---
 
 # Attack Types
 
-Combat actions are identified using `AttackType`.
-
-Current attack types:
-
 ```text
 LIGHT
-
 HEAVY
-
 JUMP
-
 DASH
-
 SPECIAL
 ```
 
-AttackType represents gameplay intent.
+`AttackType` represents gameplay intent and is independent from input bindings and animation names.
 
-It is independent from:
-
-- player input;
-- animation names;
-- weapon implementation.
+Not every type is currently configured in every weapon resource, and there is no dash state.
 
 ---
 
 # Configuration vs Runtime
 
-Project Echo explicitly separates configuration from runtime execution.
-
-```text
-WeaponData
-        │
-        ▼
-AttackDefinition
-        │
-        ▼
-AttackData
-```
-
 | Object | Purpose | Lifetime |
-|----------|---------|----------|
-| WeaponData | Weapon configuration | Project asset |
-| AttackDefinition | Attack configuration | Project asset |
-| AttackData | Runtime attack payload | Single attack |
+|--------|---------|----------|
+| `WeaponData` | Weapon configuration and attack set | Project asset |
+| `AttackDefinition` | Single attack configuration | Project asset |
+| `AttackData` | Runtime attack payload | One attack |
 
 ---
 
@@ -471,98 +336,47 @@ AttackData
 
 ```text
 Actor
-│
-├── State Machine
+├── StateMachine
 ├── WeaponComponent
-├── HitboxComponent
+│   └── HitboxComponent
 ├── HurtboxComponent
-├── HealthComponent
-└── DetectionComponent
+└── HealthComponent
 ```
 
-Configuration Resources:
+Configuration:
 
 ```text
-WeaponComponent
-        │
-        ▼
-WeaponData
-        │
-        ▼
-AttackDefinition
+WeaponComponent → WeaponData → AttackDefinition[]
 ```
 
-Runtime Payload:
+Runtime:
 
 ```text
-AttackData
+WeaponComponent → AttackData
 ```
 
 ---
 
 # Design Principles
 
-## Data-Driven Combat
-
-Gameplay behavior is defined by configuration Resources.
-
-Runtime systems interpret those Resources.
-
----
-
-## Separation of Responsibilities
-
-```text
-AttackState
-        │
-        ▼
-Decides when to attack
-
-WeaponComponent
-        │
-        ▼
-Selects which attack to execute
-
-AttackDefinition
-        │
-        ▼
-Describes the attack
-
-AttackData
-        │
-        ▼
-Represents one runtime attack
-
-HealthComponent
-        │
-        ▼
-Applies gameplay consequences
-```
-
----
-
-## Single Responsibility
-
-Every participant owns exactly one gameplay responsibility.
-
----
-
-## Explicit Ownership
-
-Each Component owns only its own behavior.
-
-No Component directly modifies another Component's internal state.
-
----
-
-# Best Practices
-
 - Keep attack configuration inside `AttackDefinition`.
 - Keep weapon configuration inside `WeaponData`.
 - Treat `AttackData` as immutable.
 - Apply damage only inside `HealthComponent`.
-- Keep States responsible for timing.
-- Keep Components responsible for gameplay behavior.
+- Let States decide when to attack.
+- Let components perform the work.
+
+---
+
+# Current Limitations
+
+- `AttackDefinition.animation_name` is not used yet.
+- `AttackData.direction` comes from `Actor.facing_direction` at attack start and does not update during the attack.
+- There is no hit cooldown beyond the per-activation `hit_targets` set.
+- There is no block, parry or hit-stop system.
+- There is no damage type or resistance model.
+- The player has no dash state, although `DASH` exists as an attack type.
+- `PlayerJumpAttackState` is incomplete.
 
 ---
 
@@ -570,33 +384,18 @@ No Component directly modifies another Component's internal state.
 
 Avoid:
 
-- Applying damage inside `WeaponComponent`.
-- Modifying health outside `HealthComponent`.
-- Storing runtime state inside Resources.
-- Coupling combat logic to specific Actor subclasses.
-- Mixing gameplay calculations with animation timing.
-
----
-
-# Decision Summary
-
-Combat in Project Echo is implemented as a modular, data-driven pipeline.
-
-- `WeaponData` defines the weapon.
-- `AttackDefinition` describes a specific attack.
-- `AttackData` represents a runtime attack instance.
-- Components execute combat behavior.
-- The State Machine coordinates combat flow.
-
-This separation provides a flexible, reusable and maintainable combat architecture.
+- applying damage inside `WeaponComponent` or `HitboxComponent`;
+- modifying health outside `HealthComponent`;
+- storing runtime state inside Resources;
+- coupling combat logic to specific Actor subclasses;
+- mixing gameplay calculations with animation timing.
 
 ---
 
 # Related Documents
 
-- Actor
-- Components
-- State Machine
-- Resources
-- Resources Catalog
-```
+- [Actor](actor.md)
+- [Components](components.md)
+- [State Machine](state-machine.md)
+- [Resources](resources.md)
+- [Resources Catalog](resources-catalog.md)

@@ -5,9 +5,9 @@
 > **Date:** 2026-07-19
 >
 > **Related:**
-> - architecture/overview.md
-> - architecture/actor.md
-> - architecture/components.md
+> - [../architecture/overview.md](../architecture/overview.md)
+> - [../architecture/actor.md](../architecture/actor.md)
+> - [../architecture/components.md](../architecture/components.md)
 
 ---
 
@@ -300,7 +300,7 @@ The project adopts a fundamentally different architectural paradigm (for example
 
 # Related Documents
 
-- Architecture Overview
-- Actor
-- Components
-- State Machine
+- [Architecture Overview](../architecture/overview.md)
+- [Actor](../architecture/actor.md)
+- [Components](../architecture/components.md)
+- [State Machine](../architecture/state-machine.md)

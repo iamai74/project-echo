@@ -1,472 +1,353 @@
 # Bake Pipeline
 
-> **Last Updated:** 2026-07-20
+> **Last Updated:** 2026-11-06
 >
-> **Related**
->
-> - world-authoring.md
-> - world-architecture-overview.md
-> - room-architecture.md
-> - room-data.md
-> - semantic-tiles.md
-> - resources.md
-> - resources-catalog.md
-> - glossary.md
+> **Related:**
+> - [world-authoring.md](world-authoring.md)
+> - [overview.md](overview.md)
+> - [room-architecture.md](room-architecture.md)
+> - [room-data.md](room-data.md)
+> - [semantic-tiles.md](semantic-tiles.md)
+> - [themes.md](themes.md)
+> - [../architecture/resources.md](../architecture/resources.md)
 
 ---
 
 # Purpose
 
-This document describes the Bake Pipeline used in Project Echo.
+The bake pipeline converts an authored room scene into validated, runtime-ready data.
 
-The Bake Pipeline converts designer-authored Room Scenes into optimized runtime assets used by the World Generator.
-
-The main purpose of Bake is moving expensive content processing from gameplay runtime into the authoring stage.
+It moves expensive content processing from gameplay runtime into the authoring stage.
 
 ---
 
-# Overview
+# Pipeline
 
-The complete pipeline:
+`BakePipeline` runs an ordered list of `BakeStep` objects against a `RoomBakeContext`.
+
+Default order:
+
+```text
+CollectBrushesStep
+→ InitSemanticDataStep
+→ BakeSemanticLayerStep
+→ PostProcessStep
+→ ValidateStep
+→ BuildRuntimeRoomStep
+→ ApplyDefaultThemeStep
+→ SaveRoomDataStep
+```
+
+The pipeline stops before running a step when:
+
+- the report already contains a fatal issue;
+- the next step returns `false` from `can_run_with_errors()`.
+
+---
+
+# Context
+
+`RoomBakeContext` carries data between steps:
+
+```gdscript
+class_name RoomBakeContext
+extends RefCounted
+
+var room: Node
+var brushes: BrushCollection
+var semantic_data: SemanticRoomData
+var report: BakeReport
+var runtime_room_data: RoomData
+var runtime_room: Node2D
+```
+
+A `BakeReport` groups issues by issue type and tracks severity. Fatal issues stop the pipeline.
+
+---
+
+# Steps
+
+## 1. CollectBrushesStep
+
+**ID:** `collect_brushes`
+
+Recursively collects every `SemanticBrush` in the room scene using `BrushCollector`.
+
+Brushes are grouped into a `BrushCollection` by `SemanticBrush.BrushType`. Brushes that return `UNKNOWN` are ignored.
+
+Output: `context.brushes`.
+
+---
+
+## 2. InitSemanticDataStep
+
+**ID:** `init_semantic_data`
+
+Creates an empty `SemanticRoomData` containing:
+
+- `SpatialLayer`;
+- `MarkerLayer`;
+- `VolumeLayer`.
+
+Output: `context.semantic_data`.
+
+---
+
+## 3. BakeSemanticLayerStep
+
+**ID:** `bake_semantic_layer`
+
+Looks up processors in `BakeProcessorRegistry` and runs each registered processor against the brushes of its brush type.
+
+Currently registered processors:
+
+| Brush type | Processor | Output layer |
+|------------|-----------|--------------|
+| `PLATFORM` | `PlatformBakeProcessor` | `PLATFORM` |
+| `WALL` | `WallBakeProcessor` | `WALL` |
+| `BACKGROUND` | `BackgroundBakeProcessor` | `BACKGROUND` |
+
+Processor behavior:
+
+- `PlatformBakeProcessor` creates one `SemanticSpatialPlatformCell` per grid cell, copies platform traits, and reports overlapping platform cells as `BRUSH_OVERLAP` errors.
+- `WallBakeProcessor` creates one `SemanticSpatialTopologyCell` per grid cell.
+- `BackgroundBakeProcessor` creates one `SemanticSpatialCell` per grid cell.
+
+Marker and volume brush types are declared but no processors are registered for them.
+
+---
+
+## 4. PostProcessStep
+
+**ID:** `post_process`
+
+Runs `PostBakeTopologyProcessor` on the `PLATFORM` and `WALL` layers.
+
+For each cell, it checks the four direct neighbours and computes:
+
+- `CellShape.Value`;
+- `CellCorner.Value`.
+
+Output: each platform/wall cell receives a `SpatialTopology`.
+
+---
+
+## 5. ValidateStep
+
+**ID:** `validate`
+
+Runs the validators in order:
+
+1. `DuplicateCellValidator`;
+2. `SemanticOverlapValidator`;
+3. `TopologyValidator`;
+4. `SemanticCellValidator`.
+
+## Validators
+
+### DuplicateCellValidator
+
+Checks that no cell position appears more than once within the `PLATFORM`, `WALL` or `BACKGROUND` layer.
+
+Reports `BRUSH_OVERLAP` errors.
+
+### SemanticOverlapValidator
+
+Checks that no platform cell overlaps a wall cell.
+
+Reports `BRUSH_OVERLAP` errors.
+
+### TopologyValidator
+
+Checks that every platform/wall cell has topology data and that its shape and corner match the expected values derived from its neighbours.
+
+Reports `SEMANTIC_CONFLICT` errors.
+
+### SemanticCellValidator
+
+Checks:
+
+- the shape is acceptable for the layer;
+- the corner is acceptable for the layer;
+- the shape/corner combination is valid;
+- platform traits are in range.
+
+Reports `SEMANTIC_CONFLICT` errors.
+
+Validation does not repair invalid data. Invalid rooms should fail the bake.
+
+---
+
+## 6. BuildRuntimeRoomStep
+
+**ID:** `build_runtime_room`
+
+Runs `RoomDataBuilder` and `RuntimeRoomBuilder`.
+
+`RoomDataBuilder`:
+
+- copies platform and wall cells into `RoomData`;
+- converts background cells to `BackgroundCell`;
+- computes `bounds` from platform and wall cells;
+- leaves `connections` empty.
+
+`RuntimeRoomBuilder` creates:
+
+```text
+RuntimeRoom (Node2D)
+└── Semantic (Node2D)
+    └── Tiles (TileMapLayer)
+```
+
+It does not create tiles.
+
+Outputs:
+
+- `context.runtime_room_data`;
+- `context.runtime_room`.
+
+---
+
+## 7. ApplyDefaultThemeStep
+
+**ID:** `apply_default_theme`
+
+Loads the default theme from:
+
+```text
+res://resources/themes/default/default_theme.tres
+```
+
+and runs `ThemeApplyer.apply(runtime_room, theme, runtime_room_data)`.
+
+This step only applies visuals. It does not change `RoomData` or topology.
+
+If the runtime room or `RoomData` is missing, or the default theme cannot be loaded, it reports a fatal error.
+
+The default theme is currently built separately through the theme build pipeline. See [themes.md](themes.md).
+
+---
+
+## 8. SaveRoomDataStep
+
+**ID:** `save_room_data`
+
+Saves:
+
+```text
+res://scenes/rooms/<room_basename>/<room_basename>_room_data.tres
+res://scenes/rooms/<room_basename>/<room_basename>_runtime.tscn
+```
+
+The directory is derived from the authored room scene's file basename.
+
+The runtime room is packed as a `PackedScene` and saved as a project asset.
+
+---
+
+# Input and Output
+
+## Input
 
 ```text
 Room Scene
-
-↓
-
-Validation
-
-↓
-
-Data Extraction
-
-↓
-
-Runtime Room Generation
-
-↓
-
-Asset Storage
-
-↓
-
-World Generator
+├── Semantic brushes
+│   ├── PlatformBrush
+│   ├── WallBrush
+│   └── BackgroundBrush
+└── Authoring-only nodes
 ```
 
----
-
-# Why Bake Exists
-
-Project Echo does not generate worlds directly from authored scenes during gameplay.
-
-Instead:
+## Output
 
 ```text
-Editor Time
-
-↓
-
-Process Content
-
-↓
-
-Create Runtime Data
-
-↓
-
-Gameplay Runtime
+scenes/rooms/<room_name>/
+├── <room_name>_room_data.tres
+└── <room_name>_runtime.tscn
 ```
 
-Benefits:
-
-- predictable runtime performance;
-- faster world generation;
-- smaller runtime workload;
-- validation before release;
-- easier debugging.
-
----
-
-# Input Data
-
-The Bake process consumes authored Room data.
-
-Input sources include:
-
-```text
-Room Scene
-
-├── TileMap Layers
-│
-├── Collision Data
-│
-├── Entities
-│
-├── Connection Points
-│
-├── Semantic Tiles
-│
-└── Room Metadata
-```
-
----
-
-# Output Data
-
-Bake produces a Runtime representation of the Room.
-
-Conceptually:
-
-```text
-Room Scene
-
-↓
-
-Runtime Room
-```
-
-Runtime Room contains only data required during gameplay.
-
----
-
-# Bake Stages
-
-## 1. Scene Loading
-
-The Bake process loads an authored Room Scene.
-
-The scene represents the designer version of the room.
-
-At this stage it may contain:
-
-- editor helpers;
-- brushes;
-- authoring-only objects;
-- temporary visualization.
-
----
-
-## 2. Validation
-
-Before generating runtime data, the Room must be validated.
-
-Validation checks:
-
-- required nodes exist;
-- RoomData is present;
-- Connection Points are valid;
-- semantic information is consistent;
-- required layers exist.
-
-Example:
-
-```text
-Missing RoomData
-
-↓
-
-Bake Failed
-```
-
----
-
-## 3. Data Extraction
-
-The Bake process extracts gameplay information.
-
-Possible extracted data:
-
-- room metadata;
-- dimensions;
-- connection points;
-- semantic layout;
-- entity placement;
-- generation tags.
-
-The goal is converting editor representation into gameplay data.
-
----
-
-## 4. Runtime Room Generation
-
-The extracted information is converted into Runtime Room data.
-
-Conceptually:
-
-```text
-Authored Room
-
-+
-
-Metadata
-
-+
-
-Semantic Information
-
-↓
-
-Runtime Room
-```
-
-Runtime Room should not depend on editor-only objects.
-
----
-
-## 5. Asset Storage
-
-Generated Runtime Room assets are stored as project data.
-
-The storage format should allow:
-
-- fast loading;
-- easy lookup;
-- version control;
-- regeneration after changes.
-
----
-
-## 6. Database Update
-
-After successful Bake, generated rooms become available for World Generation.
-
-Conceptually:
-
-```text
-Runtime Room
-
-↓
-
-Room Database
-
-↓
-
-World Generator
-```
-
-The exact database implementation is not fixed yet.
-
----
-
-# Runtime Flow
-
-During gameplay:
-
-```text
-World Generator
-
-↓
-
-Room Database
-
-↓
-
-Runtime Room Selection
-
-↓
-
-Room Loading
-
-↓
-
-Playable Room
-```
-
-The game does not repeat the Bake process.
-
----
-
-# Separation of Responsibilities
-
-## Room Authoring
-
-Responsible for:
-
-- creating room layout;
-- adding semantic information;
-- defining metadata.
-
----
-
-## Bake System
-
-Responsible for:
-
-- validation;
-- conversion;
-- runtime asset generation.
-
----
-
-## Runtime
-
-Responsible for:
-
-- loading Runtime Rooms;
-- assembling the world;
-- running gameplay.
-
----
-
-# Relationship With Semantic Tiles
-
-Semantic Tiles are processed during Bake.
-
-The authoring layer:
-
-```text
-Semantic Tile
-
-↓
-
-Gameplay Meaning
-```
-
-becomes runtime data:
-
-```text
-Runtime Room
-
-↓
-
-Generation Information
-```
-
-This allows visual themes to change without rebuilding gameplay structure.
-
----
-
-# Relationship With RoomData
-
-RoomData is extracted and preserved during Bake.
-
-Example:
-
-```text
-RoomData
-
-type = Combat
-
-difficulty = 3
-
-allowed_biomes = Morgue
-```
-
-The World Generator uses this information when selecting rooms.
+The baked runtime scene contains TileMapLayer cells only after theme application. It does not contain actors or gameplay objects.
 
 ---
 
 # Error Handling
 
-Bake should fail early when invalid content is detected.
+The pipeline fails early on fatal issues.
 
 Examples:
 
-```text
-Invalid Connection Point
+- missing semantic data;
+- missing runtime room when applying a theme;
+- invalid default theme path;
+- failed save operation.
 
-↓
+Validation errors do not automatically abort unless escalated to fatal. They remain in the report and should be fixed at the authoring source.
 
-Bake Error
-```
+---
 
-```text
-Missing Room Metadata
-
-↓
-
-Bake Error
-```
+# Runtime Flow
 
 ```text
-Invalid Semantic Layer
-
-↓
-
-Bake Error
+World Generator (planned)
+   │
+   ▼
+Room selection
+   │
+   ▼
+Instantiate baked RuntimeRoom
+   │
+   ▼
+Apply/select theme (biome) (planned)
+   │
+   ▼
+Playable room
 ```
 
-Authoring problems should be discovered before runtime.
+Runtime does not repeat brush collection, processing or validation.
 
 ---
 
-# Editor Integration
+# Separation of Responsibilities
 
-The Bake system is expected to be integrated into Godot editor tooling.
+## Authoring
 
-Possible features:
+- create room layout with semantic brushes;
+- provide gameplay meaning;
+- keep visuals separate.
 
-- Bake selected Room;
-- Bake all Rooms;
-- Validate Room;
-- Show Bake errors;
-- Preview Runtime Room.
+## Bake
 
-The exact editor implementation is not finalized.
+- collect and convert brushes;
+- compute topology;
+- validate;
+- build `RoomData` and runtime scene structure;
+- apply default theme;
+- save artifacts.
 
----
+## Runtime
 
-# Design Principles
-
-## Runtime Should Not Build Content
-
-Expensive processing belongs in the editor.
-
----
-
-## Generated Data Should Be Deterministic
-
-The same Room Scene should always produce the same Runtime Room.
+- instantiate baked rooms;
+- assemble the world;
+- run gameplay.
 
 ---
 
-## Authoring Data and Runtime Data Are Different
+# Current Limitations
 
-Editor representation exists for designers.
-
-Runtime representation exists for gameplay.
-
----
-
-## Fail Early
-
-Invalid content should be detected during Bake.
-
----
-
-# Future Extensions
-
-Possible future additions:
-
-- automatic Room Database rebuilding;
-- incremental Bake;
-- Runtime Room previews;
-- validation rules;
-- dependency tracking;
-- automated content checks.
-
----
-
-# Decision Summary
-
-The Bake Pipeline is the bridge between World Authoring and Runtime Generation.
-
-Designers create Rooms.
-
-Bake converts them into optimized Runtime Rooms.
-
-World Generator uses Runtime Rooms to assemble the playable world.
-
-This separation keeps procedural generation flexible while maintaining predictable runtime performance.
+- Room database update is not implemented.
+- Incremental bake and batch bake tooling are not implemented.
+- Marker and volume data are not baked.
+- Connections are not authored or baked.
+- The default theme is always applied during bake; biome-driven theme selection is planned.
+- The pipeline currently relies on debug/test drivers rather than a finished editor integration.
 
 ---
 
 # Related Documents
 
-- World Authoring
-- World Architecture Overview
-- Room Architecture
-- Room Data
-- Semantic Tiles
-- Connection Points
-- World Generation
+- [World Authoring](world-authoring.md)
+- [World Overview](overview.md)
+- [Room Architecture](room-architecture.md)
+- [Room Data](room-data.md)
+- [Semantic Tiles](semantic-tiles.md)
+- [Themes](themes.md)

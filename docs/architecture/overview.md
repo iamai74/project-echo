@@ -1,17 +1,19 @@
 # Architecture Overview
 
-> **Status:** Stable
+> **Status:** In Progress
 >
-> **Last Updated:** 2026-07-19
+> **Last Updated:** 2026-11-06
 >
 > **Related:**
-> - project-structure.md
-> - actor.md
-> - components.md
-> - state-machine.md
-> - resources.md
-> - combat-architecture.md
-> - world-architecture.md
+> - [project-structure.md](project-structure.md)
+> - [actor.md](actor.md)
+> - [components.md](components.md)
+> - [state-machine.md](state-machine.md)
+> - [resources.md](resources.md)
+> - [combat-architecture.md](combat-architecture.md)
+> - [ai-architecture.md](ai-architecture.md)
+> - [glossary.md](glossary.md)
+> - [../world/overview.md](../world/overview.md)
 
 ---
 
@@ -19,9 +21,9 @@
 
 This document provides a high-level overview of the Project Echo architecture.
 
-It describes the major building blocks of the project, their responsibilities, and the relationships between them. Detailed implementation is intentionally omitted and documented in dedicated architecture documents.
+It describes the major building blocks of the project, their responsibilities and the relationships between them. Detailed implementation belongs in the dedicated documents linked above.
 
-The primary goal of the architecture is to create a modular, maintainable, and scalable codebase that allows new gameplay systems to be introduced with minimal impact on existing code.
+Project Echo is an early prototype built around a long-term architecture. Some systems are implemented, some are partially wired, and some are planned. This overview says which is which instead of describing the target design as if it were complete.
 
 ---
 
@@ -29,12 +31,12 @@ The primary goal of the architecture is to create a modular, maintainable, and s
 
 Project Echo is designed around the following goals:
 
-- Build reusable gameplay systems.
-- Minimize coupling between systems.
-- Separate gameplay logic from configuration.
-- Prefer composition over inheritance.
-- Keep systems data-driven whenever possible.
-- Design for long-term maintainability rather than short-term convenience.
+- build reusable gameplay systems;
+- minimize coupling between systems;
+- separate gameplay logic from configuration;
+- prefer composition over inheritance;
+- keep systems data-driven whenever possible;
+- design for long-term maintainability rather than short-term convenience.
 
 ---
 
@@ -43,221 +45,235 @@ Project Echo is designed around the following goals:
 ```mermaid
 flowchart TD
 
-	Game --> World
+    App["Application / Main Scene"] --> World["World autoload\n(settings)"]
+    App --> Rooms["Baked Runtime Rooms"]
+    Rooms --> Actors["Actors"]
 
-	World --> Room
+    Actors --> Components
+    Actors --> StateMachine
 
-	Room --> Actor
+    Components --> Combat
+    Components --> Detection["Detection / AI input"]
 
-	Actor --> Components
-	Actor --> StateMachine
-	Actor --> Resources
-
-	Components --> GameplaySystems
-
-	GameplaySystems --> Combat
-	GameplaySystems --> AI
-	GameplaySystems --> Interaction
+    World -. "planned" .-> Generation["World Generation"]
+    Generation -. "planned" .-> Rooms
 ```
 
-The project is built from several independent layers. Each layer has a clearly defined responsibility and communicates only with the layers directly below it.
+The current runtime is assembled from:
+
+- a main scene;
+- baked runtime room scenes;
+- `Actor`-derived gameplay entities;
+- reusable components;
+- per-actor state machines.
+
+World generation is planned and does not exist yet.
 
 ---
 
 # Core Building Blocks
 
-## Game
+## Application
 
-The root of the application.
+The application root is the scene configured in `project.godot`.
 
-Responsible for:
-
-- application lifecycle;
-- global services;
-- loading and unloading worlds;
-- save/load management (future);
-- global managers.
+It is currently a prototype test scene, not a finished game shell. There is no implemented save/load manager, global game state or menu flow.
 
 ---
 
 ## World
 
-The World is responsible for assembling and managing the playable environment.
+`World` is an autoload that exposes `WorldSettings`:
 
-Responsibilities include:
+```gdscript
+var settings: WorldSettings
+```
+
+`WorldSettings` currently contains only `tile_size`.
+
+The broader responsibilities often associated with a "World" system —
 
 - biome generation;
 - room placement;
 - room streaming;
 - world progression;
-- player traversal between rooms.
+- player traversal between rooms —
 
-The World never controls gameplay logic inside individual Actors.
+are **planned** and are not implemented in the `World` autoload.
+
+See [World Architecture](../world/overview.md).
 
 ---
 
 ## Room
 
-A Room is the smallest self-contained gameplay area.
+A room is the smallest self-contained gameplay area.
 
-A Room contains:
+A room has three representations:
 
-- level geometry;
-- actors;
-- decorations;
-- spawn points;
-- gameplay triggers;
-- navigation information.
+1. authored brush scene;
+2. baked `RoomData` and generated runtime scene;
+3. instantiated runtime room.
 
-Rooms are treated as reusable building blocks for procedural generation.
+Rooms are authored with semantic brushes, baked in advance and reused by future world generation.
+
+See [Room Architecture](../world/room-architecture.md).
 
 ---
 
 ## Actor
 
-Actors represent gameplay entities.
+Actors are the active gameplay entities.
 
-Examples include:
+Implemented:
 
-- Player
-- Enemy
-- NPC
-- Interactive objects (future)
+- `Actor` — base class extending `CharacterBody2D`;
+- `Player`;
+- `Enemy` and the `Walker`, `Runner` and `Heavy` prototypes.
 
-Actors coordinate gameplay components but avoid implementing gameplay systems directly.
+An Actor owns components, a state machine and an optional `ActorData` resource. It coordinates gameplay but delegates mechanics to components and states.
 
-Detailed information is available in `actor.md`.
+See [Actor](actor.md).
 
 ---
 
 ## Components
 
-Gameplay functionality is implemented through reusable components.
+Gameplay functionality is implemented through components.
 
-Examples:
+Implemented:
 
-- Health
-- Weapon
-- Hitbox
-- Hurtbox
-- Detection
-- Movement
-- Animation
+- `HealthComponent`
+- `WeaponComponent`
+- `HitboxComponent`
+- `HurtboxComponent`
+- `DetectionComponent`
+- `InputComponent`
 
-Components should be independent and reusable.
+`Actor` requires `HealthComponent`, `HurtboxComponent` and `StateMachine`. `WeaponComponent` is optional and is looked up by node name.
 
-Detailed information is available in `components.md`.
+See [Components](components.md).
 
 ---
 
 ## State Machine
 
-Behavior is controlled through a universal finite state machine.
+Each Actor owns a `StateMachine` node containing `State` children.
 
-Each Actor owns its own State Machine.
+Implemented state sets:
 
-Different Actors use different states while sharing the same underlying implementation.
+**Player**
 
-Examples:
+- `Idle`
+- `Move`
+- `Fall`
+- `Jump`
+- `JumpAttack`
+- `Attack`
+- `Hurt`
+- `Dead`
 
-Player
+**Enemy**
 
-- Idle
-- Move
-- Jump
-- Fall
-- Attack
-- Hurt
-- Dead
+- `Idle`
+- `Patrol`
+- `Chase`
+- `Attack`
+- `Hurt`
+- `Dead`
+- `Fall`
+- `Move`
 
-Enemy
+The state machine supports enter/exit, update, physics update, input handling and attack-finished callbacks.
 
-- Idle
-- Patrol
-- Chase
-- Attack
-- Hurt
-- Dead
-
-Detailed information is available in `state-machine.md`.
+See [State Machine](state-machine.md).
 
 ---
 
 ## Resources
 
-Configuration data is stored inside Godot Resources.
+Configuration and baked data are stored in Godot `Resource` types.
 
-Typical examples include:
+Implemented examples:
 
-- character statistics;
-- movement settings;
-- weapon definitions;
-- enemy configuration;
-- room metadata.
+- `ActorData`
+- `WeaponData`
+- `AttackDefinition`
+- `RoomData`
+- `ThemeInfo`
+- `WorldSettings`
 
-Gameplay code should read configuration from Resources rather than hardcoding values.
-
-Detailed information is available in `resources.md`.
+See [Resources](resources.md) and [Resources Catalog](resources-catalog.md).
 
 ---
 
 # Gameplay Systems
 
-Gameplay systems are implemented independently from Actors.
+## Combat
 
-Examples include:
+Combat is component-driven:
 
-- Combat
-- AI
-- Status Effects
-- Inventory (future)
-- Progression (future)
+```text
+WeaponComponent → HitboxComponent → HurtboxComponent → Actor → HealthComponent
+```
 
-Each system is responsible only for its own domain.
+`WeaponComponent` owns attack timing phases and creates `AttackData`. `HitboxComponent` forwards it to a target `HurtboxComponent`, which emits `hit_received`. The target `Actor` applies damage through `HealthComponent`, applies knockback and transitions to `Hurt` or `Dead`.
+
+See [Combat Architecture](combat-architecture.md).
+
+## AI
+
+Enemy behaviour is state-machine-driven. `DetectionComponent` detects the `Player` and emits signals.
+
+`Walker`, `Runner` and `Heavy` connect detection signals to state changes. The base `Enemy` defines the signal wiring but its detection callbacks are empty, so detection-to-behaviour wiring is incomplete for that base class.
+
+See [AI Architecture](ai-architecture.md).
+
+## Other Systems
+
+Not implemented:
+
+- status effects;
+- inventory;
+- progression;
+- interaction;
+- dialogue;
+- quests.
 
 ---
 
 # Communication
 
-Project Echo uses explicit communication between systems.
+Project Echo uses explicit communication:
 
-Preferred communication methods are:
+- Godot signals;
+- explicit node references;
+- stable public APIs;
+- shared runtime data objects such as `AttackData`.
 
-- Signals
-- Explicit references
-- Well-defined public APIs
-
-Direct dependencies should be minimized.
-
-Whenever possible, components should not depend on implementation details of other components.
+Components avoid depending on concrete Actor subclasses where practical. `DetectionComponent` is currently an exception: it explicitly detects `Player`.
 
 ---
 
 # Dependency Rules
 
-Dependencies always point downward.
+Dependencies should point downward:
 
 ```mermaid
 flowchart TD
 
-Game --> World
-World --> Room
-Room --> Actor
-Actor --> Component
-Component --> Resource
+    Actor --> Component
+    Component --> Resource
+    State --> Actor
 ```
 
-Lower-level systems must never depend on higher-level systems.
+Lower-level systems should not depend on higher-level systems.
 
-Examples:
+Current examples:
 
-✔ Components know nothing about the World.
-
-✔ HealthComponent does not know about Player.
-
-✔ WeaponComponent does not know about Enemy AI.
-
-This keeps gameplay systems reusable.
+- `HealthComponent` knows nothing about `Player`.
+- `WeaponComponent` knows nothing about enemy AI.
+- `Actor` coordinates components without implementing their mechanics.
 
 ---
 
@@ -265,97 +281,64 @@ This keeps gameplay systems reusable.
 
 ## Composition over Inheritance
 
-Gameplay behavior should be assembled through components rather than deep inheritance hierarchies.
-
----
+Gameplay behaviour is assembled through components and states rather than deep inheritance trees.
 
 ## Data-Driven Design
 
-Configuration belongs in Resources.
-
-Logic belongs in code.
-
----
+Configuration belongs in Resources. Logic belongs in code.
 
 ## Single Responsibility
 
 Each system should solve one problem.
 
----
-
-## Loose Coupling
-
-Systems communicate through stable interfaces.
-
-Implementation details remain private.
-
----
-
 ## Explicit Ownership
 
-Every object has a clearly defined owner.
-
-Example:
-
-- World owns Rooms.
-- Room owns Actors.
-- Actor owns Components.
-- Components own their internal state.
-
-Ownership should never be ambiguous.
-
----
+- a room owns its runtime nodes;
+- an Actor owns its components and state machine;
+- components own their internal state.
 
 ## Reusability
 
-Gameplay systems should work for any Actor whenever possible.
-
-Player-specific and Enemy-specific logic should remain outside reusable components.
+Components should work for any compatible Actor.
 
 ---
 
 # Architecture Boundaries
 
-This document intentionally does **not** describe:
+This document intentionally does not describe:
 
-- individual gameplay mechanics;
-- combat implementation;
+- individual mechanics in detail;
+- combat implementation details;
 - world generation algorithms;
-- AI behavior;
-- save system;
-- rendering;
+- AI behaviour details;
+- the theme pipeline;
+- save/load;
 - UI.
 
-Each of these topics has (or will have) its own dedicated document.
+Each topic has a dedicated document.
 
 ---
 
 # Documentation Philosophy
 
-Architecture documentation is considered part of the project.
+Architecture documentation is part of the project.
 
-Before implementing major systems:
+When implementation changes an architectural decision:
 
-1. Design the architecture.
-2. Document the architecture.
-3. Implement the system.
-4. Update documentation if implementation changes.
-
-Documentation is treated as the primary architectural reference for Project Echo.
+1. update or supersede the relevant documentation;
+2. do not preserve a third interpretation;
+3. keep ADRs as historical records.
 
 ---
 
-# Future Documents
+# Related Documents
 
-The following documents expand on this overview:
-
-- Project Structure
-- Actor
-- Components
-- Resources
-- State Machine
-- Combat Architecture
-- World Architecture
-- AI Architecture
-- Event System
-- Save System
+- [Project Structure](project-structure.md)
+- [Actor](actor.md)
+- [Components](components.md)
+- [State Machine](state-machine.md)
+- [Combat Architecture](combat-architecture.md)
+- [AI Architecture](ai-architecture.md)
+- [Resources](resources.md)
+- [Glossary](glossary.md)
+- [World Architecture](../world/overview.md)

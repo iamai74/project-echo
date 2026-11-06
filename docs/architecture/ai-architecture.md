@@ -1,348 +1,203 @@
 # AI Architecture
 
-> **Last Updated:** 2026-07-20
+> **Status:** In Progress
 >
-> **Related**
+> **Last Updated:** 2026-11-06
 >
-> - actor.md
-> - components.md
-> - state-machine.md
-> - combat-architecture.md
-> - glossary.md
+> **Related:**
+> - [actor.md](actor.md)
+> - [components.md](components.md)
+> - [state-machine.md](state-machine.md)
+> - [combat-architecture.md](combat-architecture.md)
+> - [glossary.md](glossary.md)
 
 ---
 
 # Purpose
 
-This document describes the AI architecture used for gameplay Actors in Project Echo.
+This document describes the AI architecture used for enemy Actors in Project Echo.
 
-AI is implemented as a State Machine-driven behaviour system.
+Enemy AI is a state-machine-driven behaviour system. It reuses the same Actor, component and state architecture as the player:
 
-The architecture reuses the same principles as Player control:
-
-- Actor owns Components;
-- State Machine controls behaviour;
-- Components provide capabilities;
-- States decide what the Actor should do.
+- the Actor owns components;
+- the state machine controls behaviour;
+- components provide capabilities;
+- states decide what the Actor should do.
 
 ---
 
 # Overview
 
-Enemy AI follows the same architectural model as other gameplay Actors.
-
 ```text
 Enemy Actor
-
-		│
-
-		▼
-
+     │
+     ▼
 State Machine
-
-		│
-
-		▼
-
-AI States
-
-		│
-
-		▼
-
+     │
+     ▼
+Enemy States
+     │
+     ▼
 Components
 ```
 
-AI does not directly control gameplay systems.
-
-Instead, it selects behaviour through States.
-
----
-
-# Core Principles
-
-AI in Project Echo follows these principles:
-
-- Use the same State Machine architecture as Player.
-- Separate decision making from execution.
-- Keep AI states small and focused.
-- Use Components for reusable capabilities.
-- Avoid enemy-specific gameplay logic inside Components.
+AI does not directly manipulate health or world state. Decisions are expressed as state transitions; actions are executed through Actor and component APIs.
 
 ---
 
 # Enemy as Actor
 
-Enemies are implemented as Actors.
-
 An Enemy owns:
 
 ```text
 Enemy
-│
-├── State Machine
+├── StateMachine
 ├── HealthComponent
 ├── HurtboxComponent
-├── HitboxComponent
-├── DetectionComponent
-└── WeaponComponent
+├── WeaponComponent
+│   └── HitboxComponent
+└── DetectionComponent
 ```
 
-The Actor itself does not contain behaviour logic.
+Base `Enemy` also provides:
 
-Behaviour is implemented through States.
+```gdscript
+func get_target_position() -> Vector2
+func is_attacking() -> bool
+func _on_attack_finished(attack: AttackDefinition) -> void
+```
+
+Implemented enemy prototypes:
+
+- `Walker`
+- `Runner`
+- `Heavy`
+
+They currently share the same state setup and detection callbacks.
 
 ---
 
-# AI State Machine
+# AI States
 
-AI behaviour is represented as States.
-
-Example:
+Current enemy state set:
 
 ```text
 Idle
-
-↓
-
 Patrol
-
-↓
-
 Chase
-
-↓
-
+Move
+Fall
 Attack
-
-↓
-
 Hurt
-
-↓
-
-Death
+Dead
 ```
 
-The State Machine is responsible for:
+## Idle
 
-- entering states;
-- exiting states;
-- processing state updates;
-- handling transitions.
+Stops horizontal movement. Transitions to `Fall` when airborne.
+
+The base implementation has no direct transition to `Patrol` or `Chase`.
+
+## Patrol
+
+Moves within a configurable `patrol_distance` around the position where patrol started. Reverses direction at walls or at the patrol limit. Transitions to `Fall` when airborne.
+
+## Chase
+
+Moves toward `DetectionComponent.get_target_position()`.
+
+- if no target is available, transitions to `Patrol`;
+- if the target is within attack range, transitions to `Attack`;
+- otherwise moves horizontally toward the target.
+
+Attack range is derived from the configured light attack:
+
+```text
+abs(hitbox_offset.x) + hitbox_size.x * 0.5
+```
+
+## Move
+
+Placeholder movement state. Transitions to `Fall` when airborne.
+
+## Fall
+
+Transitions to `Idle` on landing.
+
+## Attack
+
+Starts a light attack. Transitions when `WeaponComponent.attack_finished` is forwarded to the state machine.
+
+## Hurt
+
+Sets the hurtbox invulnerable. Transitions back to `Idle`, `Move` or `Fall` after recovery.
+
+## Dead
+
+Calls `Actor.die()`.
 
 ---
 
-# Current AI States
+# Detection
 
-## IdleState
+Detection is implemented by `DetectionComponent`, an `Area2D` that detects a `Player` hurtbox.
 
-Purpose:
+Signals:
 
-Wait state when no action is required.
-
-Possible transitions:
-
-```text
-Idle
-
-↓
-
-Patrol
+```gdscript
+signal player_detected(player: Player)
+signal player_lost
 ```
 
-or
+API:
 
-```text
-Idle
-
-↓
-
-Chase
+```gdscript
+func get_target_position() -> Vector2
 ```
+
+`get_target_position()` returns `Vector2.INF` when no player is tracked.
+
+Detection only identifies the player. It is not a general multi-target perception system.
 
 ---
 
-## PatrolState
+# Detection-to-Behaviour Wiring
 
-Purpose:
-
-Move between predefined points or follow a patrol direction.
-
-Responsibilities:
-
-- choose movement direction;
-- control patrol timing;
-- detect transition conditions.
-
-Does not handle:
-
-- target detection;
-- attacking.
-
----
-
-## ChaseState
-
-Purpose:
-
-Move toward a detected target.
-
-Responsibilities:
-
-- calculate desired movement direction;
-- maintain distance from target;
-- decide when to attack.
-
-Example:
+Base `Enemy` connects:
 
 ```text
-Target detected
-
-↓
-
-Chase
-
-↓
-
-Target in attack range
-
-↓
-
-Attack
+DetectionComponent.player_detected → Enemy._on_player_detected → _on_detection_success
+DetectionComponent.player_lost     → Enemy._on_player_lost     → _on_detection_lost
 ```
 
----
+In the base `Enemy`, `_on_detection_success()` and `_on_detection_lost()` are empty.
 
-## AttackState
-
-Purpose:
-
-Execute an attack.
-
-The same combat architecture is used as for the Player.
-
-Flow:
+`Walker`, `Runner` and `Heavy` override them:
 
 ```text
-AttackState
-
-↓
-
-WeaponComponent
-
-↓
-
-AttackDefinition
-
-↓
-
-AttackData
-
-↓
-
-Combat Pipeline
+detection success → Chase
+detection lost    → Patrol
 ```
 
-AI decides **when** to attack.
-
-Combat system decides **how** damage is applied.
-
----
-
-# Detection System
-
-Detection is implemented through `DetectionComponent`.
-
-Its responsibility is identifying possible targets.
-
-Detection does not decide behaviour.
-
-Example:
-
-```text
-DetectionComponent
-
-		↓
-
-Target Found
-
-		↓
-
-State Machine Transition
-
-		↓
-
-ChaseState
-```
-
----
-
-# Target Acquisition
-
-AI uses target information provided by Components.
-
-Example:
-
-```text
-DetectionComponent
-
-↓
-
-Current Target
-
-↓
-
-ChaseState
-
-↓
-
-Movement Direction
-```
-
-The State does not search the world directly.
+The intended architecture is detection → state transition. The base class wiring is therefore incomplete, and behaviour depends on the concrete prototype.
 
 ---
 
 # AI Decision Flow
 
-A typical enemy decision cycle:
-
 ```text
 Detection
-
-↓
-
-Target Available?
-
-↓
-
-No
- |
- ▼
-Patrol
-
-
-Yes
- |
- ▼
-Chase
-
-
-Distance Check
-
-↓
-
-Attack Range?
-
-↓
-
-Yes
-
-↓
-
-Attack
+    ↓
+Target available?
+    ├── No  → Patrol / Idle
+    └── Yes → Chase
+                ↓
+          In attack range?
+                ├── No  → keep chasing
+                └── Yes → Attack
 ```
+
+The current implementation does not include search, retreat, flanking or group behaviour.
 
 ---
 
@@ -351,9 +206,8 @@ Attack
 AI decides:
 
 - when to attack;
-- which behaviour to use;
 - when to chase;
-- when to retreat *(future)*.
+- when to patrol.
 
 Combat decides:
 
@@ -362,34 +216,16 @@ Combat decides:
 - knockback;
 - health changes.
 
-Example:
-
 Correct:
 
 ```text
-AI
-
-↓
-
-AttackState
-
-↓
-
-WeaponComponent
-
-↓
-
-Combat Pipeline
+AI state → WeaponComponent → HitboxComponent → HurtboxComponent → HealthComponent
 ```
 
 Incorrect:
 
 ```text
-AI
-
-↓
-
-Enemy.health -= damage
+AI → enemy.health -= damage
 ```
 
 ---
@@ -398,143 +234,57 @@ Enemy.health -= damage
 
 ## DetectionComponent
 
-Provides:
-
-- target detection;
-- target information.
-
----
-
-## Movement System
-
-Provides:
-
-- movement execution.
-
-AI decides direction.
-
-Movement system performs movement.
-
----
+Provides target detection and target position.
 
 ## WeaponComponent
 
-Provides:
-
-- attack execution.
-
-AI chooses when to use it.
-
----
+Executes attacks. AI chooses when to call `Actor.attack`.
 
 ## HealthComponent
 
-Provides:
+Provides health and death signals. AI does not modify health directly.
 
-- health management;
-- death state.
+## Movement
 
-AI does not manage health directly.
-
----
-
-# State Transition Examples
-
-## Player Detected
-
-```text
-Patrol
-
-↓
-
-DetectionComponent detects Player
-
-↓
-
-ChaseState
-```
+There is no `MovementComponent` yet. Enemy states call `Actor.move(direction)` directly.
 
 ---
 
-## Player In Range
+# Current Limitations
 
-```text
-ChaseState
-
-↓
-
-Distance Check
-
-↓
-
-AttackState
-```
-
----
-
-## Enemy Hit
-
-```text
-Any State
-
-↓
-
-Damage Received
-
-↓
-
-HurtState
-```
-
----
-
-## Enemy Dead
-
-```text
-Any State
-
-↓
-
-HealthComponent
-
-↓
-
-DeathState
-```
+- Detection only recognises `Player`.
+- Base `Enemy` detection callbacks are no-ops.
+- `Idle` does not automatically transition to `Patrol`.
+- `_try_start_patrol()` in `Walker`, `Runner` and `Heavy` only starts patrol when the enemy has moved since the previous physics frame, and skips if the position is unchanged. A stationary enemy can remain in `Idle`.
+- `EnemyState.has_movement_input()` always returns `false`, so shared transitions based on movement input do not apply to enemies.
+- There is no pathfinding, navigation, line-of-sight check or target memory.
+- There is no ranged attack, retreat or group behaviour.
+- `Walker`, `Runner` and `Heavy` currently differ only by their scenes and data, not by behaviour script.
 
 ---
 
 # Extension Points
 
-The current architecture allows future expansion.
+Future AI work should extend the existing architecture:
 
-Possible future additions:
+- new states for search, ranged attacks, retreat or abilities;
+- richer perception components;
+- navigation/pathfinding services;
+- boss-specific state sets;
+- group coordination.
 
-- ranged attacks;
-- enemy abilities;
-- retreat behaviour;
-- tactical positioning;
-- group behaviour;
-- boss AI;
-- perception systems.
-
-These should be implemented through new States and Components rather than expanding existing Actors.
+New behaviour should be introduced through states and components rather than a single large enemy controller.
 
 ---
 
 # Best Practices
 
-✔ Reuse the same State Machine architecture.
-
-✔ Keep AI logic inside States.
-
-✔ Keep detection separate from decision making.
-
-✔ Use Components for capabilities.
-
-✔ Let Combat handle combat.
-
-✔ Let Movement handle movement.
+- Reuse the same state machine architecture.
+- Keep AI decisions inside states.
+- Keep detection separate from decision making.
+- Use components for capabilities.
+- Let combat handle combat.
+- Let Actor movement APIs handle movement.
 
 ---
 
@@ -542,41 +292,18 @@ These should be implemented through new States and Components rather than expand
 
 Avoid:
 
-❌ Putting AI decisions inside Components.
-
-❌ Making Enemy subclasses with duplicated behaviour.
-
-❌ Directly changing health from AI.
-
-❌ Mixing detection and attack logic.
-
-❌ Creating one large EnemyController class.
-
----
-
-# Decision Summary
-
-AI in Project Echo is implemented as a State Machine-driven system.
-
-Enemies are Actors.
-
-States define behaviour.
-
-Components provide capabilities.
-
-Detection provides information.
-
-Combat remains independent from AI decisions.
-
-This architecture allows Player and Enemy systems to share the same gameplay foundation while keeping behaviour modular and extensible.
+- putting AI decisions inside components;
+- duplicating behaviour across enemy subclasses;
+- directly changing health from AI;
+- mixing detection and attack logic;
+- creating one large `EnemyController`.
 
 ---
 
 # Related Documents
 
-- Actor
-- Components
-- State Machine
-- Combat Architecture
-- Resources
-- Glossary
+- [Actor](actor.md)
+- [Components](components.md)
+- [State Machine](state-machine.md)
+- [Combat Architecture](combat-architecture.md)
+- [Glossary](glossary.md)

@@ -1,17 +1,14 @@
 # World Authoring
 
-> **Last Updated:** 2026-07-20
+> **Last Updated:** 2026-11-06
 >
-> **Related**
->
-> - world-architecture-overview.md
-> - room-architecture.md
-> - room-data.md
-> - semantic-tiles.md
-> - connection-points.md
-> - world-generation.md
-> - resources.md
-> - glossary.md
+> **Related:**
+> - [overview.md](overview.md)
+> - [room-architecture.md](room-architecture.md)
+> - [room-data.md](room-data.md)
+> - [semantic-tiles.md](semantic-tiles.md)
+> - [bake-pipeline.md](bake-pipeline.md)
+> - [themes.md](themes.md)
 
 ---
 
@@ -19,50 +16,37 @@
 
 This document describes the process of creating world content in Project Echo.
 
-World Authoring is the process where designers create gameplay spaces that later become optimized runtime assets used by the World Generator.
-
-The authoring pipeline separates:
-
-- content creation;
-- gameplay metadata;
-- runtime optimization;
-- procedural assembly.
+World authoring is the designer-facing stage that produces rooms which are later baked into runtime-ready data.
 
 ---
 
 # Overview
 
-The complete world creation pipeline:
-
 ```text
 Designer
-
-↓
-
-Room Scene
-
-↓
-
-Semantic Authoring
-
-↓
-
-Validation
-
-↓
-
-Bake
-
-↓
-
-Runtime Room
-
-↓
-
-World Generator
-
-↓
-
+   │
+   ▼
+Authored Room Scene
+   │
+   ├── Semantic brushes
+   ├── Connection authoring (planned)
+   └── Room metadata (planned)
+   │
+   ▼
+Bake Pipeline
+   │
+   ├── Semantic data
+   ├── Validation
+   ├── RoomData
+   └── RuntimeRoom scene
+   │
+   ▼
+Theme build / application
+   │
+   ▼
+World Generator (planned)
+   │
+   ▼
 Playable World
 ```
 
@@ -70,255 +54,175 @@ Playable World
 
 # Authoring Philosophy
 
-Project Echo separates the visual representation of a room from its gameplay meaning.
+Project Echo separates visual representation from gameplay meaning.
 
-The designer does not directly create procedural generation data.
-
-Instead:
+The designer authors spatial intent using semantic brushes. Visuals are supplied later by a theme.
 
 ```text
-Visual Layout
-
-+
-
-Semantic Information
-
-+
-
-Metadata
-
-↓
-
-Runtime Representation
+Spatial intent
+      +
+Semantic data
+      +
+Validation
+      ↓
+Runtime-ready room
 ```
+
+This allows a room to be reused with different visual themes without changing its collision topology.
 
 ---
 
 # Room as Authoring Unit
 
-The primary authoring unit is the Room.
+The primary authoring unit is the room.
 
-A Room represents:
+A room represents:
 
 - a playable area;
 - a reusable world fragment;
 - a generation building block.
 
-A Room contains:
+An authored room scene may contain:
 
-- geometry;
-- visual layers;
-- gameplay elements;
-- connection information;
-- metadata.
+- semantic brushes;
+- authoring helpers;
+- editor visualization;
+- future connection and marker authoring objects.
 
 ---
 
-# Room Authoring Structure
-
-A typical authored Room:
+# Authoring Structure
 
 ```text
 Room Scene
-
-├── Visual Layers
-│
-├── Collision
-│
-├── Entities
-│
-├── Connection Points
-│
-└── Room Metadata
+├── PlatformBrush(es)
+├── WallBrush(es)
+├── BackgroundBrush(es)
+├── Marker brushes            (data model exists; authoring incomplete)
+├── Volume brushes            (data model exists; authoring incomplete)
+└── Connection authoring      (planned)
 ```
+
+All brushes are discovered recursively by `BrushCollector`. Brushes must inherit from `SemanticBrush` and return a non-`UNKNOWN` brush type to be collected.
 
 ---
 
-# Visual Authoring
+# Semantic Brush Framework
 
-Visual elements are created using TileMaps and authored assets.
+A semantic brush is a `@tool` `Node2D` that describes an authoring operation.
 
-The visual layer is responsible for:
+Current base type:
 
-- appearance;
-- decoration;
-- biome presentation.
+```gdscript
+@tool
+class_name SemanticBrush
+extends Node2D
 
-Visual representation should not define gameplay rules.
+enum BrushType {
+    UNKNOWN,
+    PLATFORM,
+    WALL,
+    BACKGROUND,
+    ENEMY_SPAWN,
+    LOOT_SPAWN,
+}
+```
+
+Common properties:
+
+| Property | Description |
+|----------|-------------|
+| `enabled` | Whether the brush contributes to authoring |
+| `size` | Grid size in cells |
+| `priority` | Reserved for overlap resolution |
+
+Brushes convert their pixel position and size into grid coordinates using `World.settings.tile_size`.
 
 ---
 
-# Semantic Authoring
+# Implemented Brushes
 
-Semantic layers describe gameplay meaning.
+## PlatformBrush
 
-Examples:
+- Brush type: `PLATFORM`.
+- Traits: `ONE_WAY`, `BREAKABLE`.
+- Produces `SemanticSpatialPlatformCell` data.
+- Overlapping platform cells are reported by `PlatformBakeProcessor` as `BRUSH_OVERLAP` errors.
 
-```text
-Floor
+## WallBrush
 
-Wall
+- Brush type: `WALL`.
+- Produces `SemanticSpatialTopologyCell` data.
+- Wall cells receive topology during post-processing.
 
-Platform
+## BackgroundBrush
 
-Obstacle
+- Brush type: `BACKGROUND`.
+- Produces background cells.
+- Background cells are not topology cells and are not part of room bounds.
 
-Decoration
+## Marker and Volume Brushes
 
-Spawn Area
-
-Connection Area
-```
-
-Semantic information allows the same gameplay structure to receive different visual themes.
-
-Example:
-
-```text
-Semantic Platform
-
-↓
-
-Forest Biome
-
-↓
-
-Grass Tiles
-```
-
-or:
-
-```text
-Semantic Platform
-
-↓
-
-Morgue Biome
-
-↓
-
-Stone Tiles
-```
+`MarkerBrush` and `VolumeBrush` exist as base classes. Concrete brush types and bake processors for markers/volumes are not registered yet.
 
 ---
 
-# Brush Framework
+# Authoring Rules
 
-World Authoring uses semantic brushes to simplify content creation.
+## Grid alignment
 
-A Brush represents a reusable authoring operation.
+Brushes are expected to align to the world tile grid.
 
-Examples:
+`SemanticBrush.is_valid_brush()` checks that the brush position is a multiple of `World.settings.tile_size`.
 
-- PlatformBrush
-- WallBrush
-- FloorBrush
+## Overlap
 
-A Brush defines:
+Platforms and walls are separate semantic layers:
 
-- what semantic element is created;
-- how it is placed;
-- what metadata it generates.
+- duplicate cells within a layer are invalid;
+- platform and wall cells may not overlap.
 
----
+These rules are enforced during bake, not silently repaired.
 
-# KitPiece
+## Meaning before appearance
 
-KitPiece represents a reusable world building element.
-
-Examples:
-
-- platform segment;
-- wall section;
-- room decoration;
-- environment module.
-
-KitPieces allow designers to create consistent rooms from reusable parts.
-
----
-
-# Connection Authoring
-
-Connections between rooms are represented through Connection Points.
-
-A Connection Point defines:
-
-- location;
-- orientation;
-- possible connection direction.
-
-Example:
-
-```text
-Room A
-
-[Connection Point]
-
-		||
-
-		||
-
-[Connection Point]
-
-Room B
-```
-
-The World Generator uses this information when assembling rooms.
-
----
-
-# Room Metadata
-
-Each Room contains metadata describing how it can be used.
-
-Examples:
-
-- room type;
-- difficulty;
-- biome restrictions;
-- generation tags.
-
-This information is stored through RoomData.
-
-Example:
-
-```text
-RoomData
-
-type = Combat
-
-difficulty = 3
-
-allowed_biomes = Morgue
-```
+Brushes must describe gameplay meaning rather than a specific biome's visuals. Visual selection belongs to themes.
 
 ---
 
 # Bake Process
 
-The Bake process converts authored content into runtime data.
-
-Pipeline:
+Bake converts authored brushes into runtime data.
 
 ```text
 Room Scene
-
-↓
-
-Validation
-
-↓
-
-Extract Metadata
-
-↓
-
-Generate Runtime Room
-
-↓
-
-Store Asset
+   │
+   ▼
+Collect brushes
+   │
+   ▼
+Initialize semantic data
+   │
+   ▼
+Run registered bake processors
+   │
+   ▼
+Compute topology
+   │
+   ▼
+Validate
+   │
+   ▼
+Build RoomData + RuntimeRoom
+   │
+   ▼
+Apply default theme
+   │
+   ▼
+Save baked assets
 ```
+
+See [bake-pipeline.md](bake-pipeline.md) for step and validator details.
 
 ---
 
@@ -326,182 +230,91 @@ Store Asset
 
 Bake is responsible for:
 
-- validating room structure;
-- collecting metadata;
-- generating runtime representation;
-- preparing data for World Generation.
+- collecting brushes;
+- converting authoring brushes into semantic cells;
+- computing platform/wall topology;
+- validating semantic data;
+- producing `RoomData`;
+- constructing the runtime room scene;
+- applying the default theme;
+- saving baked assets.
 
-Bake should happen before gameplay.
+Bake must happen before gameplay. Runtime does not repeat the bake process.
 
 ---
 
 # Runtime Separation
 
-The game does not use authored Room Scenes directly.
-
-Runtime uses:
+Runtime uses baked output, not the authored room scene.
 
 ```text
-Runtime Room
+Runtime uses:
+RoomData
+RuntimeRoom scene
+ThemeInfo
 ```
-
-instead.
 
 Benefits:
 
-- faster loading;
-- smaller runtime cost;
-- predictable generation;
-- reduced processing during gameplay.
+- predictable runtime cost;
+- no brush processing during gameplay;
+- deterministic room structure;
+- reusable visual themes.
 
 ---
 
 # Designer Workflow
 
-Typical workflow:
+## 1. Create the room scene
 
-## 1. Create Room
+Create a new scene containing semantic brush nodes.
 
-Designer creates a new Room Scene.
+## 2. Author spatial layout
 
----
+Place `PlatformBrush`, `WallBrush` and `BackgroundBrush` nodes on the grid.
 
-## 2. Build Layout
+Use platform traits where appropriate.
 
-Designer creates:
+## 3. Author gameplay data
 
-- floors;
-- walls;
-- platforms;
-- decorations.
+Marker, volume and connection authoring are still in progress. Do not assume those brushes are baked yet.
 
----
+## 4. Bake the room
 
-## 3. Add Semantic Information
+Run the bake pipeline against the authored scene. Fix validation errors rather than bypassing them.
 
-Designer assigns gameplay meaning.
+## 5. Inspect output
 
-Example:
+Generated files:
 
 ```text
-This tile is a Platform
-
-This area is Enemy Spawn
-
-This point is Room Exit
+scenes/rooms/<room_name>/<room_name>_room_data.tres
+scenes/rooms/<room_name>/<room_name>_runtime.tscn
 ```
 
----
+## 6. Build and apply a theme
 
-## 4. Add Metadata
+Theme data is built separately from the room bake pipeline. The default theme is applied during bake.
 
-Designer defines:
-
-- room type;
-- difficulty;
-- biome restrictions.
+See [themes.md](themes.md).
 
 ---
 
-## 5. Bake
+# Current Limitations
 
-Room is converted into Runtime data.
-
----
-
-## 6. Test
-
-Runtime Room is tested inside the World Generator.
-
----
-
-# Separation of Responsibilities
-
-## Designer
-
-Creates:
-
-- room layout;
-- semantic information;
-- metadata.
-
----
-
-## Bake System
-
-Creates:
-
-- runtime representation;
-- optimized data.
-
----
-
-## World Generator
-
-Creates:
-
-- final playable world.
-
----
-
-# Design Principles
-
-## Author Once, Reuse Many Times
-
-Rooms should be reusable building blocks.
-
----
-
-## Meaning Before Appearance
-
-Gameplay semantics should not depend on visual assets.
-
----
-
-## Runtime Should Be Predictable
-
-Expensive processing should happen during authoring.
-
----
-
-## Data Driven Generation
-
-World Generator should consume prepared data instead of interpreting raw scenes.
-
----
-
-# Future Extensions
-
-Possible future systems:
-
-- advanced room validation;
-- procedural decoration;
-- biome-specific dressing;
-- automatic connection checking;
-- editor visualization tools;
-- room preview generation.
-
----
-
-# Decision Summary
-
-World Authoring in Project Echo is a data preparation pipeline.
-
-Designers create Rooms using semantic tools.
-
-Bake converts authored content into Runtime Rooms.
-
-World Generator assembles Runtime Rooms into the final playable world.
-
-This separation allows a flexible procedural world while keeping runtime performance predictable.
+- There is no editor command or batch bake UI yet; bake is currently driven from debug/test scripts.
+- Connection authoring and validation are not implemented.
+- Marker and volume authoring is not implemented.
+- Room metadata beyond semantic layout is not implemented.
+- The runtime scene contains a single `TileMapLayer`; entities are not spawned during bake.
 
 ---
 
 # Related Documents
 
-- World Architecture Overview
-- Room Architecture
-- Room Data
-- Semantic Tiles
-- Connection Points
-- World Generation
+- [World Overview](overview.md)
+- [Room Architecture](room-architecture.md)
+- [Room Data](room-data.md)
+- [Semantic Tiles](semantic-tiles.md)
+- [Bake Pipeline](bake-pipeline.md)
+- [Themes](themes.md)

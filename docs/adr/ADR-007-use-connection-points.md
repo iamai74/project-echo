@@ -5,8 +5,9 @@
 > **Date:** 2026-07-19
 >
 > **Related:**
-> - architecture/world-architecture.md
-> - architecture/room-authoring.md
+> - [../world/overview.md](../world/overview.md)
+> - [../world/connection-points.md](../world/connection-points.md)
+> - [../world/world-authoring.md](../world/world-authoring.md)
 
 ---
 
@@ -48,6 +49,8 @@ A ConnectionPoint represents a location where a room may connect to another room
 It is treated as an explicit object rather than an implicit coordinate.
 
 Each room owns zero or more ConnectionPoints.
+
+> **Implementation note (2026-11-06):** The baked data type is named `ConnectionData` and is stored in `RoomData.connections`. It currently records `id`, `side`, `position` and `size`. Connection authoring, baking and validation are not implemented yet. See [connection-points.md](../world/connection-points.md).
 
 ---
 
@@ -236,8 +239,9 @@ Only if the room generation architecture fundamentally changes.
 
 # Related Documents
 
-- World Architecture
-- Room Authoring
+- [World Architecture](../world/overview.md)
+- [Connection Points](../world/connection-points.md)
+- [World Authoring](../world/world-authoring.md)
 - ADR-004 — Store RoomData as a Godot Resource
 - ADR-005 — Runtime Rooms Should Be Prebuilt Assets
 - ADR-006 — Introduce a Semantic Tile Layer

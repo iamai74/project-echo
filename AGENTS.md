@@ -26,9 +26,11 @@ Before making architectural or non-trivial implementation changes, inspect the r
 
 Primary references:
 
+- `docs/README.md` — documentation index and current implementation status
 - `docs/architecture/` — gameplay architecture and conventions
-- `docs/world/` — world authoring, rooms, semantic data and bake pipeline
+- `docs/world/` — world authoring, rooms, semantic data, bake pipeline and themes
 - `docs/adr/` — accepted architectural decisions
+- `docs/CHANGELOG.md` — documentation change history
 
 Documentation is the project's source of truth for:
 
@@ -49,6 +51,8 @@ If implementation and documentation disagree:
 3. update the relevant documentation when the architectural decision changes.
 
 Documentation should describe concepts and responsibilities, not become a copy of the source code.
+
+Documents distinguish implemented, partially implemented and planned systems. Use those status markers and the current implementation as evidence; do not describe planned or partially wired behaviour as complete.
 
 ---
 
@@ -125,14 +129,15 @@ The repository currently contains major areas such as:
 
 - `addons/` — third-party Godot addons; managed by gd-plug except the tracked `gd-plug` bootstrap
 - `assets/` — source and game assets
-- `autoload/` — autoload/singleton systems (`input_setup`, `World`)
+- `autoload/` — registered autoload/singleton systems (`input_setup`, `World`)
 - `docs/` — architecture and technical documentation
-- `resources/` — reusable Godot resources and configuration data
-- `scenes/` — Godot scenes
+- `resources/` — reusable Godot resources, configuration and baked data
+- `scenes/` — Godot scenes, including generated room output under `scenes/rooms/`
 - `scripts/` — GDScript implementation
-- `test/` — unit tests
+- `test/` — GdUnit4 unit and integration tests plus fixtures
 - `plug.gd` — gd-plug dependency declarations
 - `.plugged/` — gd-plug repository cache (generated, ignored)
+- `reports/` — generated GdUnit4 test reports (ignored)
 
 Before creating a new directory or moving existing files, inspect the current project structure and relevant documentation.
 
@@ -162,7 +167,8 @@ In particular:
 - authoring objects should remain lightweight;
 - semantic authoring data should not contain runtime rendering logic;
 - baking should produce runtime-ready artifacts;
-- runtime systems should not depend on editor-only functionality.
+- runtime systems should not depend on editor-only functionality;
+- theme building is a build/authoring concern, while theme application belongs to runtime room setup.
 
 When unsure whether code belongs to authoring, baking, or runtime, inspect the relevant world architecture documentation before implementing it.
 
@@ -174,16 +180,15 @@ The world system is based on semantic data and a bake pipeline.
 
 Important concepts include:
 
-- semantic brushes
-- semantic cells/layers
-- room data
+- semantic brushes and semantic layers/cells
+- baked room data (`RoomData`)
+- connection data (`ConnectionData`; authoring and bake path planned)
 - room database (planned; implementation not fixed)
-- bake pipeline
-- bake steps
-- bake processors
+- bake pipeline, bake steps and bake processors
 - validation
-- runtime room generation
-- themes
+- runtime room construction
+- theme build and theme application
+- world generation (planned)
 
 These concepts have intentionally separate responsibilities.
 
@@ -210,6 +215,8 @@ Bake steps should remain composable and focused.
 
 Prefer extending the existing bake pipeline with a new step/processor rather than adding special-case logic to an unrelated step.
 
+The room bake pipeline may apply an already-built theme at the end of baking, but it must not build themes. Theme building has its own pipeline.
+
 ### Validation
 
 Validation is separate from mutation/building.
@@ -235,7 +242,11 @@ Rooms have a distinction between:
 
 The runtime room should contain the information required to run the room without requiring the authoring pipeline.
 
+`RoomData` is baked data. Runtime room construction and theme application consume it without repeating semantic baking.
+
 Room construction and theme application are separate responsibilities.
+
+`ConnectionData` exists as a data type, but no authoring or bake path populates `RoomData.connections` yet.
 
 Do not make a biome/theme responsible for changing semantic collision topology.
 
@@ -257,6 +268,10 @@ Theme building and theme application are separate responsibilities:
 
 Theme source assets live under `assets/sprites/themes/`; built theme resources live under `resources/themes/`.
 
+See `docs/world/themes.md` for the theme build pipeline, application flow and current limitations.
+
+The theme build pipeline writes generated `.tres` files. Do not edit built theme resources directly; change the source assets or build steps and rebuild.
+
 Do not encode room topology or gameplay semantics into a biome theme.
 
 When working on themes, preserve the separation between:
@@ -264,7 +279,6 @@ When working on themes, preserve the separation between:
 - room/semantic data
 - TileSet
 - theme configuration
-- effects configuration
 
 Do not combine these into one resource unless the architecture explicitly changes.
 
@@ -277,11 +291,11 @@ The project uses a component-oriented gameplay architecture.
 Important existing concepts include:
 
 - `Actor`
-- `HealthComponent`
-- `HitboxComponent`
-- `HurtboxComponent`
-- state machines
-- weapon/combat systems
+- `HealthComponent`, `HitboxComponent` and `HurtboxComponent`
+- `DetectionComponent` and `InputComponent`
+- `StateMachine` and actor states
+- weapon/combat systems (`WeaponComponent`, `WeaponData`, `AttackDefinition` and `AttackData`)
+- data-driven actor configuration (`ActorData`)
 
 Player and enemy entities should share common actor-level functionality where appropriate.
 
@@ -353,7 +367,7 @@ Prefer:
 4. build/import checks;
 5. targeted runtime testing.
 
-GdUnit4 is installed as a dev dependency through gd-plug and is the preferred framework for new unit tests. All test suites live under `/test/`.
+GdUnit4 is installed as a dev dependency through gd-plug and is the preferred framework for new tests. Test organization follows `test/unit/`, `test/integration/` and `test/fixtures/`; generated results go to `reports/`.
 
 For parser/import validation, run Godot in headless editor mode with `godot --headless --editor --quit`.
 
@@ -424,7 +438,9 @@ Follow the project's documentation principles:
 - one document, one responsibility;
 - architecture before implementation;
 - document decisions rather than experiments;
-- keep documentation synchronized with the actual architecture.
+- keep documentation synchronized with the actual architecture;
+- distinguish implemented, partially implemented and planned behaviour;
+- do not document known-broken or unwired code as working.
 
 Do not create documentation for every individual class or function unless there is a specific reason.
 

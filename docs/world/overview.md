@@ -2,12 +2,16 @@
 
 > **Status:** In Progress
 >
-> **Last Updated:** 2026-07-19
+> **Last Updated:** 2026-11-06
 >
 > **Related:**
-> - room-architecture.md
-> - room-data.md
-> - world-generation.md
+> - [room-architecture.md](room-architecture.md)
+> - [room-data.md](room-data.md)
+> - [semantic-tiles.md](semantic-tiles.md)
+> - [world-authoring.md](world-authoring.md)
+> - [bake-pipeline.md](bake-pipeline.md)
+> - [themes.md](themes.md)
+> - [world-generation.md](world-generation.md)
 
 ---
 
@@ -15,7 +19,7 @@
 
 This document describes the high-level architecture of the world system in Project Echo.
 
-The world is built from handcrafted gameplay rooms that are assembled into a procedurally generated world. The system is designed to balance designer control with procedural replayability.
+The target model is a procedurally assembled world built from handcrafted, reusable rooms. The current implementation covers authoring, semantic data, baking, runtime room construction and theming. World assembly itself is still planned.
 
 ---
 
@@ -23,30 +27,41 @@ The world is built from handcrafted gameplay rooms that are assembled into a pro
 
 The world system should provide:
 
-- Handcrafted gameplay quality
-- Procedural replayability
-- Reusable room assets
-- Data-driven generation
-- Future biome support
-- Future streaming support
+- handcrafted gameplay quality;
+- procedural replayability;
+- reusable room assets;
+- data-driven generation;
+- visual themes that can change without changing gameplay topology;
+- future biome and streaming support.
 
 ---
 
 # High-Level Architecture
 
 ```mermaid
-graph TD
+flowchart TD
 
-World --> Biome
+    Authoring["Authored Room Scene\n(brushes)"] --> Bake["Room Bake Pipeline"]
+    Bake --> RoomData["RoomData"]
+    Bake --> RuntimeRoom["RuntimeRoom scene"]
 
-Biome --> RoomGraph
+    ThemeSource["Theme assets\n(JSON + PNG)"] --> ThemeBuild["Theme Build Pipeline"]
+    ThemeBuild --> ThemeInfo["ThemeInfo + TileSet"]
+    RuntimeRoom --> ThemeApply["ThemeApplyer"]
+    ThemeInfo --> ThemeApply
+    RoomData --> ThemeApply
 
-RoomGraph --> RoomData
-
-RoomData --> RoomScene
-
-RoomScene --> Gameplay
+    RoomData --> WorldGen["World Generator\n(planned)"]
+    RuntimeRoom --> WorldGen
+    WorldGen --> PlayableWorld["Playable World"]
 ```
+
+Two pipelines intentionally remain separate:
+
+- the **room bake pipeline** produces semantic/runtime room data;
+- the **theme build pipeline** produces visual theme data.
+
+A theme must not change room topology, and baking must not depend on a particular biome theme.
 
 ---
 
@@ -54,28 +69,32 @@ RoomScene --> Gameplay
 
 ## World
 
-Represents the complete playable game world.
+The complete playable game world.
 
-The World manages:
+Planned responsibilities:
 
-- biome selection
-- room graph generation
-- room loading
-- world progression
+- biome selection;
+- room graph generation;
+- room loading;
+- world progression.
+
+The world does not control gameplay inside individual actors.
 
 ---
 
 ## Biome
 
-Defines a collection of compatible rooms and generation rules.
+A collection of compatible rooms and generation rules.
 
-Future responsibilities include:
+Planned responsibilities:
 
-- visual theme
-- enemy pools
-- music
-- generation constraints
-- progression rules
+- visual theme selection;
+- enemy pools;
+- music;
+- generation constraints;
+- progression rules.
+
+Biome data is not implemented yet.
 
 ---
 
@@ -83,21 +102,106 @@ Future responsibilities include:
 
 The smallest generation unit.
 
-A room is a handcrafted gameplay space rather than a collection of generated tiles.
+A room is a handcrafted gameplay space, authored with semantic brushes. It is baked into reusable runtime data rather than generated from raw tiles during gameplay.
+
+A room has three distinct representations:
+
+1. **authored room scene** — brush-based authoring data;
+2. **baked room data** — `RoomData` plus a generated runtime scene;
+3. **runtime room** — the instantiated scene used during gameplay.
+
+See [room-architecture.md](room-architecture.md).
+
+---
+
+## Semantic Authoring
+
+Semantic data describes gameplay meaning independently from visuals.
+
+Current semantic spatial types:
+
+```text
+PLATFORM
+WALL
+BACKGROUND
+```
+
+Marker and volume layers exist in the data model but are not yet authored or baked.
+
+See [semantic-tiles.md](semantic-tiles.md).
+
+---
+
+## Bake
+
+Bake converts authored brush data into validated runtime data.
+
+Default pipeline:
+
+```text
+CollectBrushesStep
+→ InitSemanticDataStep
+→ BakeSemanticLayerStep
+→ PostProcessStep
+→ ValidateStep
+→ BuildRuntimeRoomStep
+→ ApplyDefaultThemeStep
+→ SaveRoomDataStep
+```
+
+See [bake-pipeline.md](bake-pipeline.md).
+
+---
+
+## Theme
+
+A theme maps semantic cells to visual tiles.
+
+Current theme assets are authored as Aseprite slice metadata plus one PNG per slice. The theme build pipeline produces a TileSet and `ThemeInfo`. `ThemeApplyer` maps background, platform and wall cells onto a `TileMapLayer`.
+
+Themes are separate from room topology and from world generation.
+
+See [themes.md](themes.md).
 
 ---
 
 # Current Scope
 
-Implemented conceptually:
+Implemented:
 
-- Room architecture
-- RoomData
-- Semantic Tiles
-- Connection Points
+- brush-based room authoring;
+- semantic spatial layers and cells;
+- topology computation;
+- bake pipeline with validation;
+- `RoomData` generation;
+- generated runtime room scene;
+- default theme build and application;
+- `ConnectionData` data type.
+
+Partially implemented or not yet wired:
+
+- marker and volume authoring/baking;
+- room connection authoring and validation;
+- enemy spawning from markers;
+- theme selection by biome.
 
 Not yet implemented:
 
-- Biome generation
-- Room validation
-- World streaming
+- room database;
+- biome generation;
+- room graph generation;
+- world assembly;
+- world streaming.
+
+---
+
+# Related Documents
+
+- [Room Architecture](room-architecture.md)
+- [Room Data](room-data.md)
+- [Semantic Tiles](semantic-tiles.md)
+- [World Authoring](world-authoring.md)
+- [Bake Pipeline](bake-pipeline.md)
+- [Themes](themes.md)
+- [Connection Points](connection-points.md)
+- [World Generation](world-generation.md)

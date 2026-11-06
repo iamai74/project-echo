@@ -2,36 +2,32 @@
 
 > **Status:** Stable
 >
-> **Last Updated:** 2026-07-19
+> **Last Updated:** 2026-11-06
 >
 > **Related:**
-> - overview.md
-> - actor.md
-> - components.md
-> - resources.md
+> - [overview.md](overview.md)
+> - [resources.md](resources.md)
+> - [world/overview.md](../world/overview.md)
+> - [ADR-001 — Layer-Based Project Structure](../adr/ADR-001%20%E2%80%94%20Layer-Based%20Project%20Structure.md)
 
 ---
 
 # Purpose
 
-This document defines the directory structure of Project Echo.
+This document defines the directory layout of Project Echo.
 
-A well-defined project structure improves discoverability, reduces ambiguity, and ensures that new systems are added consistently as the project grows.
-
-The goal is to organize the project by **responsibility**, not by implementation details.
+The project is organized by **architectural responsibility**, not by gameplay feature. Related systems live together even when they are used by different actors or rooms.
 
 ---
 
 # Design Principles
 
-The project structure follows several principles:
-
 - Group files by responsibility.
-- Keep related assets together.
-- Separate gameplay logic from configuration.
-- Separate code from content.
-- Avoid generic folders such as `misc` or `utils`.
+- Keep runtime, authoring and debug code distinguishable.
+- Separate code from content and configuration.
+- Keep project-specific code out of `addons/`.
 - Prefer explicit organization over deep nesting.
+- Avoid generic folders such as `misc/` or `utils/`.
 
 ---
 
@@ -42,415 +38,336 @@ project-echo/
 │
 ├── addons/
 ├── assets/
+├── autoload/
 ├── docs/
-├── project/
-├── tests/
-├── .gitignore
-├── LICENSE
-└── README.md
+├── resources/
+├── scenes/
+├── scripts/
+├── test/
+├── project.godot
+├── plug.gd
+└── .gitignore
 ```
+
+Generated directories such as `.plugged/` and `reports/` are intentionally not part of the source layout.
 
 ---
 
 # Root Folder Responsibilities
 
-## addons/
+## `addons/`
 
-Third-party Godot plugins.
+Third-party Godot addons.
 
-Examples:
+Addons are managed with **gd-plug**:
 
-- editor plugins
-- import tools
-- debugging tools
+- dependency declarations live in `plug.gd`;
+- `addons/gd-plug/` is the tracked bootstrap;
+- other managed addon files are generated/installed artifacts;
+- project-specific code must never be placed in `addons/`.
 
-Project-specific code should never be placed here.
-
----
-
-## assets/
-
-Contains all game assets.
-
-Examples:
-
-- sprites
-- animations
-- audio
-- fonts
-- shaders
-- particles
-
-Assets should remain independent from gameplay code.
+The currently enabled editor plugins are configured in `project.godot` under `[editor_plugins]`.
 
 ---
 
-## docs/
+## `assets/`
 
-Technical documentation.
+Source assets used by the game.
 
-Contains:
-
-- architecture
-- gameplay
-- world generation
-- ADR
-- roadmap
-
-Documentation is maintained together with the project.
-
----
-
-## project/
-
-Contains the actual Godot project.
-
-Everything required to build the game lives here.
-
----
-
-## tests/
-
-Automated tests.
-
-Future integration tests.
-
-Gameplay validation.
-
----
-
-# Godot Project Structure
-
-```text
-project/
-│
-├── actors/
-├── autoload/
-├── components/
-├── resources/
-├── scenes/
-├── systems/
-├── ui/
-├── world/
-└── main.tscn
-```
-
----
-
-# actors/
-
-Contains gameplay entities.
-
-```text
-actors/
-
-Player/
-
-Enemy/
-
-NPC/
-
-Interactive/
-```
-
-Each Actor owns its own scene and scripts.
-
-Examples:
-
-- Player
-- Enemy
-- NPC
-- Boss
-- Interactive Objects
-
-Detailed architecture is described in `actor.md`.
-
----
-
-# components/
-
-Contains reusable gameplay components.
-
-Example:
-
-```text
-components/
-
-Health/
-
-Weapon/
-
-Hitbox/
-
-Hurtbox/
-
-Movement/
-
-Detection/
-
-Animation/
-```
-
-Each component implements one isolated gameplay responsibility.
-
-Components should never depend on specific Actors.
-
-Detailed information is available in `components.md`.
-
----
-
-# resources/
-
-Contains Godot Resources.
-
-Examples:
-
-```text
-resources/
-
-characters/
-
-weapons/
-
-enemies/
-
-rooms/
-
-items/
-```
-
-Resources define gameplay data.
-
-They should not contain gameplay logic.
-
-Detailed information is available in `resources.md`.
-
----
-
-# systems/
-
-Contains global gameplay systems.
-
-Examples:
-
-```text
-systems/
-
-Combat/
-
-Inventory/
-
-Save/
-
-Audio/
-
-Localization/
-
-Achievements/
-```
-
-Systems coordinate gameplay but are not attached to individual Actors.
-
----
-
-# scenes/
-
-Contains standalone scenes.
-
-Examples:
-
-```text
-scenes/
-
-MainMenu/
-
-Loading/
-
-HUD/
-
-Debug/
-
-Transitions/
-```
-
-These scenes represent game flow rather than gameplay entities.
-
----
-
-# world/
-
-Contains world-related content.
-
-Examples:
-
-```text
-world/
-
-Biomes/
-
-Rooms/
-
-Generation/
-
-Decoration/
-```
-
-World generation and room authoring are documented separately.
-
----
-
-# ui/
-
-Contains user interface.
-
-Examples:
-
-```text
-ui/
-
-HUD/
-
-Inventory/
-
-Menus/
-
-Widgets/
-```
-
-UI should remain independent from gameplay logic whenever possible.
-
----
-
-# autoload/
-
-Contains Godot singleton services.
-
-Examples:
-
-- GameManager
-- SaveManager
-- AudioManager
-- SceneManager
-
-Autoloads provide global services.
-
-Gameplay mechanics should not be implemented here.
-
----
-
-# Asset Structure
-
-The `assets/` directory mirrors gameplay domains.
-
-Example:
+Current examples:
 
 ```text
 assets/
-
-art/
-
-audio/
-
-fonts/
-
-shaders/
-
-vfx/
+│
+├── aseprite/
+├── sprites/
+│   ├── acrots/
+│   ├── themes/
+│   └── tiles/
 ```
 
-Whenever practical, asset organization should match gameplay organization.
+Theme assets under `assets/sprites/themes/<theme>/` are the source of built theme resources. A theme directory contains:
 
-Example:
+- `<theme>.json` — Aseprite slice metadata;
+- one PNG per slice name, for example `platform_full_01.png`.
+
+Do not manually edit built resources under `resources/themes/` when the theme pipeline can regenerate them.
+
+---
+
+## `autoload/`
+
+Godot singleton services.
+
+Current autoloads:
+
+| Autoload | Source | Responsibility |
+|----------|--------|----------------|
+| `input_setup` | `scripts/core/input/input_setup.gd` | Registers keyboard and gamepad input actions at startup |
+| `World` | `autoload/world.gd` | Exposes global world settings (`World.settings`) |
+
+Autoloads provide global services. Gameplay mechanics should not be implemented here.
+
+---
+
+## `docs/`
+
+Technical documentation. See [README.md](../README.md).
+
+---
+
+## `resources/`
+
+Godot `Resource` assets.
+
+Current layout:
 
 ```text
-actors/
-
-Player/
+resources/
+│
+├── actors/
+│   ├── actor_data.tres
+│   ├── player/
+│   └── enemy/
+│       ├── walker/
+│       ├── runner/
+│       └── heavy/
+│
+├── themes/
+│   └── default/
+│       ├── default_theme.tres
+│       ├── default_tile_assets.tres
+│       └── default_tileset.tres
+│
+└── world/
+    ├── world_settings.gd
+    └── world_settings.tres
 ```
 
-has corresponding assets inside
+Resources describe configuration and baked data. They do not contain runtime behaviour.
+
+Planned data such as room databases or biome definitions does not yet have an implemented layout.
+
+---
+
+## `scenes/`
+
+Godot scenes.
+
+Current layout:
 
 ```text
-assets/art/player/
+scenes/
+│
+├── actors/
+│   ├── actor.tscn
+│   ├── player/player.tscn
+│   └── enemy/
+│       ├── walker.tscn
+│       ├── runner.tscn
+│       └── heavy.tscn
+│
+├── camera_rig.tscn
+├── rooms/
+│   ├── <room_name>/
+│   │   ├── <room_name>_room_data.tres
+│   │   └── <room_name>_runtime.tscn
+│   └── ...
+│
+└── test_scene.tscn
 ```
 
-This improves discoverability.
+`scenes/rooms/` contains generated bake output. The authored room scene remains the source of truth.
+
+---
+
+## `scripts/`
+
+GDScript implementation.
+
+Current organization:
+
+```text
+scripts/
+│
+├── actors/
+│   ├── player/
+│   └── enemy/
+│       ├── walker/
+│       ├── runner/
+│       └── heavy/
+│
+├── core/
+│   ├── actor/
+│   ├── camera/
+│   ├── components/
+│   └── input/
+│
+├── state_machine/
+│   ├── states/
+│   │   ├── player_state/
+│   │   └── enemy_state/
+│   ├── state.gd
+│   └── state_machine.gd
+│
+├── theme/
+│   ├── build_step/
+│   ├── debug/
+│   └── ...
+│
+└── world/
+    ├── authoring/
+    │   ├── brushes/
+    │   └── collection/
+    ├── bake/
+    │   ├── bake_processor/
+    │   ├── bake_step/
+    │   ├── bake_validator/
+    │   ├── post_bake_processor/
+    │   └── semantic_data/
+    ├── debug/
+    ├── semantic/
+    └── test/
+```
+
+Script folders follow the same responsibility split as the architecture:
+
+- `core/` — shared actor, component and input foundations;
+- `actors/` — concrete actor variants;
+- `state_machine/` — state implementations and state-machine infrastructure;
+- `world/` — authoring, semantic data, baking and runtime room construction;
+- `theme/` — theme build and application pipeline.
+
+---
+
+## `test/`
+
+Automated tests using **GdUnit4**.
+
+```text
+test/
+│
+├── fixtures/
+├── integration/
+│   ├── actors/
+│   └── bake/
+└── unit/
+    ├── actors/
+    ├── bake/
+    ├── brush/
+    ├── room/
+    ├── semantic/
+    ├── theme/
+    └── topology/
+```
+
+Tests are the strongest available verification for gameplay and world systems. `reports/` is generated output and is not part of the source layout.
+
+---
+
+# Runtime, Authoring and Debug Code
+
+The project distinguishes three concerns:
+
+| Concern | Examples | Rule |
+|---------|----------|------|
+| Runtime | actors, components, runtime room construction, theme application | Must not depend on editor-only or authoring-only functionality |
+| Authoring | semantic brushes, brush collection, bake steps/processors | May depend on runtime data types, but must not perform gameplay |
+| Debug | `scripts/world/debug/`, `scripts/theme/debug/` | Developer tooling; not part of the runtime contract |
+
+Authoring objects such as `SemanticBrush` are `@tool` nodes because they draw editor previews. They describe authoring intent and must not bake or construct runtime content themselves.
 
 ---
 
 # Naming Conventions
 
-Folders use:
+## Folders and files
 
-```text
-snake_case
-```
-
-Examples:
+Use `snake_case`:
 
 ```text
 state_machine/
-
-world_generation/
-
-health_component/
+health_component.gd
+player_attack_definition.tres
 ```
 
-Scene names use:
+## Classes
+
+Use `PascalCase` with `class_name`:
+
+```gdscript
+class_name HealthComponent
+class_name SemanticBrush
+class_name BakePipeline
+```
+
+The script file name should match the primary class in `snake_case`:
 
 ```text
-PascalCase
+health_component.gd -> HealthComponent
+semantic_brush.gd   -> SemanticBrush
 ```
 
-Examples:
+## Scenes
+
+Use `snake_case` file names:
 
 ```text
-Player.tscn
-
-Enemy.tscn
-
-HealthComponent.tscn
+player.tscn
+walker.tscn
+test_scene_for_bake.tscn
 ```
 
-Scripts use the same name as their primary class.
+Debug scenes use a `_debug.tscn` suffix.
 
-Example:
+## Signals and methods
 
-```text
-Player.gd
+Use `snake_case` for methods and signals, and `PascalCase` for enum types where the project already does so:
 
-Player.tscn
+```gdscript
+signal hit_received(attack: AttackData)
+
+enum AttackPhase { IDLE, STARTUP, ACTIVE, RECOVERY }
 ```
+
+Consistency with the surrounding code is more important than introducing a new style.
 
 ---
 
 # Dependency Rules
 
-The directory structure reflects dependency direction.
+Dependencies point from higher-level coordination toward lower-level capabilities:
 
 ```mermaid
 flowchart TD
 
-World --> Actor
-
-Actor --> Component
-
-Component --> Resource
+    World --> Room
+    Room --> Actor
+    Actor --> Components
+    Actor --> StateMachine
+    Components --> Resources
+    StateMachine --> Components
 ```
 
-Higher-level systems may depend on lower-level systems.
+Examples:
 
-Lower-level systems must never depend on higher-level systems.
+- `HealthComponent` does not know about `Player`.
+- `WeaponComponent` does not know about enemy AI.
+- Components do not depend on the world system.
+- Authoring brushes do not depend on the bake pipeline.
+- Theme application does not mutate room topology.
 
 ---
 
 # Best Practices
 
-- Keep folders focused on a single responsibility.
-- Place reusable code in reusable locations.
-- Keep gameplay configuration inside Resources.
-- Avoid circular dependencies.
-- Prefer creating a new folder over introducing ambiguous names.
+- Put reusable code in `scripts/core/`.
+- Keep concrete actor variants in `scripts/actors/`.
+- Keep world authoring, baking and runtime construction separated under `scripts/world/`.
+- Keep theme building and theme application separated under `scripts/theme/`.
+- Store configuration and baked data in `resources/`.
+- Regenerate baked assets from their source instead of editing them by hand.
+- Add tests under `test/unit/` or `test/integration/`.
 
 ---
 
@@ -458,55 +375,18 @@ Lower-level systems must never depend on higher-level systems.
 
 Avoid:
 
-```text
-misc/
-
-helpers/
-
-scripts/
-
-temp/
-
-new/
-```
-
-These folders usually become catch-all locations with unclear ownership.
-
-Avoid mixing:
-
-- gameplay code
-- UI
-- resources
-- assets
-
-inside the same directory.
-
----
-
-# Future Extensions
-
-As the project grows, additional top-level folders may be introduced.
-
-Examples:
-
-```text
-editor/
-
-network/
-
-modding/
-
-analytics/
-```
-
-These folders should only be added when they represent independent project domains.
+- placing project code in `addons/`;
+- mixing authoring, baking and runtime responsibilities in one class;
+- storing gameplay state inside Resources;
+- editing generated theme or room artifacts directly;
+- creating catch-all folders or scripts;
+- introducing a second source of truth for generated content.
 
 ---
 
 # Related Documentation
 
-- Architecture Overview
-- Actor
-- Components
-- Resources
-- World Architecture
+- [Architecture Overview](overview.md)
+- [Resources](resources.md)
+- [World Architecture Overview](../world/overview.md)
+- [ADR-001 — Layer-Based Project Structure](../adr/ADR-001%20%E2%80%94%20Layer-Based%20Project%20Structure.md)

@@ -1,29 +1,25 @@
 # Components
 
-> **Status:** Stable
+> **Status:** In Progress
 >
-> **Last Updated:** 2026-07-20
+> **Last Updated:** 2026-11-06
 >
 > **Related:**
-> - overview.md
-> - actor.md
-> - state-machine.md
-> - resources.md
-> - combat-architecture.md
-> - ADR-002 — Composition over Inheritance
-> - ADR-003 — Actor as the Base Gameplay Entity
+> - [overview.md](overview.md)
+> - [actor.md](actor.md)
+> - [state-machine.md](state-machine.md)
+> - [resources.md](resources.md)
+> - [combat-architecture.md](combat-architecture.md)
+> - [ADR-002 — Composition over Inheritance](../adr/ADR-002%20%E2%80%94%20Composition%20over%20Inheritance.md)
+> - [ADR-003 — Actor as the Base Gameplay Entity](../adr/ADR-003%20%E2%80%94%20Actor%20as%20the%20Base%20Gameplay%20Entity.md)
 
 ---
 
 # Purpose
 
-This document defines the Component architecture used throughout Project Echo.
+This document describes the component architecture used in Project Echo.
 
-Components are the primary building blocks of gameplay functionality.
-
-Rather than implementing gameplay logic inside Actors, Project Echo assembles gameplay behavior by composing Actors from independent Components.
-
-This approach promotes reuse, maintainability and clear separation of responsibilities.
+Components are the primary building blocks of gameplay functionality. Rather than implementing gameplay logic inside Actors, gameplay behaviour is assembled by composing Actors from independent components.
 
 ---
 
@@ -31,227 +27,225 @@ This approach promotes reuse, maintainability and clear separation of responsibi
 
 A **Component** is a reusable gameplay module that provides a single capability to its owning Actor.
 
-A Component:
+A component:
 
 - owns one gameplay responsibility;
 - manages its own internal state;
 - exposes a clear public API;
-- collaborates with other systems through stable interfaces.
+- collaborates through stable interfaces.
 
-A Component does **not** define the identity of an Actor.
-
-It defines what the Actor is capable of doing.
+A component does not define the identity of an Actor.
 
 ---
 
-# Responsibilities
+# Implemented Components
 
-A Component is responsible for:
+| Component | Extends | Responsibility |
+|-----------|---------|----------------|
+| `HealthComponent` | `Node` | Health, damage, healing, death signal |
+| `WeaponComponent` | `Node2D` | Attack selection, timing, hitbox activation |
+| `HitboxComponent` | `Area2D` | Offensive collision detection |
+| `HurtboxComponent` | `Area2D` | Defensive hit reception |
+| `DetectionComponent` | `Area2D` | Detects the `Player` and reports target position |
+| `InputComponent` | `Node` | Reads player input into an `InputCommand` |
 
-- implementing one gameplay feature;
-- managing its own internal state;
-- exposing functionality to other systems;
-- reacting to gameplay events;
-- remaining reusable across multiple Actor types.
+Planned but not implemented:
 
-Examples include:
-
-- Health
-- Weapon
-- Hitbox
-- Hurtbox
-- Detection
-- Movement
-- Interaction
-- Dialogue (future)
-
----
-
-# Out of Scope
-
-A Component is **not** responsible for:
-
-- controlling the Actor lifecycle;
-- world generation;
-- scene management;
-- user interface;
-- save/load management;
-- coordinating unrelated systems.
-
-Those responsibilities belong elsewhere.
-
----
-
-# Architecture
-
-Every Component belongs to exactly one Actor.
-
-```mermaid
-flowchart TD
-
-	Actor --> StateMachine
-
-	Actor --> HealthComponent
-	Actor --> WeaponComponent
-	Actor --> HurtboxComponent
-	Actor --> DetectionComponent
-
-	StateMachine --> Components
-```
-
-The Actor owns Components.
-
-The State Machine coordinates their usage.
-
-Components provide gameplay capabilities.
-
----
-
-# Component Lifecycle
-
-A Component follows the lifecycle of its owning Actor.
-
-```mermaid
-flowchart LR
-
-Created --> Initialized --> Active --> Disabled --> Destroyed
-```
-
-## Created
-
-The Component is instantiated.
-
----
-
-## Initialized
-
-References and configuration are assigned.
-
----
-
-## Active
-
-The Component participates in gameplay.
-
----
-
-## Disabled
-
-The Component temporarily stops affecting gameplay.
-
----
-
-## Destroyed
-
-The owning Actor is removed.
-
-The Component is destroyed together with its owner.
+- `MovementComponent`
+- `InteractionComponent`
+- `DialogueComponent`
+- `StatusEffectComponent`
+- `InventoryComponent`
 
 ---
 
 # Ownership
 
-Each Component has exactly one owner.
+Every component belongs to exactly one Actor (or to the Actor's weapon node, for hitboxes).
 
 ```text
 Actor
- ├── HealthComponent
- ├── WeaponComponent
- ├── HurtboxComponent
- └── DetectionComponent
+├── HealthComponent
+├── HurtboxComponent
+├── WeaponComponent
+│   └── HitboxComponent
+├── DetectionComponent   (enemy only)
+└── InputComponent       (player only)
 ```
 
-Components should never exist independently of an Actor.
-
-Ownership is explicit and stable.
+`Actor` requires `HealthComponent`, `HurtboxComponent` and `StateMachine`. It looks up `WeaponComponent` optionally.
 
 ---
 
 # Communication
 
-Components communicate through well-defined interfaces.
+Components communicate through:
 
-Preferred methods include:
+- public methods;
+- Godot signals;
+- shared runtime data such as `AttackData`.
 
-- public APIs;
-- Godot Signals;
-- shared data objects (such as AttackData).
-
-Whenever possible, Components should avoid direct knowledge of each other.
-
-Instead, communication should be coordinated by the Actor or the State Machine.
+Components avoid direct knowledge of each other where practical. The Actor coordinates the damage reaction.
 
 ---
 
-# Dependencies
+# HealthComponent
 
-Components may depend on:
+```gdscript
+class_name HealthComponent
+extends Node
+```
 
-- their owning Actor;
-- configuration Resources;
-- shared data objects;
-- engine services.
+Responsibilities:
 
-Components should **never** depend on:
+- store `current_health` and `max_health`;
+- initialize health from `ActorData.max_health`;
+- apply damage from `AttackData`;
+- heal;
+- clamp values;
+- emit `health_changed`, `damaged`, `healed` and `died`.
 
-- Player;
-- Enemy;
-- Boss;
-- specific Rooms;
-- World;
-- UI.
+Public API:
 
-Components must remain reusable.
+```gdscript
+func initialize(max_hp: int) -> void
+func take_damage(attack_data: AttackData) -> void
+func heal(amount: int) -> void
+func set_max_health(value: int) -> void
+func is_alive() -> bool
+func get_health_percentage() -> float
+```
 
----
-
-# Component Categories
-
-The project distinguishes several categories of Components.
-
-## Gameplay Components
-
-Examples:
-
-- HealthComponent
-- WeaponComponent
-- InventoryComponent (future)
-
-These implement gameplay rules.
+It does not animate, apply knockback or decide state transitions.
 
 ---
 
-## Combat Components
+# WeaponComponent
 
-Examples:
+```gdscript
+class_name WeaponComponent
+extends Node2D
+```
 
-- HitboxComponent
-- HurtboxComponent
+Responsibilities:
 
-These participate in the combat pipeline.
+- own a `WeaponData` resource;
+- select an `AttackDefinition` for an `AttackType`;
+- create one `AttackData` per attack;
+- run the attack phases `IDLE → STARTUP → ACTIVE → RECOVERY`;
+- position and activate its `HitboxComponent`;
+- emit `attack_started` / `attack_finished`.
+
+Public API:
+
+```gdscript
+func can_attack() -> bool
+func is_attacking() -> bool
+func start_attack(type: AttackType.Type) -> void
+func interrupt_attack() -> void
+```
+
+The component does not apply damage. `AttackData` is created immediately when the attack starts, before the active phase.
 
 ---
 
-## AI Components
+# HitboxComponent
 
-Examples:
+```gdscript
+class_name HitboxComponent
+extends Area2D
+```
 
-- DetectionComponent
-- VisionComponent (future)
+Responsibilities:
 
-These provide information used by AI.
+- start disabled (`monitoring = false`);
+- activate with an `AttackData` payload;
+- detect overlapping `HurtboxComponent` areas;
+- ignore its own Actor;
+- prevent duplicate hits on the same target during one activation;
+- forward the payload through `HurtboxComponent.receive_hit`.
+
+It never calculates or applies damage.
 
 ---
 
-## Utility Components
+# HurtboxComponent
 
-Examples:
+```gdscript
+class_name HurtboxComponent
+extends Area2D
+```
 
-- InteractionComponent
-- DialogueComponent
-- BuffComponent
+Responsibilities:
 
-These support additional gameplay systems.
+- receive incoming `AttackData`;
+- block hits while invulnerable;
+- emit `hit_received` when a hit is accepted;
+- emit `damage_blocked` when invulnerable.
+
+Public API:
+
+```gdscript
+func can_receive_hit() -> bool
+func set_invulnerable(value: bool) -> void
+func receive_hit(attack: AttackData) -> void
+```
+
+It does not apply damage, knockback or death logic. The owning `Actor` does that.
+
+---
+
+# DetectionComponent
+
+```gdscript
+class_name DetectionComponent
+extends Area2D
+```
+
+Responsibilities:
+
+- detect a `Player` hurtbox entering its area;
+- remember the detected player;
+- expose `get_target_position()`;
+- emit `player_detected` and `player_lost`.
+
+The component currently detects only `Player`. It is not a general perception system.
+
+---
+
+# InputComponent
+
+```gdscript
+class_name InputComponent
+extends Node
+```
+
+Responsibilities:
+
+- read the movement axis and apply a deadzone;
+- append `Command` objects for jump, attack, dash and interact;
+- expose the current `InputCommand`;
+- enable or disable input processing.
+
+The command buffer time constant (`INPUT_BUFFER_TIME`) is declared but not yet used for expiry.
+
+---
+
+# Lifecycle
+
+Components follow the lifecycle of their owning Actor:
+
+```mermaid
+flowchart LR
+
+Created --> Ready --> Active --> Disabled --> Destroyed
+```
+
+- **Created** — instantiated as part of the Actor scene.
+- **Ready** — references and configuration are initialized.
+- **Active** — participates in gameplay.
+- **Disabled** — temporarily stops affecting gameplay (for example, a deactivated hitbox).
+- **Destroyed** — removed together with the Actor.
 
 ---
 
@@ -259,136 +253,39 @@ These support additional gameplay systems.
 
 ## Single Responsibility
 
-Each Component owns one gameplay concern.
-
-Example:
-
-HealthComponent manages health.
-
-It does not calculate movement or AI.
-
----
+Each component owns one gameplay concern.
 
 ## Reusability
 
-A Component should work with any compatible Actor.
-
-The same implementation should be usable by:
-
-- Player
-- Enemy
-- Boss
-- NPC
-- Training Dummy
-
----
+A component should work with any compatible Actor. `HealthComponent`, `HitboxComponent` and `HurtboxComponent` are already shared by player and enemies.
 
 ## Encapsulation
 
-A Component owns its internal state.
-
-Other systems interact through its public API.
-
-Implementation details remain private.
-
----
-
-## Loose Coupling
-
-Components should communicate through interfaces rather than implementation details.
-
-Knowledge of unrelated systems should be minimized.
-
----
+A component owns its internal state. Other systems interact through its public API.
 
 ## Data-Driven Configuration
 
-Whenever practical, configuration belongs inside Resources rather than code.
-
-Example:
-
-WeaponComponent receives WeaponData instead of hardcoded values.
+Configuration belongs in Resources. `WeaponComponent` receives `WeaponData`, not hardcoded attacks.
 
 ---
 
-# Examples
+# Current Limitations
 
-## HealthComponent
-
-Responsible for:
-
-- current health;
-- maximum health;
-- damage processing;
-- healing.
-
-Not responsible for:
-
-- animations;
-- death effects;
-- AI reactions.
-
----
-
-## WeaponComponent
-
-Responsible for:
-
-- attack execution;
-- attack timing;
-- hitbox activation.
-
-Not responsible for:
-
-- enemy AI;
-- movement;
-- health management.
-
----
-
-## DetectionComponent
-
-Responsible for:
-
-- sensing nearby targets;
-- reporting visible Actors.
-
-Not responsible for:
-
-- movement;
-- pathfinding;
-- attack decisions.
-
----
-
-## HurtboxComponent
-
-Responsible for:
-
-- receiving attacks;
-- forwarding AttackData.
-
-Not responsible for:
-
-- calculating damage;
-- applying knockback logic;
-- deciding whether the Actor dies.
+- There is no generic `MovementComponent`.
+- `DetectionComponent` is hardcoded to `Player`.
+- `HitboxComponent` finds its Actor by walking up the node tree.
+- Attack duplicate prevention is per activation; there is no global hit cooldown.
+- `HurtboxComponent` invulnerability is a simple boolean with no timer; timers are managed by states.
 
 ---
 
 # Best Practices
 
-✔ One responsibility per Component.
-
-✔ Expose a clean public API.
-
-✔ Keep Components reusable.
-
-✔ Use Resources for configuration.
-
-✔ Keep communication explicit.
-
-✔ Document public behavior.
+- One responsibility per component.
+- Expose a clean public API.
+- Keep components reusable.
+- Use Resources for configuration.
+- Keep communication explicit.
 
 ---
 
@@ -396,57 +293,18 @@ Not responsible for:
 
 Avoid:
 
-❌ Components depending on concrete Actor subclasses.
-
-❌ Components creating other Components.
-
-❌ Components directly controlling the World.
-
-❌ Components implementing multiple gameplay systems.
-
-❌ Circular dependencies between Components.
-
-❌ "Manager Components" that know too much.
-
----
-
-# Future Extensions
-
-Future gameplay systems should continue following the same architecture.
-
-Examples include:
-
-- AbilityComponent
-- EquipmentComponent
-- StatusEffectComponent
-- QuestComponent
-- CraftingComponent
-- DialogueComponent
-
-New functionality should be introduced by creating new Components rather than extending existing ones beyond their responsibility.
-
----
-
-# Decision Summary
-
-Components are reusable gameplay modules.
-
-Actors define identity.
-
-State Machines coordinate behavior.
-
-Components provide capabilities.
-
-Maintaining this separation is one of the core architectural principles of Project Echo.
+- components depending on concrete Actor subclasses;
+- components creating other components outside their ownership;
+- components directly controlling the world;
+- manager components that know too much;
+- circular dependencies.
 
 ---
 
 # Related Documents
 
-- Architecture Overview
-- Actor
-- State Machine
-- Resources
-- Combat Architecture
-- ADR-002
-- ADR-003
+- [Architecture Overview](overview.md)
+- [Actor](actor.md)
+- [State Machine](state-machine.md)
+- [Resources](resources.md)
+- [Combat Architecture](combat-architecture.md)

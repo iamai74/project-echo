@@ -1,16 +1,17 @@
 # Glossary
 
-> **Last Updated:** 2026-07-20
+> **Status:** In Progress
 >
-> **Related**
+> **Last Updated:** 2026-11-06
 >
-> - overview.md
-> - actor.md
-> - components.md
-> - state-machine.md
-> - combat-architecture.md
-> - resources.md
-> - world/world-architecture-overview.md
+> **Related:**
+> - [overview.md](overview.md)
+> - [actor.md](actor.md)
+> - [components.md](components.md)
+> - [state-machine.md](state-machine.md)
+> - [combat-architecture.md](combat-architecture.md)
+> - [resources.md](resources.md)
+> - [../world/overview.md](../world/overview.md)
 
 ---
 
@@ -18,9 +19,7 @@
 
 This document defines the architectural terminology used throughout Project Echo.
 
-All documentation should use these definitions consistently.
-
-Whenever a new architectural concept is introduced, it should first be added to this glossary.
+Documentation should use these definitions consistently. When a new architectural concept is introduced, add it here rather than redefining it in multiple places.
 
 ---
 
@@ -30,47 +29,47 @@ Whenever a new architectural concept is introduced, it should first be added to 
 
 An active gameplay entity that participates in the game world.
 
-Actors own Components and are coordinated by a State Machine.
+`Actor` extends `CharacterBody2D`, owns components and a state machine, and delegates gameplay mechanics to them.
 
-Examples:
+Implemented subclasses: `Player`, `Enemy`, `Walker`, `Runner`, `Heavy`.
 
-- Player
-- Enemy
-- NPC *(future)*
+---
+
+## ActorData
+
+A `Resource` containing actor configuration: health, movement speed, jump velocity, gravity, coyote time, jump count and jump hold force.
 
 ---
 
 ## AttackData
 
-A runtime payload object representing a single attack instance.
+A runtime payload object representing one attack instance.
 
-Implemented as `RefCounted`.
+Implemented as `RefCounted`. It carries damage, knockback, source and direction through the combat pipeline.
 
-AttackData transports combat information through the Combat Pipeline.
+`AttackData` is not a Resource and is not saved.
 
 ---
 
 ## AttackDefinition
 
-A configuration Resource describing a single attack.
-
-It defines gameplay parameters such as damage, timing, animation and hitbox configuration.
+A `Resource` describing one attack: damage, knockback, attack type, startup/active/recovery timing, animation name and hitbox configuration.
 
 ---
 
 ## AttackType
 
-A gameplay identifier representing the intent of an attack.
+An enum representing attack intent:
 
-Current values include:
+```text
+LIGHT
+HEAVY
+JUMP
+DASH
+SPECIAL
+```
 
-- LIGHT
-- HEAVY
-- JUMP
-- DASH
-- SPECIAL
-
-AttackType is independent from player input, animations and weapon implementation.
+`AttackType` is independent from input bindings and animation names.
 
 ---
 
@@ -78,9 +77,27 @@ AttackType is independent from player input, animations and weapon implementatio
 
 ## Bake
 
-The process of converting authored room scenes into optimized runtime assets.
+The process of converting an authored room scene into validated, runtime-ready data.
 
-Bake validates room data and generates assets used during gameplay.
+Bake produces `RoomData`, a generated runtime room scene and a themed default artifact.
+
+See [Bake Pipeline](../world/bake-pipeline.md).
+
+## BakePipeline
+
+The ordered runner that executes `BakeStep` instances against a `RoomBakeContext`.
+
+## BakeProcessor
+
+A processor that converts one semantic brush type into semantic cells. Registered processors: `PlatformBakeProcessor`, `WallBakeProcessor`, `BackgroundBakeProcessor`.
+
+## BakeStep
+
+One composable stage of the bake pipeline. Steps can stop the pipeline through the shared `BakeReport`.
+
+## BakeValidator
+
+A validation stage that inspects semantic data without mutating it. Implemented: `DuplicateCellValidator`, `SemanticOverlapValidator`, `TopologyValidator`, `SemanticCellValidator`.
 
 ---
 
@@ -88,81 +105,35 @@ Bake validates room data and generates assets used during gameplay.
 
 ## Combat Pipeline
 
-The ordered sequence of systems responsible for resolving an attack.
-
-Current pipeline:
+The ordered systems that resolve an attack:
 
 ```text
-AttackState
-
-↓
-
 WeaponComponent
-
-↓
-
-WeaponData
-
-↓
-
-AttackDefinition
-
-↓
-
-AttackData
-
-↓
-
-HitboxComponent
-
-↓
-
-HurtboxComponent
-
-↓
-
-HealthComponent
-
-↓
-
-HurtState
+→ AttackData
+→ HitboxComponent
+→ HurtboxComponent
+→ Actor
+→ HealthComponent
+→ Hurt/Dead state
 ```
-
----
 
 ## Component
 
-A reusable gameplay module responsible for one specific capability.
+A reusable gameplay module responsible for one capability.
 
-Examples:
+Implemented: `HealthComponent`, `WeaponComponent`, `HitboxComponent`, `HurtboxComponent`, `DetectionComponent`, `InputComponent`.
 
-- HealthComponent
-- WeaponComponent
-- HitboxComponent
-- HurtboxComponent
-- DetectionComponent
+Components are owned by an Actor (or by its weapon node, for hitboxes).
 
-Components are owned by Actors.
+## ConnectionData
 
----
+A `Resource` describing a room connection: `id`, `side`, `position` and `size`.
 
-## Configuration Resource
+The baked representation of the architectural ConnectionPoint concept. `RoomData.connections` is currently always empty because no authoring or baking path exists.
 
-A Godot Resource that stores gameplay configuration.
+## ConnectionPoint
 
-Configuration Resources are project assets and remain immutable during gameplay.
-
-Examples:
-
-- WeaponData
-- AttackDefinition
-- RoomData
-
----
-
-## Connection Point
-
-A predefined location where two Runtime Rooms may be connected during procedural generation.
+The architectural concept of an explicit room exit, recorded in ADR-007. Implemented in baked data as `ConnectionData`.
 
 ---
 
@@ -170,9 +141,7 @@ A predefined location where two Runtime Rooms may be connected during procedural
 
 ## Detection
 
-The process of identifying gameplay targets.
-
-Usually implemented by DetectionComponent.
+The process of identifying gameplay targets. Implemented by `DetectionComponent`, which currently detects only `Player`.
 
 ---
 
@@ -180,16 +149,9 @@ Usually implemented by DetectionComponent.
 
 ## Gameplay Intent
 
-A high-level gameplay action requested by a gameplay system.
+A high-level gameplay action requested by a system, such as `AttackType.LIGHT`.
 
-Gameplay Intent describes **what** should happen rather than **how** it is implemented.
-
-Examples:
-
-- AttackType.LIGHT
-- AttackType.HEAVY
-
-Gameplay Intent keeps gameplay systems independent from input bindings, animation names and weapon implementation.
+Intent describes **what** should happen, independent of input and implementation.
 
 ---
 
@@ -197,17 +159,15 @@ Gameplay Intent keeps gameplay systems independent from input bindings, animatio
 
 ## Hitbox
 
-The offensive collision area responsible for detecting successful attacks.
+The offensive collision area used to detect attacks. Implemented by `HitboxComponent`.
 
-Hitboxes never apply damage directly.
-
----
+Hitboxes forward `AttackData`; they never apply damage.
 
 ## Hurtbox
 
-The defensive collision area responsible for receiving attacks.
+The defensive collision area that receives attacks. Implemented by `HurtboxComponent`.
 
-Hurtboxes validate incoming attacks before forwarding them to the HealthComponent.
+Hurtboxes apply invulnerability rules and emit `hit_received`; they do not apply damage.
 
 ---
 
@@ -215,86 +175,104 @@ Hurtboxes validate incoming attacks before forwarding them to the HealthComponen
 
 ## Resource
 
-A serializable Godot object used to store gameplay configuration.
+A serializable Godot object used for configuration or baked data.
 
-Resources describe gameplay.
-
-Runtime systems execute gameplay.
-
----
+Resources describe data; runtime systems operate on it.
 
 ## Room
 
-A designer-authored gameplay area that serves as a building block for procedural world generation.
-
----
+A designer-authored gameplay area and the smallest unit of future world generation. A room has authored, baked and runtime representations.
 
 ## RoomData
 
-A configuration Resource containing metadata describing a Room.
+A `Resource` containing the baked semantic layout of a room:
 
----
+```text
+version
+bounds
+platforms
+walls
+background
+connections
+```
+
+See [Room Data](../world/room-data.md).
 
 ## Runtime Data
 
-Temporary gameplay data created during execution.
-
-Runtime Data is not stored as project assets.
-
-Example:
-
-- AttackData
-
----
-
-## Runtime Object
-
-An object that exists only while the game is running.
-
-Examples:
-
-- RuntimeRoom
-- WeaponComponent
-- HealthComponent
-- AttackData
-
----
+Temporary data created during execution and not stored as a project asset. Example: `AttackData`.
 
 ## Runtime Room
 
-The optimized runtime representation of an authored Room.
+The generated scene instantiated during gameplay. Current structure:
 
-Runtime Rooms are generated during the Bake process and consumed by the World Generator.
+```text
+RuntimeRoom
+└── Semantic
+    └── Tiles (TileMapLayer)
+```
 
 ---
 
 # S
 
-## Semantic Tile
+## Semantic Brush
 
-A logical tile representing gameplay meaning rather than visual appearance.
+An `@tool` authoring node describing intended room content. Brush types include platform, wall, background, enemy spawn, loot spawn and marker/volume base types.
 
-Semantic Tiles allow different biome themes to share the same gameplay layout.
+Brushes describe intent; they do not bake or construct runtime content.
 
----
+## Semantic Cell
+
+A baked logical cell describing gameplay meaning rather than appearance.
+
+`SemanticCell` stores `position`, `shape`, `corners` and `flags`. `BackgroundCell` stores `position`.
+
+## Semantic Layer
+
+A layer of semantic data. Authoring uses `SpatialLayer`, `MarkerLayer` and `VolumeLayer`. Baked spatial types are `PLATFORM`, `WALL` and `BACKGROUND`.
+
+## Semantic Room Data
+
+`SemanticRoomData`, the in-memory result of processing brushes before conversion to `RoomData`.
 
 ## State
 
-Represents what an Actor is currently doing.
+A unit of Actor behaviour. Implemented states include `Idle`, `Move`, `Jump`, `Fall`, `Attack`, `Patrol`, `Chase`, `Hurt` and `Dead`.
 
-Examples:
+## StateMachine
 
-- Idle
-- Move
-- Jump
-- Attack
-- Hurt
+The node that owns States, tracks the current State and performs transitions.
 
 ---
 
-## State Machine
+# T
 
-The system responsible for coordinating Actor behaviour through transitions between States.
+## Theme
+
+A visual configuration mapping semantic cells to tiles. A theme does not change topology or gameplay meaning.
+
+## ThemeApplyer
+
+The runtime class that maps `RoomData` cells onto a runtime room's `TileMapLayer` using a `ThemeInfo`.
+
+## ThemeBuilder
+
+The runner for the theme build steps. It is separate from `BakePipeline`.
+
+## ThemeInfo
+
+A `Resource` containing the theme TileSet path and resolved `TilePack`/`TileId` collections for platforms, walls and background.
+
+## TileId
+
+A serializable reference to a tile: `source_id` plus `atlas_coords`.
+
+## TilePack
+
+A `Resource` grouping resolved `TileId` variants by tile type (single, top, bottom, corner variants and so on).
+
+See [Themes](../world/themes.md).
 
 ---
 
@@ -302,87 +280,59 @@ The system responsible for coordinating Actor behaviour through transitions betw
 
 ## WeaponData
 
-A configuration Resource describing a weapon and the attacks it provides.
+A `Resource` describing a weapon: name, icon and an array of `AttackDefinition` resources. It maps `AttackType` to `AttackDefinition` at runtime.
 
-WeaponData owns references to AttackDefinition resources.
+## World
 
----
+Currently an autoload exposing `WorldSettings`. World generation, biomes and streaming are planned, not implemented.
 
 ## World Authoring
 
-The process of creating gameplay rooms, metadata and generation information inside the editor before gameplay.
-
-World Authoring includes:
-
-- room creation;
-- semantic tile placement;
-- bake process;
-- metadata generation.
-
----
+The editor-side process of creating rooms with semantic brushes and baking them into runtime data.
 
 ## World Generator
 
-The system responsible for assembling Runtime Rooms into a playable world according to generation rules.
+The planned system that assembles baked rooms into a playable world.
 
 ---
 
 # Architectural Model
 
-Project Echo separates gameplay into several architectural layers.
+Project Echo separates gameplay into layers:
 
 ```text
-Configuration
-
-↓
-
+Configuration Resources
+        ↓
 Runtime Objects
-
-↓
-
+        ↓
 Gameplay Systems
-
-↓
-
+        ↓
 Gameplay Result
 ```
 
-Configuration Resources describe gameplay.
-
-Runtime Objects execute gameplay.
-
-Gameplay Systems coordinate gameplay.
+Configuration Resources describe gameplay. Runtime objects participate in it. Gameplay systems coordinate outcomes.
 
 ---
 
 # Design Principles
 
-The following conventions are used consistently throughout the project.
-
-- Actors own Components.
-- Components implement gameplay behaviour.
+- Actors own components and state machines.
+- Components implement capabilities.
 - States coordinate gameplay flow.
-- Resources describe gameplay configuration.
-- Runtime Data transports gameplay information.
-- Runtime Rooms are generated during Bake.
-- World Generator assembles Runtime Rooms into playable worlds.
-
----
-
-# Document Convention
-
-All architectural documents should use the terminology defined in this glossary.
-
-Whenever a new architectural concept is introduced, it should first be defined here before being referenced elsewhere.
+- Resources describe configuration and baked data.
+- Runtime data transports information during execution.
+- Runtime rooms are generated during bake.
+- Themes affect appearance, not topology.
+- The world generator is planned and must consume baked rooms rather than rebuild them.
 
 ---
 
 # Related Documents
 
-- Overview
-- Actor
-- Components
-- State Machine
-- Combat Architecture
-- Resources
-- World Architecture
+- [Architecture Overview](overview.md)
+- [Actor](actor.md)
+- [Components](components.md)
+- [State Machine](state-machine.md)
+- [Combat Architecture](combat-architecture.md)
+- [Resources](resources.md)
+- [World Architecture](../world/overview.md)
