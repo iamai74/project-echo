@@ -130,6 +130,7 @@ The repository currently contains major areas such as:
 - `resources/` — reusable Godot resources and configuration data
 - `scenes/` — Godot scenes
 - `scripts/` — GDScript implementation
+- `test/` — unit tests
 - `plug.gd` — gd-plug dependency declarations
 - `.plugged/` — gd-plug repository cache (generated, ignored)
 
@@ -352,7 +353,7 @@ Prefer:
 4. build/import checks;
 5. targeted runtime testing.
 
-GdUnit4 is installed as a dev dependency through gd-plug and is the preferred framework for new unit tests. All test suites live under `scripts/test/`.
+GdUnit4 is installed as a dev dependency through gd-plug and is the preferred framework for new unit tests. All test suites live under `/test/`.
 
 For parser/import validation, run Godot in headless editor mode with `godot --headless --editor --quit`.
 
