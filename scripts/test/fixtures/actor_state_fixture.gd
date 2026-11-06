@@ -218,16 +218,19 @@ static func add_state(state_machine: StateMachine, state_name: String, state: St
 static func start(player: Player, initial_state: String = "Idle") -> void:
 	player.state_machine.initialize(player)
 	player.state_machine.setup_states()
+	player.health.died.connect(player._on_died)
 	player.state_machine.start(initial_state)
 
 
 static func start_enemy(enemy: Enemy, initial_state: String = "Idle") -> void:
 	enemy.state_machine.initialize(enemy)
 	enemy.state_machine.setup_states()
+	enemy.health.died.connect(enemy._on_died)
 	enemy.state_machine.start(initial_state)
 
 
 static func start_walker(walker: Walker, initial_state: String = "Idle") -> void:
 	walker.state_machine.initialize(walker)
 	walker.state_machine.setup_states()
+	walker.health.died.connect(walker._on_died)
 	walker.state_machine.start(initial_state)
