@@ -4,7 +4,7 @@
 extends GdUnitTestSuite
 
 
-const Fixture = preload("res://scripts/test/fixtures/actor_state_fixture.gd")
+const Fixture = preload("res://test/fixtures/actor_state_fixture.gd")
 
 
 var player
