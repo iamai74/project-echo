@@ -102,7 +102,7 @@ func _apply_gravity(delta: float) -> void:
 
 func _update_facing_direction() -> void:
 	if velocity.x != 0:
-		facing_direction = Vector2(velocity.x, 0)
+		facing_direction = Vector2(sign(velocity.x), 0)
 		if sprite:
 			sprite.flip_h = (sign(velocity.x) == -1)
 
