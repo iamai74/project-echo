@@ -64,3 +64,7 @@ addons/*
 reports/
 GdUnitRunner.cfg
 
+# Python test tooling
+__pycache__/
+*.pyc
+

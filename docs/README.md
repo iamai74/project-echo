@@ -94,6 +94,14 @@ docs/
 
 ---
 
+## Testing Documents
+
+| Document | Description |
+|----------|-------------|
+| [`test/tools/README.md`](../test/tools/README.md) | Coverage runner and test infrastructure commands |
+
+---
+
 ## Documentation Principles
 
 Project Echo documentation follows these principles:

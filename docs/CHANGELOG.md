@@ -1,3 +1,10 @@
+## 2026-11-07
+
+- Added the project-local coverage runner under `test/tools/coverage/` with JSON, LCOV, text and HTML reports.
+- Recorded the reproducible post-Phase 1 baseline: 71.5% measured across all source files, 75.6% target scope.
+- Documented the coverage command, scope, outputs and gate policy; Phase 0 is complete.
+- Added coverage regression gate support (informational by default).
+
 ## 2026-11-06
 
 - Refreshed the documentation index and project status.
