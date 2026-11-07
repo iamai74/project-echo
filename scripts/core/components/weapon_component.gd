@@ -100,7 +100,7 @@ func _enter_active() -> void:
 		shape.size = _current_attack.hitbox_size
 	elif shape is CapsuleShape2D:
 		shape.radius = _current_attack.hitbox_size.x
-		shape.height = _current_attack.hitbox_size.y
+		shape.mid_height = _current_attack.hitbox_size.y
 
 	hitbox.activate(_current_attack_data)
 

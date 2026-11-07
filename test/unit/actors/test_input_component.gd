@@ -60,11 +60,44 @@ func test_command_exists_by_default() -> void:
 	assert_bool(input_comp.command is InputCommand).is_true()
 
 
-# --- Input enabled/disabled ---
+# --- Input actions ---
 
-func test_set_input_enabled_enables_processing() -> void:
-	input_comp.set_input_enabled(false)
-	assert_int(input_comp.process_mode).is_equal(Node.PROCESS_MODE_DISABLED)
+func test_update_input_creates_commands_on_just_pressed() -> void:
+	Input.action_press("jump")
+	input_comp.update_input(0.0)
+	assert_bool(input_comp.get_command().has_command(CommandType.Type.JUMP)).is_true()
+	Input.action_release("jump")
+	
+	Input.action_press("attack")
+	input_comp.update_input(0.0)
+	assert_bool(input_comp.get_command().has_command(CommandType.Type.ATTACK)).is_true()
+	Input.action_release("attack")
+	
+	Input.action_press("dash")
+	input_comp.update_input(0.0)
+	assert_bool(input_comp.get_command().has_command(CommandType.Type.DASH)).is_true()
+	Input.action_release("dash")
+	
+	Input.action_press("interact")
+	input_comp.update_input(0.0)
+	assert_bool(input_comp.get_command().has_command(CommandType.Type.INTERACT)).is_true()
+	Input.action_release("interact")
 
-	input_comp.set_input_enabled(true)
-	assert_int(input_comp.process_mode).is_equal(Node.PROCESS_MODE_INHERIT)
+
+func test_update_input_reads_move_axis() -> void:
+	Input.action_press("move_right")
+	input_comp.update_input(0.0)
+	assert_float(input_comp.get_command().move_direction).is_equal_approx(1.0, 0.0001)
+	Input.action_release("move_right")
+	
+	Input.action_press("move_left")
+	input_comp.update_input(0.0)
+	assert_float(input_comp.get_command().move_direction).is_equal_approx(-1.0, 0.0001)
+	Input.action_release("move_left")
+
+
+func test_is_action_held_forwards_to_input() -> void:
+	Input.action_press("jump")
+	assert_bool(input_comp.is_action_held("jump")).is_true()
+	Input.action_release("jump")
+	assert_bool(input_comp.is_action_held("jump")).is_false()
