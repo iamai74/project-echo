@@ -78,11 +78,16 @@ class StubInputComponent:
 	extends InputComponent
 
 	var held_actions: Dictionary = {}
+	var enabled := true
 
 	func is_action_held(action: String) -> bool:
 		return held_actions.get(action, false)
 
+	func set_input_enabled(value: bool) -> void:
+		enabled = value
 
+	func is_input_enabled() -> bool:
+		return enabled
 class StubWeaponComponent:
 	extends WeaponComponent
 
