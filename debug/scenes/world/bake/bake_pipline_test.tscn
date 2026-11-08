@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c0wqr64y1y3vx"]
+
+[ext_resource type="Script" path="res://scripts/world/test/bake_pipline_test.gd" id="1_mbc5y"]
+
+[node name="BakePiplineTest" type="Node2D" unique_id=1274184847]
+script = ExtResource("1_mbc5y")

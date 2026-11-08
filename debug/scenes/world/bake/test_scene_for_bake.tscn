@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://dy12s51x65vtv"]
+
+[ext_resource type="Script" uid="uid://cawt5a8502c3y" path="res://scripts/world/authoring/brushes/spatial_brushes/background_brush.gd" id="1_kb27y"]
+[ext_resource type="Script" uid="uid://ds51r7cktiocy" path="res://scripts/world/authoring/brushes/spatial_brushes/platform_brush.gd" id="2_kxyrs"]
+[ext_resource type="Script" uid="uid://c5vpthsrogvnj" path="res://scripts/world/authoring/brushes/spatial_brushes/wall_brush.gd" id="3_m3g5o"]
+
+[node name="TestSceneForBake" type="Node2D" unique_id=448613578]
+
+[node name="BackgroundBrush" type="Node2D" parent="." unique_id=889733110]
+position = Vector2(0, -192)
+script = ExtResource("1_kb27y")
+size = Vector2i(10, 10)
+metadata/_custom_type_script = "uid://cawt5a8502c3y"
+
+[node name="PlatformBrush" type="Node2D" parent="." unique_id=379653368]
+script = ExtResource("2_kxyrs")
+size = Vector2i(3, 1)
+metadata/_custom_type_script = "uid://ds51r7cktiocy"
+
+[node name="PlatformBrush2" type="Node2D" parent="." unique_id=561942437]
+position = Vector2(96, -32)
+script = ExtResource("2_kxyrs")
+traits = 1
+size = Vector2i(3, 1)
+metadata/_custom_type_script = "uid://ds51r7cktiocy"
+
+[node name="PlatformBrush3" type="Node2D" parent="." unique_id=2083039832]
+position = Vector2(96, -32)
+script = ExtResource("2_kxyrs")
+metadata/_custom_type_script = "uid://ds51r7cktiocy"
+
+[node name="PlatformBrush4" type="Node2D" parent="." unique_id=830005780]
+position = Vector2(0, -96)
+script = ExtResource("2_kxyrs")
+size = Vector2i(2, 2)
+metadata/_custom_type_script = "uid://ds51r7cktiocy"
+
+[node name="PlatformBrush5" type="Node2D" parent="." unique_id=220343848]
+position = Vector2(32, -160)
+script = ExtResource("2_kxyrs")
+metadata/_custom_type_script = "uid://ds51r7cktiocy"
+
+[node name="WallBrush" type="Node2D" parent="." unique_id=474991009]
+position = Vector2(192, -192)
+script = ExtResource("3_m3g5o")
+size = Vector2i(1, 5)
+metadata/_custom_type_script = "uid://c5vpthsrogvnj"
+
+[node name="WallBrush2" type="Node2D" parent="." unique_id=142705566]
+position = Vector2(192, 0)
+script = ExtResource("3_m3g5o")
+size = Vector2i(3, 3)
+metadata/_custom_type_script = "uid://c5vpthsrogvnj"
+
+[node name="WallBrush3" type="Node2D" parent="." unique_id=1451300639]
+position = Vector2(128, 64)
+script = ExtResource("3_m3g5o")
+metadata/_custom_type_script = "uid://c5vpthsrogvnj"

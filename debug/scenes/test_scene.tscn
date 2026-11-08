@@ -11,10 +11,10 @@
 [ext_resource type="Texture2D" uid="uid://bcvebtwr8ovnw" path="res://assets/sprites/tiles/test/wall3.png" id="9_gah1j"]
 [ext_resource type="Texture2D" uid="uid://c7d2ondu1txmb" path="res://assets/sprites/tiles/test/wall4.png" id="10_ap2hy"]
 [ext_resource type="Texture2D" uid="uid://bqgeok5yy1lq5" path="res://assets/sprites/tiles/test/wall5.png" id="11_nlwlv"]
-[ext_resource type="PackedScene" uid="uid://c0ukpjjim8vil" path="res://scenes/actors/enemy/walker.tscn" id="12_gthg3"]
+[ext_resource type="PackedScene" uid="uid://c0ukpjjim8vil" path="res://debug/actors/enemies/walker.tscn" id="12_gthg3"]
 [ext_resource type="PackedScene" uid="uid://c8fkxnk62o8nb" path="res://scenes/camera_rig.tscn" id="14_ntc4i"]
-[ext_resource type="PackedScene" uid="uid://bje5lecdxb7sn" path="res://scenes/actors/enemy/runner.tscn" id="14_u0xbq"]
-[ext_resource type="PackedScene" uid="uid://c5xqurlj8262w" path="res://scenes/actors/enemy/heavy.tscn" id="15_pln1h"]
+[ext_resource type="PackedScene" uid="uid://bje5lecdxb7sn" path="res://debug/actors/enemies/runner.tscn" id="14_u0xbq"]
+[ext_resource type="PackedScene" uid="uid://c5xqurlj8262w" path="res://debug/actors/enemies/heavy.tscn" id="15_pln1h"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6gkjt"]
 texture = ExtResource("2_gthg3")

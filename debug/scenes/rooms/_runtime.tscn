@@ -1,0 +1,11 @@
+[gd_scene format=4]
+
+[ext_resource type="TileSet" path="res://resources/themes/default/default_tileset.tres" id="1_duxny"]
+
+[node name="RuntimeRoom" type="Node2D" unique_id=462747751]
+
+[node name="Semantic" type="Node2D" parent="." unique_id=1222709714]
+
+[node name="Tiles" type="TileMapLayer" parent="Semantic" unique_id=1496556894]
+tile_map_data = PackedByteArray("AAAAAAAAHQAAAAAAAAABAAAAHgAAAAAAAAAAAAEAGgAAAAAAAAABAAEAGwAAAAAAAAAAAAIAHwAAAAAAAAABAAIAIAAAAAAAAAA=")
+tile_set = ExtResource("1_duxny")
