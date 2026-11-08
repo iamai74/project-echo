@@ -33,7 +33,7 @@ Requirements:
 1. Copies the project to a temporary directory, excluding `.git`, `.godot`, `reports` and editor caches.
 2. Inserts `CoverageRecorder.hit(...)` before each executable statement line in the copy.
 3. Adds the recorder as the first autoload in the copy only.
-4. Imports the copy and runs the full GdUnit4 suite headless.
+4. Imports the copy and runs the full GdUnit4 suite headless with `-c`, which disables GdUnit fail-fast so a failing case cannot stop a suite before the remaining tests are measured.
 5. Reads the recorder output and writes the reports.
 
 The working tree, its `.godot` cache and its Git state are never modified.

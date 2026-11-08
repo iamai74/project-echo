@@ -4,23 +4,11 @@
 extends GdUnitTestSuite
 
 
-func _make_context_with_data(scene_path: String = "") -> RoomBakeContext:
+func _make_context_with_data() -> RoomBakeContext:
 	var context = RoomBakeContext.new()
 	context.report = BakeReport.new()
 	var room_data = RoomData.new()
 	context.runtime_room_data = room_data
-
-	if not scene_path.is_empty():
-		var room = Node2D.new()
-		room.name = "TestRoom"
-		# scene_file_path is set when a scene is loaded; here we simulate
-		# by creating a packed scene in a temp path and instantiating from it.
-		# For testing without filesystem writes we use a pre-loaded scene.
-		context.room = auto_free(load(scene_path).instantiate())
-		context.runtime_room = auto_free(Node2D.new())
-	else:
-		context.room = auto_free(Node2D.new())
-
 	return context
 
 
@@ -75,10 +63,9 @@ func test_save_room_data_step_saves_data_successfully() -> void:
 		.instantiate()
 	)
 
-	var context = _make_context_with_data(
-		"res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn"
-	)
+	var context = _make_context_with_data()
 	context.room = room
+	context.runtime_room = auto_free(Node2D.new())
 
 	step.run(context)
 
@@ -93,9 +80,7 @@ func test_save_room_data_step_skips_scene_save_when_runtime_room_null() -> void:
 		.instantiate()
 	)
 
-	var context = _make_context_with_data(
-		"res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn"
-	)
+	var context = _make_context_with_data()
 	context.room = room
 	# runtime_room stays null
 

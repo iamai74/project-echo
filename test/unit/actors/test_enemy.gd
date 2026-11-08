@@ -15,7 +15,7 @@ func test_boots_into_idle() -> void:
 	assert_str(enemy.state_machine.current_state.name).is_equal("Idle")
 
 func test_setup_wires_detection_signals() -> void:
-	var det := DetectionComponent.new()
+	var det: DetectionComponent = auto_free(DetectionComponent.new())
 	det.name = "DetectionComponent"
 	enemy.add_child(det)
 	enemy.detection_component = det

@@ -173,6 +173,7 @@ def run_tests(godot: str, project: Path, tests: str, hits_file: Path) -> tuple[i
         "-a",
         tests,
         "--ignoreHeadlessMode",
+        "-c",
     ]
     environment = os.environ.copy()
     environment["ECHO_COVERAGE_OUTPUT"] = str(hits_file)
