@@ -129,15 +129,13 @@ func test_attack_delegation_works_even_without_weapon_component() -> void:
 
 # --- Movement and Physics ---
 
-func test_movement_applies_velocity() -> void:
-	actor.move(1.0)
-	assert_float(actor.velocity.x).is_equal(200.0)
-	
-	actor.move(-1.0)
-	assert_float(actor.velocity.x).is_equal(-200.0)
-	
-	actor.move(0.0)
-	assert_float(actor.velocity.x).is_equal(0.0)
+func test_movement_applies_velocity(move_amount: float, expected_velocity_x: float, _test_parameters := [
+	[1.0, 200.0],
+	[-1.0, -200.0],
+	[0.0, 0.0]
+]) -> void:
+	actor.move(move_amount)
+	assert_float(actor.velocity.x).is_equal(expected_velocity_x)
 
 
 func test_jump_applies_velocity() -> void:

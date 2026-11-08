@@ -32,10 +32,15 @@ func test_initialize_sets_health() -> void:
 	assert_int(health.current_health).is_equal(200)
 
 
-func test_take_damage_reduces_health() -> void:
-	var data = AttackData.new(25)
+func test_take_damage_updates_health(initial_health: int, damage: int, expected_health: int, _test_parameters := [
+	[100, 25, 75],
+	[100, 0, 100],
+	[100, -10, 100]
+]) -> void:
+	health.current_health = initial_health
+	var data = AttackData.new(damage)
 	health.take_damage(data)
-	assert_int(health.current_health).is_equal(75)
+	assert_int(health.current_health).is_equal(expected_health)
 
 
 func test_take_damage_emits_damaged_signal() -> void:
@@ -50,18 +55,6 @@ func test_take_damage_emits_health_changed_signal() -> void:
 	var data = AttackData.new(10)
 	health.take_damage(data)
 	await assert_signal(health).is_emitted("health_changed", 90, 100)
-
-
-func test_take_zero_damage_does_nothing() -> void:
-	var data = AttackData.new(0)
-	health.take_damage(data)
-	assert_int(health.current_health).is_equal(100)
-
-
-func test_take_negative_damage_does_nothing() -> void:
-	var data = AttackData.new(-10)
-	health.take_damage(data)
-	assert_int(health.current_health).is_equal(100)
 
 
 func test_health_clamps_to_zero() -> void:
@@ -84,10 +77,15 @@ func test_death_emitted_once_on_zero_health() -> void:
 	assert_int(_death_count).is_equal(1)
 
 
-func test_heal_increases_health() -> void:
-	health.current_health = 60
-	health.heal(20)
-	assert_int(health.current_health).is_equal(80)
+func test_heal_updates_health(initial_health: int, heal_amount: int, expected_health: int, _test_parameters := [
+	[60, 20, 80],
+	[60, 0, 60],
+	[60, -10, 60],
+	[90, 50, 100]
+]) -> void:
+	health.current_health = initial_health
+	health.heal(heal_amount)
+	assert_int(health.current_health).is_equal(expected_health)
 
 
 func test_heal_emits_healed_signal() -> void:
@@ -103,34 +101,15 @@ func test_heal_clamps_to_max_health() -> void:
 	assert_int(health.current_health).is_equal(100)
 
 
-func test_heal_zero_does_nothing() -> void:
-	health.heal(0)
-	assert_int(health.current_health).is_equal(100)
-
-
-func test_heal_negative_does_nothing() -> void:
-	health.heal(-10)
-	assert_int(health.current_health).is_equal(100)
-
-
-func test_get_health_percentage_full() -> void:
-	assert_float(health.get_health_percentage()).is_equal(1.0)
-
-
-func test_get_health_percentage_half() -> void:
-	health.current_health = 50
-	assert_float(health.get_health_percentage()).is_equal(0.5)
-
-
-func test_get_health_percentage_zero() -> void:
-	health.current_health = 0
-	assert_float(health.get_health_percentage()).is_zero()
-
-
-func test_get_health_percentage_max_zero() -> void:
-	health.max_health = 0
-	health.current_health = 0
-	assert_float(health.get_health_percentage()).is_zero()
+func test_get_health_percentage_logic(current_health: int, max_health: int, expected_percentage: float, _test_parameters := [
+	[100, 100, 1.0],
+	[50, 100, 0.5],
+	[0, 100, 0.0],
+	[0, 0, 0.0]
+]) -> void:
+	health.current_health = current_health
+	health.max_health = max_health
+	assert_float(health.get_health_percentage()).is_equal(expected_percentage)
 
 
 func test_set_max_health_reduces_current_when_lower() -> void:
