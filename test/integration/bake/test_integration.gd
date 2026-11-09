@@ -7,6 +7,36 @@ extends GdUnitTestSuite
 const Fixture = preload("res://test/fixtures/actor_state_fixture.gd")
 
 
+const TEMP_ROOT := "user://test_integration"
+
+
+func before_test() -> void:
+	_remove_dir(TEMP_ROOT)
+	DirAccess.make_dir_recursive_absolute(TEMP_ROOT)
+
+
+func after_test() -> void:
+	# Free room nodes that the pipeline didn't.
+	_remove_dir(TEMP_ROOT)
+
+
+func _remove_dir(path: String) -> void:
+	var dir := DirAccess.open(path)
+	if dir != null:
+		dir.list_dir_begin()
+		var entry := dir.get_next()
+		while entry != "":
+			if entry != "." and entry != "..":
+				var entry_path := path.path_join(entry)
+				if dir.current_is_dir():
+					_remove_dir(entry_path)
+				else:
+					DirAccess.remove_absolute(entry_path)
+			entry = dir.get_next()
+		dir.list_dir_end()
+	DirAccess.remove_absolute(path)
+
+
 # ── Player scene boot and transitions ───────────────────────────────
 
 func test_player_boots_into_idle() -> void:
@@ -258,13 +288,57 @@ func test_runtime_room_tile_map_has_no_cells_before_theme() -> void:
 
 
 func test_saved_runtime_room_loads_with_expected_structure() -> void:
+	# Bake a room inline, save it to a temporary directory, then load it back
+	# to verify the saved runtime room has the expected structure.
+	DirAccess.make_dir_recursive_absolute(TEMP_ROOT)
+
 	var room = auto_free(
-		load("res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn")
+		load("res://test/fixtures/test_room_scene.tscn")
 		.instantiate()
 	)
 
-	assert_str(room.name).is_equal("RuntimeRoom")
-	var semantic = room.get_node_or_null("Semantic")
+	var brush = PlatformBrush.new()
+	brush.position = Vector2(0, 0)
+	brush.size = Vector2i.ONE
+	room.add_child(brush)
+
+	var context = _make_empty_context()
+	context.room = room
+	# Pipeline won't free the room; mark it so after_test can clean it.
+	context.room.set_meta("_test_free", true)
+
+	var registry = BakeProcessorRegistry.new()
+	registry.register(SemanticBrush.BrushType.PLATFORM, PlatformBakeProcessor.new())
+	registry.register(SemanticBrush.BrushType.WALL, WallBakeProcessor.new())
+	registry.register(SemanticBrush.BrushType.BACKGROUND, BackgroundBakeProcessor.new())
+
+	var collector = BrushCollector.new()
+	var steps: Array[BakeStep] = [
+		CollectBrushesStep.new(collector),
+		InitSemanticDataStep.new(),
+		BakeSemanticLayerStep.new(registry),
+		PostProcessStep.new(),
+		ValidateStep.new(),
+		BuildRuntimeRoomStep.new(),
+		ApplyDefaultThemeStep.new(),
+	]
+	var save_step = SaveRoomDataStep.new()
+	save_step.output_root = TEMP_ROOT
+	steps.append(save_step)
+
+	var pipeline = BakePipeline.new(steps)
+	pipeline.run(context)
+
+	assert_bool(context.report.is_has_fatal()).is_false()
+	auto_free(context.runtime_room)
+
+	var runtime_path = TEMP_ROOT.path_join(
+		"test_room_scene/test_room_scene_runtime.tscn"
+	)
+	var loaded = auto_free(load(runtime_path).instantiate())
+
+	assert_str(loaded.name).is_equal("RuntimeRoom")
+	var semantic = loaded.get_node_or_null("Semantic")
 	assert_object(semantic).is_not_null()
 	var tiles = semantic.get_node_or_null("Tiles")
 	assert_object(tiles).is_not_null()

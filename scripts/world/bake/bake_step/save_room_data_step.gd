@@ -1,6 +1,11 @@
 class_name SaveRoomDataStep
 extends BakeStep
 
+# Output root for test purposes. Defaults to the production path.
+var output_root: String = "res://scenes/rooms"
+
+
+
 
 func get_id() -> StringName:
 	return &"save_room_data"
@@ -23,7 +28,7 @@ func run(context: RoomBakeContext) -> RoomBakeContext:
 	var err = ResourceSaver.save(context.runtime_room_data, room_data_path)
 	if err != OK:
 		context.report.add_error(_error(BakeIssue.IssueType.BAKE_FAILED,
-			"Failed to save room data to %s (error %d)" % [room_data_path, err]))
+			"Failed to save room data to %s (error %s)" % [room_data_path, err]))
 
 	if context.runtime_room != null:
 		var runtime_path = room_dir.path_join("%s_runtime.tscn" % _get_room_filename(context.room))
@@ -32,14 +37,14 @@ func run(context: RoomBakeContext) -> RoomBakeContext:
 		var err_scene = ResourceSaver.save(packed_scene, runtime_path)
 		if err_scene != OK:
 			context.report.add_error(_error(BakeIssue.IssueType.BAKE_FAILED,
-				"Failed to save runtime room scene to %s (error %d)" % [runtime_path, err_scene]))
+				"Failed to save runtime room scene to %s (error %s)" % [runtime_path, err_scene]))
 
 	return context
 
 
 func _get_room_dir(room: Node) -> String:
 	var filename = room.scene_file_path.get_file().get_basename()
-	return "res://scenes/rooms/%s" % filename
+	return "%s/%s" % [output_root, filename]
 
 
 func _get_room_filename(room: Node) -> String:

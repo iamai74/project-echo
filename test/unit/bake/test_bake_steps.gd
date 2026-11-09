@@ -138,43 +138,6 @@ func test_apply_default_theme_step_fatal_when_data_null() -> void:
 	assert_bool(context.report.is_has_fatal()).is_true
 
 
-# ── SaveRoomDataStep ──────────────────────────────────────────────
-
-func test_save_room_data_step_fatal_when_data_null() -> void:
-	var step = SaveRoomDataStep.new()
-	var context = _make_empty_context()
-	# runtime_room_data is null by default
-
-	step.run(context)
-
-	assert_bool(context.report.is_has_fatal()).is_true
-
-
-func test_save_room_data_step_derives_room_filename_from_scene_path() -> void:
-	var step = SaveRoomDataStep.new()
-	var room = auto_free(
-		load("res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn")
-		.instantiate()
-	)
-
-	assert_str(room.scene_file_path).is_equal(
-		"res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn"
-	)
-	assert_str(step._get_room_filename(room)).is_equal("test_scene_for_bake_runtime")
-
-
-func test_save_room_data_step_derives_room_dir_from_scene_path() -> void:
-	var step = SaveRoomDataStep.new()
-	var room = auto_free(
-		load("res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn")
-		.instantiate()
-	)
-
-	assert_str(step._get_room_dir(room)).is_equal(
-		"res://scenes/rooms/test_scene_for_bake_runtime"
-	)
-
-
 # ── Helpers ───────────────────────────────────────────────────────
 
 func _make_empty_context() -> RoomBakeContext:

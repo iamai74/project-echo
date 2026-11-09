@@ -1,7 +1,37 @@
-## SaveRoomDataStep failure-path tests.
+## SaveRoomDataStep unit tests.
 ## Covers: null runtime data error, successful save, save failure reporting,
 ## filename and directory derivation.
+## All saves go to a temporary user:// directory and are cleaned up afterwards.
 extends GdUnitTestSuite
+
+
+const TEMP_ROOT := "user://test_save_room_data_step"
+
+
+func before_test() -> void:
+	_remove_dir(TEMP_ROOT)
+	DirAccess.make_dir_recursive_absolute(TEMP_ROOT)
+
+
+func after_test() -> void:
+	_remove_dir(TEMP_ROOT)
+
+
+func _remove_dir(path: String) -> void:
+	var dir := DirAccess.open(path)
+	if dir != null:
+		dir.list_dir_begin()
+		var entry := dir.get_next()
+		while entry != "":
+			if entry != "." and entry != "..":
+				var entry_path := path.path_join(entry)
+				if dir.current_is_dir():
+					_remove_dir(entry_path)
+				else:
+					DirAccess.remove_absolute(entry_path)
+			entry = dir.get_next()
+		dir.list_dir_end()
+	DirAccess.remove_absolute(path)
 
 
 func _make_context_with_data() -> RoomBakeContext:
@@ -31,26 +61,28 @@ func test_save_room_data_step_fatal_when_data_null() -> void:
 
 func test_save_room_data_step_derives_room_filename_from_scene_path() -> void:
 	var step = SaveRoomDataStep.new()
+	# Use the test fixture instead of the debug scene
 	var room = auto_free(
-		load("res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn")
+		load("res://test/fixtures/test_room_scene.tscn")
 		.instantiate()
 	)
 
 	assert_str(room.scene_file_path).is_equal(
-		"res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn"
+		"res://test/fixtures/test_room_scene.tscn"
 	)
-	assert_str(step._get_room_filename(room)).is_equal("test_scene_for_bake_runtime")
+	assert_str(step._get_room_filename(room)).is_equal("test_room_scene")
 
 
 func test_save_room_data_step_derives_room_dir_from_scene_path() -> void:
 	var step = SaveRoomDataStep.new()
+	step.output_root = TEMP_ROOT
 	var room = auto_free(
-		load("res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn")
+		load("res://test/fixtures/test_room_scene.tscn")
 		.instantiate()
 	)
 
 	assert_str(step._get_room_dir(room)).is_equal(
-		"res://scenes/rooms/test_scene_for_bake_runtime"
+		TEMP_ROOT.path_join("test_room_scene")
 	)
 
 
@@ -58,10 +90,14 @@ func test_save_room_data_step_derives_room_dir_from_scene_path() -> void:
 
 func test_save_room_data_step_saves_data_successfully() -> void:
 	var step = SaveRoomDataStep.new()
+	# Use the test fixture instead of the debug scene
 	var room = auto_free(
-		load("res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn")
+		load("res://test/fixtures/test_room_scene.tscn")
 		.instantiate()
 	)
+
+	# Set output root to a temporary directory for this test
+	step.output_root = "user://test_save_room_data_step"
 
 	var context = _make_context_with_data()
 	context.room = room
@@ -75,8 +111,9 @@ func test_save_room_data_step_saves_data_successfully() -> void:
 
 func test_save_room_data_step_skips_scene_save_when_runtime_room_null() -> void:
 	var step = SaveRoomDataStep.new()
+	# Use the test fixture instead of the debug scene
 	var room = auto_free(
-		load("res://scenes/rooms/test_scene_for_bake/test_scene_for_bake_runtime.tscn")
+		load("res://test/fixtures/test_room_scene.tscn")
 		.instantiate()
 	)
 
@@ -94,20 +131,21 @@ func test_save_room_data_step_skips_scene_save_when_runtime_room_null() -> void:
 
 func test_save_room_data_step_identifies_save_error() -> void:
 	var step = SaveRoomDataStep.new()
-	# A room with no scene_file_path will fail to save because the path
-	# cannot be derived.  We create a fresh Node2D with no loaded scene.
-	var room = auto_free(Node2D.new())
-	room.name = "OrphanRoom"
+	step.output_root = TEMP_ROOT
 
-	var context = RoomBakeContext.new()
-	context.report = BakeReport.new()
-	context.runtime_room_data = RoomData.new()
-	context.room = room
+	var context = _make_context_with_data()
+	context.room = auto_free(
+		load("res://test/fixtures/test_room_scene.tscn")
+		.instantiate()
+	)
+
+	# Occupy the save path with a directory so ResourceSaver fails.
+	var room_dir = step._get_room_dir(context.room)
+	var data_path = room_dir.path_join("%s_room_data.tres" % step._get_room_filename(context.room))
+	DirAccess.make_dir_recursive_absolute(data_path)
 
 	step.run(context)
 
-	# Either the save fails or the directory creation errors;
-	# in both cases the step reports the issue.
-	# The test verifies the step completes without crashing
-	# and the returned context is the same reference.
-	assert_object(step.run(context)).is_equal(context)
+	assert_bool(context.report.is_has_fatal()).is_true()
+	var all = context.report.get_all_issues()
+	assert_bool(all.has(BakeIssue.IssueType.BAKE_FAILED)).is_true()
