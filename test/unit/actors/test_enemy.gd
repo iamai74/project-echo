@@ -14,30 +14,28 @@ func before_test() -> void:
 func test_boots_into_idle() -> void:
 	assert_str(enemy.state_machine.current_state.name).is_equal("Idle")
 
-func test_setup_wires_detection_signals() -> void:
-	var det: DetectionComponent = auto_free(DetectionComponent.new())
-	det.name = "DetectionComponent"
-	enemy.add_child(det)
-	enemy.detection_component = det
-
-	assert_object(enemy.detection_component).is_not_null()
-
-	var dummy_player = auto_free(Fixture.build_player())
-	enemy.detection_component.player_detected.emit(dummy_player)
-
 func test_get_target_position_delegates_to_detection() -> void:
-	var expected_pos = Vector2(100, 100)
-	enemy.target_position = expected_pos
-	assert_vector(enemy.get_target_position()).is_equal(expected_pos)
+	var det = mock(DetectionComponent)
+	do_return(Vector2(50, 50)).on(det).get_target_position()
+	var real_enemy = auto_free(Enemy.new())
+	real_enemy.detection_component = det
+	var target_pos = real_enemy.get_target_position()
+	assert_vector(target_pos).is_equal(Vector2(50, 50))
+	verify(det, 1).get_target_position()
 
 func test_is_attacking_delegates_to_weapon() -> void:
-	var weapon = enemy.weapon_component
-	assert_bool(enemy.is_attacking()).is_false()
-	
-	weapon.start_attack(AttackType.Type.LIGHT)
-	assert_bool(not weapon.started_attacks.is_empty())
+	var weapon_mock = mock(WeaponComponent)
+	do_return(true).on(weapon_mock).is_attacking()
+	enemy.weapon_component = weapon_mock
 	assert_bool(enemy.is_attacking()).is_true()
+	verify(weapon_mock, 1).is_attacking()
 
 func test_on_attack_finished_forwards_to_state_machine() -> void:
 	var attack = AttackDefinition.new()
+	var state_machine_spy = spy(enemy.state_machine)
+	enemy.state_machine = state_machine_spy
 	enemy._on_attack_finished(attack)
+	verify(state_machine_spy, 1).handle_attack_finished(attack)
+
+# This test was removed because it tests stub setup rather than real signal connections.
+# Real scene wiring is covered in Step 3.
