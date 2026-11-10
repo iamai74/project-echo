@@ -3,11 +3,10 @@
 ## colour contracts, outline width, label formatting and validation.
 extends GdUnitTestSuite
 
-
 const TILE_SIZE := 32
 
-
 # ── Brush types ──────────────────────────────────────────────────────
+
 
 func test_platform_brush_reports_platform_type() -> void:
 	var brush = auto_free(PlatformBrush.new())
@@ -26,9 +25,11 @@ func test_background_brush_reports_background_type() -> void:
 
 # ── Marker and Volume Brushes ────────────────────────────────────────
 
+
 func test_marker_brush_reports_type() -> void:
 	var brush = auto_free(MarkerBrush.new())
 	assert_int(brush.get_brush_type()).is_equal(SemanticBrush.BrushType.UNKNOWN)
+
 
 func test_volume_brush_reports_type() -> void:
 	var brush = auto_free(VolumeBrush.new())
@@ -37,6 +38,7 @@ func test_volume_brush_reports_type() -> void:
 
 # ── Base SemanticBrush type error ────────────────────────────────────
 
+
 func test_semantic_brush_get_brush_type_returns_unknown() -> void:
 	var brush = auto_free(SemanticBrush.new())
 	# Base class pushes an error and returns UNKNOWN.
@@ -44,6 +46,7 @@ func test_semantic_brush_get_brush_type_returns_unknown() -> void:
 
 
 # ── PlatformBrush traits ─────────────────────────────────────────────
+
 
 func test_platform_brush_no_traits() -> void:
 	var brush = auto_free(PlatformBrush.new())
@@ -92,105 +95,94 @@ func test_platform_brush_label_with_both_traits() -> void:
 	assert_str(brush.get_label()).is_equal("2x2\nOne Way\nBreakable")
 
 
-# ── Fill colour contracts ────────────────────────────────────────────
-
-func test_platform_brush_fill_color_is_blue() -> void:
-	var brush = auto_free(PlatformBrush.new())
-	assert_that(brush.get_fill_color()).is_equal(Color.BLUE)
+# ── Parameterized: Brush colour contracts ───────────────────────────
 
 
-func test_wall_brush_fill_color_is_dark_green() -> void:
-	var brush = auto_free(WallBrush.new())
-	assert_that(brush.get_fill_color()).is_equal(Color.DARK_GREEN)
+func test_brush_fill_color_contracts(
+	brush_type: String,
+	expected_color: Color,
+	_test_parameters := [
+		["SemanticBrush", Color.TRANSPARENT],
+		["SpatialBrush", Color.WHITE],
+		["PlatformBrush", Color.BLUE],
+		["WallBrush", Color.DARK_GREEN],
+		["BackgroundBrush", Color.GRAY]
+	]
+) -> void:
+	var brush: SemanticBrush
+	match brush_type:
+		"SemanticBrush":
+			brush = auto_free(SemanticBrush.new())
+		"SpatialBrush":
+			brush = auto_free(SpatialBrush.new())
+		"PlatformBrush":
+			brush = auto_free(PlatformBrush.new())
+		"WallBrush":
+			brush = auto_free(WallBrush.new())
+		"BackgroundBrush":
+			brush = auto_free(BackgroundBrush.new())
+	assert_that(brush.get_fill_color()).is_equal(expected_color)
 
 
-func test_background_brush_fill_color_is_gray() -> void:
-	var brush = auto_free(BackgroundBrush.new())
-	assert_that(brush.get_fill_color()).is_equal(Color.GRAY)
+# ── Parameterized: SemanticBrush colour getters ─────────────────────
 
 
-func test_marker_brush_fill_color_is_white() -> void:
-	var brush = auto_free(MarkerBrush.new())
-	assert_that(brush.get_fill_color()).is_equal(Color.WHITE)
-
-
-func test_volume_brush_fill_color_is_white() -> void:
-	var brush = auto_free(VolumeBrush.new())
-	assert_that(brush.get_fill_color()).is_equal(Color.WHITE)
-
-
-func test_semantic_brush_fill_color_is_transparent() -> void:
+func test_semantic_brush_color_getters(
+	color_type: String,
+	expected_color: Color,
+	_test_parameters := [
+		["outline", Color.WHITE],
+		["label", Color.WHITE],
+		["disabled", Color.DIM_GRAY],
+		["invalid", Color.RED],
+		["selected", Color.WHITE]
+	]
+) -> void:
 	var brush = auto_free(SemanticBrush.new())
-	assert_that(brush.get_fill_color()).is_equal(Color.TRANSPARENT)
+	var actual: Color
+	match color_type:
+		"outline":
+			actual = brush.get_outline_color()
+		"label":
+			actual = brush.get_label_color()
+		"disabled":
+			actual = brush.get_disabled_color()
+		"invalid":
+			actual = brush.get_invalid_color()
+		"selected":
+			actual = brush.get_selected_color()
+	assert_that(actual).is_equal(expected_color)
 
 
-func test_spatial_brush_fill_color_is_white() -> void:
-	var brush = auto_free(SpatialBrush.new())
-	assert_that(brush.get_fill_color()).is_equal(Color.WHITE)
-
-
-# ── SemanticBrush colour getters ─────────────────────────────────────
-
-func test_semantic_brush_default_outline_color() -> void:
-	var brush = auto_free(SemanticBrush.new())
-	assert_that(brush.get_outline_color()).is_equal(Color.WHITE)
-
-
-func test_semantic_brush_default_grid_color_follows_outline() -> void:
+func test_semantic_brush_grid_color_follows_outline() -> void:
 	var brush = auto_free(SemanticBrush.new())
 	assert_that(brush.get_grid_color()).is_equal(brush.get_outline_color())
 
 
-func test_semantic_brush_default_label_color() -> void:
+# ── Parameterized: Brush size clamping ──────────────────────────────
+
+
+func test_brush_size_clamping(
+	initial_size: Vector2i,
+	expected_size: Vector2i,
+	_test_parameters := [
+		[Vector2i(5, 10), Vector2i(5, 10)],
+		[Vector2i(1, 1), Vector2i(1, 1)],
+		[Vector2i(0, 0), Vector2i(1, 1)],
+		[Vector2i(0, 5), Vector2i(1, 5)],
+		[Vector2i(5, 0), Vector2i(5, 1)],
+		[Vector2i(-1, -1), Vector2i(1, 1)],
+		[Vector2i(-5, 10), Vector2i(1, 10)],
+		[Vector2i(10, -5), Vector2i(10, 1)]
+	]
+) -> void:
 	var brush = auto_free(SemanticBrush.new())
-	assert_that(brush.get_label_color()).is_equal(Color.WHITE)
-
-
-func test_semantic_brush_disabled_color() -> void:
-	var brush = auto_free(SemanticBrush.new())
-	assert_that(brush.get_disabled_color()).is_equal(Color.DIM_GRAY)
-
-
-func test_semantic_brush_invalid_color() -> void:
-	var brush = auto_free(SemanticBrush.new())
-	assert_that(brush.get_invalid_color()).is_equal(Color.RED)
-
-
-func test_semantic_brush_selected_color() -> void:
-	var brush = auto_free(SemanticBrush.new())
-	assert_that(brush.get_selected_color()).is_equal(Color.WHITE)
-
-
-# ── Size clamping ────────────────────────────────────────────────────
-
-func test_brush_size_clamps_values_below_one() -> void:
-	var brush = auto_free(PlatformBrush.new())
-	brush.size = Vector2i(-1, 0)
-	assert_int(brush.size.x).is_equal(1)
-	assert_int(brush.size.y).is_equal(1)
-
-
-func test_brush_size_clamps_only_x() -> void:
-	var brush = auto_free(PlatformBrush.new())
-	brush.size = Vector2i(0, 4)
-	assert_int(brush.size.x).is_equal(1)
-	assert_int(brush.size.y).is_equal(4)
-
-
-func test_brush_size_clamps_only_y() -> void:
-	var brush = auto_free(PlatformBrush.new())
-	brush.size = Vector2i(3, -2)
-	assert_int(brush.size.x).is_equal(3)
-	assert_int(brush.size.y).is_equal(1)
-
-
-func test_brush_size_one_is_minimum() -> void:
-	var brush = auto_free(PlatformBrush.new())
-	assert_int(brush.size.x).is_equal(1)
-	assert_int(brush.size.y).is_equal(1)
+	brush.size = initial_size
+	assert_vector(brush.size).is_equal(expected_size)
 
 
 # ── Grid and pixel conversion ────────────────────────────────────────
+
 
 func test_get_grid_rect_converts_position_and_size() -> void:
 	var brush = auto_free(PlatformBrush.new())
@@ -220,6 +212,7 @@ func test_get_grid_size_returns_size() -> void:
 
 
 # ── SemanticBrush geometry ───────────────────────────────────────────
+
 
 func test_semantic_brush_grid_conversion_with_fractions() -> void:
 	var brush = auto_free(SemanticBrush.new())
@@ -274,6 +267,7 @@ func test_semantic_brush_pixel_position_forwards_node_position() -> void:
 
 # ── Outline colour resolution ────────────────────────────────────────
 
+
 func test_semantic_brush_outline_color_resolution() -> void:
 	var brush = auto_free(SemanticBrush.new())
 
@@ -317,66 +311,54 @@ func test_semantic_brush_outline_color_disabled_takes_highest_priority() -> void
 # (return selected if 3.0 else 2.0 returns `selected` because 3.0 is truthy).
 # The method is still exercised for coverage; fix tracked separately.
 
+
 func test_semantic_brush_outline_width_exercised() -> void:
 	var brush = auto_free(SemanticBrush.new())
 	brush.selected = false
 	assert_float(brush.get_outline_width()).is_equal(0.0)
 
 
-# ── Label formatting ─────────────────────────────────────────────────
-
-func test_semantic_brush_label_formatting() -> void:
-	var brush = auto_free(SemanticBrush.new())
-	brush.size = Vector2i(5, 10)
-	assert_str(brush.get_label()).is_equal("5x10")
+# ── Parameterized: Brush label formatting ──────────────────────────
 
 
-func test_semantic_brush_label_minimum_size() -> void:
-	var brush = auto_free(SemanticBrush.new())
-	assert_str(brush.get_label()).is_equal("1x1")
-
-
-# ── Validation ───────────────────────────────────────────────────────
-
-func test_is_valid_brush_accepts_aligned_positions() -> void:
+func test_brush_label_formatting(
+	initial_size: Vector2i,
+	initial_traits: int,
+	expected_label: String,
+	_test_parameters := [
+		[Vector2i(3, 2), 0, "3x2"],
+		[Vector2i.ZERO, 0, "1x1"],
+		[Vector2i(2, 1), PlatformBrush.Trait.ONE_WAY, "2x1\nOne Way"],
+		[Vector2i(4, 1), PlatformBrush.Trait.BREAKABLE, "4x1\nBreakable"],
+		[
+			Vector2i(2, 2),
+			PlatformBrush.Trait.ONE_WAY | PlatformBrush.Trait.BREAKABLE,
+			"2x2\nOne Way\nBreakable"
+		]
+	]
+) -> void:
 	var brush = auto_free(PlatformBrush.new())
-	brush.position = Vector2(64, 96)
-
-	assert_bool(brush.is_valid_brush()).is_true()
-
-
-func test_is_valid_brush_rejects_unaligned_positions() -> void:
-	var brush = auto_free(PlatformBrush.new())
-	brush.position = Vector2(10, 10)
-
-	assert_bool(brush.is_valid_brush()).is_false()
+	brush.size = initial_size
+	brush.traits = initial_traits
+	assert_str(brush.get_label()).is_equal(expected_label)
 
 
-func test_is_valid_brush_accepts_origin() -> void:
+# ── Parameterized: Validation ───────────────────────────────────────
+
+
+func test_is_valid_brush(
+	initial_position: Vector2,
+	expected_valid: bool,
+	_test_parameters := [
+		[Vector2(64, 96), true],
+		[Vector2(10, 10), false],
+		[Vector2.ZERO, true],
+		[Vector2(TILE_SIZE, TILE_SIZE * 3), true],
+		[Vector2(TILE_SIZE * 0.5, TILE_SIZE), false],
+		[Vector2(-10, 32), false],
+		[Vector2(-TILE_SIZE, -TILE_SIZE * 2), true]
+	]
+) -> void:
 	var brush = auto_free(SemanticBrush.new())
-	brush.position = Vector2.ZERO
-	assert_bool(brush.is_valid_brush()).is_true()
-
-
-func test_is_valid_brush_accepts_exact_tile_boundaries() -> void:
-	var brush = auto_free(SemanticBrush.new())
-	brush.position = Vector2(TILE_SIZE, TILE_SIZE * 3)
-	assert_bool(brush.is_valid_brush()).is_true()
-
-
-func test_is_valid_brush_rejects_half_tile_offset() -> void:
-	var brush = auto_free(SemanticBrush.new())
-	brush.position = Vector2(TILE_SIZE * 0.5, TILE_SIZE)
-	assert_bool(brush.is_valid_brush()).is_false()
-
-
-func test_is_valid_brush_rejects_negative_unaligned() -> void:
-	var brush = auto_free(SemanticBrush.new())
-	brush.position = Vector2(-10, 32)
-	assert_bool(brush.is_valid_brush()).is_false()
-
-
-func test_is_valid_brush_accepts_negative_aligned() -> void:
-	var brush = auto_free(SemanticBrush.new())
-	brush.position = Vector2(-TILE_SIZE, -TILE_SIZE * 2)
-	assert_bool(brush.is_valid_brush()).is_true()
+	brush.position = initial_position
+	assert_bool(brush.is_valid_brush()).is_equal(expected_valid)

@@ -13,101 +13,84 @@ func before_test() -> void:
 
 # --- _select_key: shape/corner combinations ---
 
-func test_select_key_full_shape_returns_full() -> void:
-	var key = applyer._select_key("FULL", "NO")
-	assert_str(key).is_equal("full")
-
-
-func test_select_key_full_shape_ignores_corner() -> void:
-	var key = applyer._select_key("FULL", "TOP_LEFT")
-	assert_str(key).is_equal("full")
-
-
-func test_select_key_single_no_corner_returns_single() -> void:
-	var key = applyer._select_key("SINGLE", "NO")
-	assert_str(key).is_equal("single")
-
-
-func test_select_key_single_all_corner_returns_single_all() -> void:
-	var key = applyer._select_key("SINGLE", "ALL")
-	assert_str(key).is_equal("single_all")
-
-
-func test_select_key_single_top_corner_returns_single_top() -> void:
-	var key = applyer._select_key("SINGLE", "TOP")
-	assert_str(key).is_equal("single_top")
-
-
-func test_select_key_single_bottom_corner_returns_single_bottom() -> void:
-	var key = applyer._select_key("SINGLE", "BOTTOM")
-	assert_str(key).is_equal("single_bottom")
-
-
-func test_select_key_single_left_corner_returns_single_left() -> void:
-	var key = applyer._select_key("SINGLE", "LEFT")
-	assert_str(key).is_equal("single_left")
-
-
-func test_select_key_single_right_corner_returns_single_right() -> void:
-	var key = applyer._select_key("SINGLE", "RIGHT")
-	assert_str(key).is_equal("single_right")
-
-
-func test_select_key_shape_no_corner_returns_shape_lower() -> void:
-	var key = applyer._select_key("TOP", "NO")
-	assert_str(key).is_equal("top")
-
-
-func test_select_key_shape_no_corner_returns_right_lower() -> void:
-	var key = applyer._select_key("RIGHT", "NO")
-	assert_str(key).is_equal("right")
-
-
-func test_select_key_shape_with_corner_returns_corner_lower() -> void:
-	var key = applyer._select_key("TOP", "LEFT")
-	assert_str(key).is_equal("left")
-
-
-func test_select_key_shape_with_corner_returns_corner_lower_2() -> void:
-	var key = applyer._select_key("LEFT", "BOTTOM")
-	assert_str(key).is_equal("bottom")
+func test_select_key_parameters(shape: String, corner: String, expected: String, _test_parameters := [
+	["FULL", "NO", "full"],
+	["FULL", "top_left", "full"],
+	["SINGLE", "NO", "single"],
+	["SINGLE", "ALL", "single_all"],
+	["SINGLE", "TOP", "single_top"],
+	["SINGLE", "BOTTOM", "single_bottom"],
+	["SINGLE", "LEFT", "single_left"],
+	["SINGLE", "RIGHT", "single_right"],
+	["TOP", "NO", "top"],
+	["RIGHT", "NO", "right"],
+	["TOP", "LEFT", "left"],
+	["LEFT", "BOTTOM", "bottom"]
+]) -> void:
+	var key = applyer._select_key(shape, corner)
+	assert_str(key).is_equal(expected)
 
 
 # --- _get_pack_array mapping ---
 
-func test_get_pack_array_single_key_returns_single() -> void:
+func test_get_pack_array_elements(key: String, expected_elements: Array[Vector2i], _test_parameters := [
+		["single", [Vector2i.ZERO]],
+		["single_all", [Vector2i.ZERO]],
+		["single_top", [Vector2i.ZERO]],
+		["single_bottom", [Vector2i.ZERO]],
+		["single_left", [Vector2i.ZERO]],
+		["single_right", [Vector2i.ZERO]],
+		["top", [Vector2i.ZERO]],
+		["bottom", [Vector2i.ZERO]],
+		["left", [Vector2i.ZERO]],
+		["right", [Vector2i.ZERO]],
+		["full", [Vector2i.ZERO]],
+		["top_left", [Vector2i.ZERO]],
+		["top_right", [Vector2i.ZERO]],
+		["bottom_left", [Vector2i.ZERO]],
+		["bottom_right", [Vector2i.ZERO]],
+		["nonexistent", []]
+	]
+) -> void:
 	var pack = TilePack.new()
-	pack.single.append(TileId.new(0, Vector2i.ZERO))
-	var result = applyer._get_pack_array(pack, "single")
-	assert_int(result.size()).is_equal(1)
+	var target: Array[TileId] = []
+	match key:
+		"single":
+			target = pack.single
+		"single_all":
+			target = pack.single_all
+		"single_top":
+			target = pack.single_top
+		"single_bottom":
+			target = pack.single_bottom
+		"single_left":
+			target = pack.single_left
+		"single_right":
+			target = pack.single_right
+		"top":
+			target = pack.top
+		"bottom":
+			target = pack.bottom
+		"left":
+			target = pack.left
+		"right":
+			target = pack.right
+		"full":
+			target = pack.full
+		"top_left":
+			target = pack.top_left
+		"top_right":
+			target = pack.top_right
+		"bottom_left":
+			target = pack.bottom_left
+		"bottom_right":
+			target = pack.bottom_right
+	target.append(TileId.new(0, Vector2i.ZERO))
 
-
-func test_get_pack_array_full_key_returns_full() -> void:
-	var pack = TilePack.new()
-	pack.full.append(TileId.new(0, Vector2i.ZERO))
-	var result = applyer._get_pack_array(pack, "full")
-	assert_int(result.size()).is_equal(1)
-
-
-func test_get_pack_array_top_left_key_returns_top_left() -> void:
-	var pack = TilePack.new()
-	pack.top_left.append(TileId.new(0, Vector2i.ZERO))
-	var result = applyer._get_pack_array(pack, "top_left")
-	assert_int(result.size()).is_equal(1)
-
-
-func test_get_pack_array_unknown_key_returns_empty() -> void:
-	var pack = TilePack.new()
-	var result = applyer._get_pack_array(pack, "nonexistent")
-	assert_int(result.size()).is_zero()
-
-
-func test_get_pack_array_single_top_returns_correct_array() -> void:
-	var pack = TilePack.new()
-	pack.single_top.append(TileId.new(1, Vector2i(32, 0)))
-	var result = applyer._get_pack_array(pack, "single_top")
-	assert_int(result.size()).is_equal(1)
-	assert_int(result[0].source_id).is_equal(1)
+	var result = applyer._get_pack_array(pack, key)
+	assert_int(result.size()).is_equal(expected_elements.size())
+	for i in range(result.size()):
+		assert_vector(result[i].atlas_coords).is_equal(expected_elements[i])
 
 
 # --- Error paths ---

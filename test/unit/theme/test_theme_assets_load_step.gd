@@ -21,124 +21,81 @@ func test_get_display_name_returns_string() -> void:
 	assert_str(step.get_display_name()).is_not_empty()
 
 
-# --- _parse_slice_name: successful parses ---
+# --- _parse_slice_name: table-driven parameterized tests ---
 
-func test_parse_platform_single_variant() -> void:
-	var result = step._parse_slice_name("platform_single_0")
-	assert_str(result.get("category", "")).is_equal("platform")
-	assert_str(result.get("tile_type", "")).is_equal("single")
-	assert_str(result.get("variant", "")).is_equal("0")
-
-
-func test_parse_walls_top_left_variant() -> void:
-	var result = step._parse_slice_name("walls_top_left_1")
-	assert_str(result.get("category", "")).is_equal("walls")
-	assert_str(result.get("tile_type", "")).is_equal("top_left")
-	assert_str(result.get("variant", "")).is_equal("1")
-
-
-func test_parse_background_variant() -> void:
-	var result = step._parse_slice_name("background_0")
-	assert_str(result.get("category", "")).is_equal("background")
-	assert_str(result.get("tile_type", "")).is_equal("")
-	assert_str(result.get("variant", "")).is_equal("0")
-
-
-func test_parse_platform_full_variant() -> void:
-	var result = step._parse_slice_name("platform_full_2")
-	assert_str(result.get("category", "")).is_equal("platform")
-	assert_str(result.get("tile_type", "")).is_equal("full")
-	assert_str(result.get("variant", "")).is_equal("2")
+func test_parse_slice_name(
+	initial_slice_name: String,
+	expected_category: String,
+	expected_tile_type: String,
+	expected_variant: String,
+	_test_parameters := [
+		["platform_single_0", "platform", "single", "0"],
+		["walls_top_left_1", "walls", "top_left", "1"],
+		["background_0", "background", "", "0"],
+		["platform_full_2", "platform", "full", "2"],
+		["platform_single_top_0", "platform", "single_top", "0"],
+		["unknown_single_0", "", "", ""],
+		["platform_unknowntype_0", "", "", ""],
+		["platform_single", "", "", ""],
+		["", "", "", ""]
+	]
+) -> void:
+	var result = step._parse_slice_name(initial_slice_name)
+	assert_str(result.get("category", "")).is_equal(expected_category)
+	assert_str(result.get("tile_type", "")).is_equal(expected_tile_type)
+	assert_str(result.get("variant", "")).is_equal(expected_variant)
 
 
-func test_parse_platform_single_top_variant() -> void:
-	var result = step._parse_slice_name("platform_single_top_0")
-	assert_str(result.get("category", "")).is_equal("platform")
-	assert_str(result.get("tile_type", "")).is_equal("single_top")
-	assert_str(result.get("variant", "")).is_equal("0")
+# --- _extract_variant: table-driven parameterized tests ---
+
+func test_extract_variant(
+	initial_input: String,
+	expected_variant: String,
+	_test_parameters := [
+		["platform_single_0", "0"],
+		["walls_full_42", "42"],
+		["no_number_here", ""],
+		["", ""],
+		["single_99", "99"]
+	]
+) -> void:
+	var variant = step._extract_variant(initial_input)
+	assert_str(variant).is_equal(expected_variant)
 
 
-# --- _parse_slice_name: invalid names ---
+# --- _extract_category: table-driven parameterized tests ---
 
-func test_parse_unknown_category_returns_empty() -> void:
-	var result = step._parse_slice_name("unknown_single_0")
-	assert_bool(result.is_empty()).is_true()
-
-
-func test_parse_unknown_tile_type_returns_empty() -> void:
-	var result = step._parse_slice_name("platform_unknowntype_0")
-	assert_bool(result.is_empty()).is_true()
-
-
-func test_parse_no_variant_returns_empty() -> void:
-	var result = step._parse_slice_name("platform_single")
-	assert_bool(result.is_empty()).is_true()
-
-
-func test_parse_empty_string_returns_empty() -> void:
-	var result = step._parse_slice_name("")
-	assert_bool(result.is_empty()).is_true()
+func test_extract_category(
+	initial_input: String,
+	expected_category: String,
+	_test_parameters := [
+		["platform_single", "platform"],
+		["walls_top", "walls"],
+		["background", "background"],
+		["unknown_type", ""],
+		["", ""]
+	]
+) -> void:
+	var cat = step._extract_category(initial_input)
+	assert_str(cat).is_equal(expected_category)
 
 
-# --- _extract_variant ---
+# --- _match_tile_type: table-driven parameterized tests ---
 
-func test_extract_variant_simple() -> void:
-	var variant = step._extract_variant("platform_single_0")
-	assert_str(variant).is_equal("0")
-
-
-func test_extract_variant_multi_digit() -> void:
-	var variant = step._extract_variant("walls_full_42")
-	assert_str(variant).is_equal("42")
-
-
-func test_extract_variant_no_number_returns_empty() -> void:
-	var variant = step._extract_variant("no_number_here")
-	assert_str(variant).is_empty()
-
-
-# --- _extract_category ---
-
-func test_extract_category_platform() -> void:
-	var cat = step._extract_category("platform_single")
-	assert_str(cat).is_equal("platform")
-
-
-func test_extract_category_walls() -> void:
-	var cat = step._extract_category("walls_top")
-	assert_str(cat).is_equal("walls")
-
-
-func test_extract_category_background() -> void:
-	var cat = step._extract_category("background")
-	assert_str(cat).is_equal("background")
-
-
-func test_extract_category_unknown_returns_empty() -> void:
-	var cat = step._extract_category("unknown_type")
-	assert_str(cat).is_empty()
-
-
-# --- _match_tile_type ---
-
-func test_match_tile_type_known() -> void:
-	var matched = step._match_tile_type("single")
-	assert_str(matched).is_equal("single")
-
-
-func test_match_tile_type_full() -> void:
-	var matched = step._match_tile_type("full")
-	assert_str(matched).is_equal("full")
-
-
-func test_match_tile_type_single_bottom() -> void:
-	var matched = step._match_tile_type("single_bottom")
-	assert_str(matched).is_equal("single_bottom")
-
-
-func test_match_tile_type_unknown_returns_empty() -> void:
-	var matched = step._match_tile_type("unknown_tile")
-	assert_str(matched).is_empty()
+func test_match_tile_type(
+	initial_input: String,
+	expected_tile_type: String,
+	_test_parameters := [
+		["single", "single"],
+		["full", "full"],
+		["single_bottom", "single_bottom"],
+		["unknown_tile", ""],
+		["", ""],
+		["single_top", "single_top"]
+	]
+) -> void:
+	var matched = step._match_tile_type(initial_input)
+	assert_str(matched).is_equal(expected_tile_type)
 
 
 # --- Error paths ---
