@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://c3rpm6ttkpmkf"]
 
-[ext_resource type="PackedScene" uid="uid://dq8a47dbvows6" path="res://scenes/actors/player/player.tscn" id="1_6qxox"]
+[ext_resource type="PackedScene" uid="uid://dq8a47dbvows6" path="res://debug/actors/player.tscn" id="1_6qxox"]
 [ext_resource type="Texture2D" uid="uid://or0werc4am02" path="res://assets/sprites/tiles/test/wall6.png" id="2_gthg3"]
 [ext_resource type="Texture2D" uid="uid://jrxxy5sxjwmm" path="res://assets/sprites/tiles/test/wall7.png" id="3_ntc4i"]
 [ext_resource type="Texture2D" uid="uid://vyeyit1a22qg" path="res://assets/sprites/tiles/test/wall8.png" id="4_u0xbq"]
