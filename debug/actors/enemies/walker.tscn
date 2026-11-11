@@ -17,8 +17,8 @@
 [ext_resource type="Script" uid="uid://1t1h1dqw4hod" path="res://scripts/state_machine/states/enemy_state/enemy_chase_state.gd" id="14_knap0"]
 [ext_resource type="Script" uid="uid://dfwax5a84deud" path="res://scripts/core/components/weapon_component.gd" id="15_dy8l6"]
 [ext_resource type="Script" uid="uid://plqh1bnw5qfs" path="res://scripts/core/components/hitbox_component.gd" id="16_dy8l6"]
-[ext_resource type="Resource" uid="uid://cys1ao8ixrau" path="res://resources/actors/enemy/walker/walker_weapon_data.tres" id="17_dy8l6"]
-[ext_resource type="Resource" path="res://resources/actors/enemy/walker/walker_data.tres" id="18_data"]
+[ext_resource type="Resource" uid="uid://cys1ao8ixrau" path="res://debug/resources/actors/enemy/walker/walker_weapon_data.tres" id="17_dy8l6"]
+[ext_resource type="Resource" path="res://debug/resources/actors/enemy/walker/walker_data.tres" id="18_data"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_unx04"]
 radius = 24.0
