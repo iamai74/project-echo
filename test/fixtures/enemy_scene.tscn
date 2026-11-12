@@ -1,0 +1,85 @@
+[gd_scene format=3 uid="uid://bk3aoyigrgodh"]
+
+[ext_resource type="PackedScene" uid="uid://cwjq0xilttmd4" path="res://scenes/actors/actor.tscn" id="1_actor"]
+[ext_resource type="Script" uid="uid://cwc8dyuici7gw" path="res://scripts/actors/enemy.gd" id="2_enemy"]
+[ext_resource type="Script" uid="uid://dpe6ywrqwstan" path="res://scripts/core/components/health_component.gd" id="4_health"]
+[ext_resource type="Script" uid="uid://du4s86onrwg6v" path="res://scripts/core/components/hurtbox_component.gd" id="5_hurtbox"]
+[ext_resource type="Script" uid="uid://da4emyt1fxpgk" path="res://scripts/state_machine/state_machine.gd" id="6_statemachine"]
+[ext_resource type="Script" uid="uid://dod5jvm42hoev" path="res://scripts/core/components/detection_component.gd" id="7_detection"]
+[ext_resource type="Script" uid="uid://d0bu0fygn7bhi" path="res://scripts/state_machine/states/enemy_state/enemy_idle_state.gd" id="8_idle"]
+[ext_resource type="Script" uid="uid://bcacm4dv0eono" path="res://scripts/state_machine/states/enemy_state/enemy_move_state.gd" id="9_move"]
+[ext_resource type="Script" uid="uid://1mmqfksksjkf" path="res://scripts/state_machine/states/enemy_state/enemy_fall_state.gd" id="10_fall"]
+[ext_resource type="Script" uid="uid://b3n24mqxg2wrb" path="res://scripts/state_machine/states/enemy_state/enemy_patrol_state.gd" id="11_patrol"]
+[ext_resource type="Script" uid="uid://1t1h1dqw4hod" path="res://scripts/state_machine/states/enemy_state/enemy_chase_state.gd" id="12_chase"]
+[ext_resource type="Script" uid="uid://bnyctb2vv4q03" path="res://scripts/state_machine/states/enemy_state/enemy_attack_state.gd" id="13_attack"]
+[ext_resource type="Script" uid="uid://d2fnql8hgv3a1" path="res://scripts/state_machine/states/enemy_state/enemy_dead_state.gd" id="14_dead"]
+[ext_resource type="Script" uid="uid://ddhvpm2nnnrq4" path="res://scripts/state_machine/states/enemy_state/enemy_hurt_state.gd" id="15_hurt"]
+
+[sub_resource type="CapsuleShape2D" id="capsule_body"]
+radius = 16.0
+height = 95.0
+
+[sub_resource type="CapsuleShape2D" id="capsule_hurt"]
+radius = 16.0
+height = 95.0
+
+[sub_resource type="RectangleShape2D" id="rect_detection"]
+size = Vector2(74, 95)
+
+[node name="Node2D2" unique_id=693738750 instance=ExtResource("1_actor")]
+
+[node name="CharacterBody2D" parent="." index="0" unique_id=635324780]
+collision_layer = 2
+script = ExtResource("2_enemy")
+debug_name = "Enemy"
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D" index="0" unique_id=376444093]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" index="1" unique_id=32283262]
+shape = SubResource("capsule_body")
+
+[node name="HealthComponent" type="Node" parent="CharacterBody2D" index="2" unique_id=839351032]
+script = ExtResource("4_health")
+
+[node name="HurtboxComponent" type="Area2D" parent="CharacterBody2D" index="3" unique_id=1179950305]
+collision_layer = 8
+collision_mask = 4
+script = ExtResource("5_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/HurtboxComponent" index="0" unique_id=1447053224]
+shape = SubResource("capsule_hurt")
+
+[node name="StateMachine" type="Node" parent="CharacterBody2D" index="4" unique_id=1123822656]
+script = ExtResource("6_statemachine")
+
+[node name="Idle" type="Node" parent="CharacterBody2D/StateMachine" index="0" unique_id=49480516]
+script = ExtResource("8_idle")
+
+[node name="Move" type="Node" parent="CharacterBody2D/StateMachine" index="1" unique_id=1788208438]
+script = ExtResource("9_move")
+
+[node name="Fall" type="Node" parent="CharacterBody2D/StateMachine" index="2" unique_id=105443783]
+script = ExtResource("10_fall")
+
+[node name="Patrol" type="Node" parent="CharacterBody2D/StateMachine" index="3" unique_id=675351754]
+script = ExtResource("11_patrol")
+
+[node name="Chase" type="Node" parent="CharacterBody2D/StateMachine" index="4" unique_id=1128528371]
+script = ExtResource("12_chase")
+
+[node name="Attack" type="Node" parent="CharacterBody2D/StateMachine" index="5" unique_id=1377821595]
+script = ExtResource("13_attack")
+
+[node name="Hurt" type="Node" parent="CharacterBody2D/StateMachine" index="6" unique_id=912095604]
+script = ExtResource("15_hurt")
+
+[node name="Dead" type="Node" parent="CharacterBody2D/StateMachine" index="7" unique_id=1638339945]
+script = ExtResource("14_dead")
+
+[node name="DetectionComponent" type="Area2D" parent="CharacterBody2D" index="5" unique_id=635279090]
+collision_layer = 4
+collision_mask = 8
+script = ExtResource("7_detection")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/DetectionComponent" index="0" unique_id=1634216403]
+shape = SubResource("rect_detection")

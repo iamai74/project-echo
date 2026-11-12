@@ -1,5 +1,5 @@
 ## Integration tests.
-## Covers: Player scene boot and state transitions, enemy detection-chase-attack-patrol
+## Covers: Player fixture boot and state transitions, enemy detection-chase-attack-patrol
 ## cycle, full bake pipeline end-to-end, and runtime room structure.
 extends GdUnitTestSuite
 
@@ -37,7 +37,7 @@ func _remove_dir(path: String) -> void:
 	DirAccess.remove_absolute(path)
 
 
-# ── Player scene boot and transitions ───────────────────────────────
+# ── Player fixture boot and transitions ───────────────────────────────
 
 func test_player_boots_into_idle() -> void:
 	var player = auto_free(Fixture.build_player())

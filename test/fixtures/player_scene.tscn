@@ -1,0 +1,97 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cwjq0xilttmd4" path="res://scenes/actors/actor.tscn" id="1_actor"]
+[ext_resource type="Script" uid="uid://c8o1raul7aeig" path="res://scripts/actors/player/player.gd" id="2_player"]
+[ext_resource type="Resource" uid="uid://ddp7wsvewpldd" path="res://resources/actors/actor_data.tres" id="3_data"]
+[ext_resource type="Script" uid="uid://dpe6ywrqwstan" path="res://scripts/core/components/health_component.gd" id="4_health"]
+[ext_resource type="Script" uid="uid://du4s86onrwg6v" path="res://scripts/core/components/hurtbox_component.gd" id="5_hurtbox"]
+[ext_resource type="Script" uid="uid://plqh1bnw5qfs" path="res://scripts/core/components/hitbox_component.gd" id="6_hitbox"]
+[ext_resource type="Script" uid="uid://da4emyt1fxpgk" path="res://scripts/state_machine/state_machine.gd" id="7_statemachine"]
+[ext_resource type="Script" uid="uid://0hsjf0dmpcip" path="res://scripts/core/components/input_component.gd" id="8_input"]
+[ext_resource type="Script" uid="uid://dfwax5a84deud" path="res://scripts/core/components/weapon_component.gd" id="9_weapon"]
+[ext_resource type="Resource" path="res://test/fixtures/test_weapon_data.tres" id="10_weapondata"]
+[ext_resource type="Script" uid="uid://cs45stfj1cr87" path="res://scripts/state_machine/states/player_state/player_idle_state.gd" id="11_idle"]
+[ext_resource type="Script" uid="uid://cbhobpsocecx4" path="res://scripts/state_machine/states/player_state/player_move_state.gd" id="12_move"]
+[ext_resource type="Script" uid="uid://kanva2edh8qy" path="res://scripts/state_machine/states/player_state/player_fall_state.gd" id="13_fall"]
+[ext_resource type="Script" uid="uid://cy5l82wokq04i" path="res://scripts/state_machine/states/player_state/player_jump_state.gd" id="14_jump"]
+[ext_resource type="Script" uid="uid://bopo6s28jttp3" path="res://scripts/state_machine/states/player_state/player_attack_state.gd" id="15_attack"]
+[ext_resource type="Script" uid="uid://36g7x2nu0cen" path="res://scripts/state_machine/states/player_state/player_dead_state.gd" id="16_dead"]
+[ext_resource type="Script" uid="uid://cjvdm32hi23gj" path="res://scripts/state_machine/states/player_state/player_hurt_state.gd" id="17_hurt"]
+[ext_resource type="Script" uid="uid://bd4ydaxlvrgud" path="res://scripts/state_machine/states/player_state/player_jump_attack_state.gd" id="18_jumpattack"]
+
+[sub_resource type="CapsuleShape2D" id="capsule_body"]
+radius = 16.0
+height = 95.0
+
+[sub_resource type="CapsuleShape2D" id="capsule_hurt"]
+radius = 16.0
+height = 95.0
+
+[sub_resource type="CapsuleShape2D" id="capsule_hit"]
+radius = 30.0
+height = 100.0
+
+[node name="Node2D" instance=ExtResource("1_actor")]
+
+[node name="CharacterBody2D" parent="."]
+collision_layer = 2
+script = ExtResource("2_player")
+data = ExtResource("3_data")
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
+shape = SubResource("capsule_body")
+
+[node name="HealthComponent" type="Node" parent="CharacterBody2D"]
+script = ExtResource("4_health")
+
+[node name="HurtboxComponent" type="Area2D" parent="CharacterBody2D"]
+collision_layer = 8
+collision_mask = 4
+script = ExtResource("5_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/HurtboxComponent"]
+shape = SubResource("capsule_hurt")
+
+[node name="StateMachine" type="Node" parent="CharacterBody2D"]
+script = ExtResource("7_statemachine")
+
+[node name="Idle" type="Node" parent="CharacterBody2D/StateMachine"]
+script = ExtResource("11_idle")
+
+[node name="Move" type="Node" parent="CharacterBody2D/StateMachine"]
+script = ExtResource("12_move")
+
+[node name="Fall" type="Node" parent="CharacterBody2D/StateMachine"]
+script = ExtResource("13_fall")
+
+[node name="Jump" type="Node" parent="CharacterBody2D/StateMachine"]
+script = ExtResource("14_jump")
+
+[node name="Attack" type="Node" parent="CharacterBody2D/StateMachine"]
+script = ExtResource("15_attack")
+
+[node name="Dead" type="Node" parent="CharacterBody2D/StateMachine"]
+script = ExtResource("16_dead")
+
+[node name="Hurt" type="Node" parent="CharacterBody2D/StateMachine"]
+script = ExtResource("17_hurt")
+
+[node name="JumpAttack" type="Node" parent="CharacterBody2D/StateMachine"]
+script = ExtResource("18_jumpattack")
+
+[node name="InputComponent" type="Node" parent="CharacterBody2D"]
+script = ExtResource("8_input")
+
+[node name="WeaponComponent" type="Node2D" parent="CharacterBody2D"]
+script = ExtResource("9_weapon")
+weapon_data = ExtResource("10_weapondata")
+
+[node name="HitboxComponent" type="Area2D" parent="CharacterBody2D/WeaponComponent"]
+collision_layer = 4
+collision_mask = 8
+script = ExtResource("6_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D/WeaponComponent/HitboxComponent"]
+shape = SubResource("capsule_hit")
