@@ -1,8 +1,13 @@
 ## ThemeApplyer unit tests.
-## Covers: _select_key mapping, error path when TileMapLayer missing,
-## _get_pack_array mapping, and basic apply structure.
+## Covers: _select_key mapping, _get_pack_array mapping, apply() success path with the
+## theme fixture and real default theme, empty-pack skip, missing TileMapLayer error,
+## and unloadable TileSet error.
 extends GdUnitTestSuite
 
+const FIXTURE_PATH := "res://test/fixtures/theme_apply_fixture.tscn"
+const DEFAULT_THEME_PATH := "res://resources/themes/default/default_theme.tres"
+const DEFAULT_TILESET_PATH := "res://resources/themes/default/default_tileset.tres"
+const INVALID_CELL := -1
 
 var applyer: ThemeApplyer
 
@@ -107,3 +112,121 @@ func test_apply_missing_tilemap_layer_pushes_error() -> void:
 	# The apply method pushes an error and returns early.
 	assert_error(func() -> void: applyer.apply(room_node, theme, room_data)) \
 		.is_push_error("ThemeApplyer: TileMapLayer not found")
+
+# --- apply(): success path and edge cases ---
+
+func test_apply_places_background_platform_and_wall() -> void:
+	var room := _build_room()
+	var tiles := room.get_node("Semantic/Tiles") as TileMapLayer
+	var theme := load(DEFAULT_THEME_PATH) as ThemeInfo
+	var expected_tileset := load(DEFAULT_TILESET_PATH) as TileSet
+
+	var room_data := RoomData.new()
+
+	var background_cell := BackgroundCell.new()
+	background_cell.position = Vector2i(0, 0)
+	room_data.background.append(background_cell)
+
+	var platform_cell := _make_cell(Vector2i(1, 1), CellShape.Value.FULL, CellCorner.Value.NO)
+	room_data.platforms.append(platform_cell)
+
+	var wall_cell := _make_cell(Vector2i(2, 2), CellShape.Value.FULL, CellCorner.Value.NO)
+	room_data.walls.append(wall_cell)
+
+	assert_error(func() -> void: applyer.apply(room, theme, room_data)).is_success()
+
+	assert_object(tiles.tile_set).is_not_null()
+	assert_object(tiles.tile_set).is_same(expected_tileset)
+	assert_str(tiles.tile_set.resource_path).is_equal(DEFAULT_TILESET_PATH)
+
+	_assert_cell_in_pack(tiles, background_cell.position, theme.background)
+	_assert_cell_in_pack(tiles, platform_cell.position, _pack_ids_for(theme.platforms, platform_cell))
+	_assert_cell_in_pack(tiles, wall_cell.position, _pack_ids_for(theme.walls, wall_cell))
+
+
+func test_apply_skips_cell_with_empty_pack() -> void:
+	var room := _build_room()
+	var tiles := room.get_node("Semantic/Tiles") as TileMapLayer
+
+	var theme := ThemeInfo.new()
+	theme.tileset = StringName(DEFAULT_TILESET_PATH)
+	var pack := TilePack.new()
+	var full_ids: Array[TileId] = [
+		TileId.at_source(13, Vector2i(0, 0)),
+		TileId.at_source(14, Vector2i(0, 0))
+	]
+	pack.full = full_ids
+	theme.platforms = pack
+	theme.walls = TilePack.new()
+	var empty_background: Array[TileId] = []
+	theme.background = empty_background
+
+	var room_data := RoomData.new()
+
+	# SINGLE/NO maps to the empty "single" pack, FULL/NO to the populated "full" pack.
+	var empty_pack_cell := _make_cell(Vector2i(0, 0), CellShape.Value.SINGLE, CellCorner.Value.NO)
+	var populated_pack_cell := _make_cell(Vector2i(1, 1), CellShape.Value.FULL, CellCorner.Value.NO)
+	room_data.platforms.append(empty_pack_cell)
+	room_data.platforms.append(populated_pack_cell)
+
+	assert_error(func() -> void: applyer.apply(room, theme, room_data)).is_success()
+
+	assert_int(tiles.get_cell_source_id(empty_pack_cell.position)).is_equal(INVALID_CELL)
+	assert_vector(tiles.get_cell_atlas_coords(empty_pack_cell.position)).is_equal(Vector2i(-1, -1))
+	_assert_cell_in_pack(tiles, populated_pack_cell.position, _pack_ids_for(theme.platforms, populated_pack_cell))
+
+
+func test_apply_unloadable_tileset_pushes_error() -> void:
+	var room := _build_room()
+	var missing_tileset := "res://does/not/exist.tres"
+
+	var theme := ThemeInfo.new()
+	theme.tileset = StringName(missing_tileset)
+
+	var room_data := RoomData.new()
+
+	# The fixture provides Semantic/Tiles, so apply() reaches the TileSet load.
+	assert_error(func() -> void: applyer.apply(room, theme, room_data)) \
+		.is_push_error("ThemeApplyer: Cannot load TileSet from %s" % missing_tileset)
+
+
+# --- Helpers ---
+
+func _build_room() -> Node2D:
+	var room: Node2D = auto_free(load(FIXTURE_PATH).instantiate())
+	return room
+
+
+func _make_cell(position: Vector2i, shape: CellShape.Value, corners: CellCorner.Value) -> SemanticCell:
+	var cell := SemanticCell.new()
+	cell.position = position
+	cell.shape = shape
+	cell.corners = corners
+	return cell
+
+
+func _pack_ids_for(pack: TilePack, cell: SemanticCell) -> Array[TileId]:
+	var shape_name: String = CellShape.Value.keys()[cell.shape]
+	var corner_name: String = CellCorner.Value.keys()[cell.corners]
+	var key := applyer._select_key(shape_name, corner_name)
+	return applyer._get_pack_array(pack, key)
+
+
+func _assert_cell_in_pack(tiles: TileMapLayer, coord: Vector2i, allowed: Array[TileId]) -> void:
+	var source_id := tiles.get_cell_source_id(coord)
+	assert_int(source_id) \
+		.override_failure_message("Expected a cell at %s but none was placed" % coord) \
+		.is_not_equal(INVALID_CELL)
+
+	var atlas_coords := tiles.get_cell_atlas_coords(coord)
+	var found := false
+	for tile_id in allowed:
+		if tile_id.source_id == source_id and tile_id.atlas_coords == atlas_coords:
+			found = true
+			break
+
+	assert_bool(found) \
+		.override_failure_message(
+			"Cell at %s (source %d, atlas %s) is not part of the allowed pack" % [coord, source_id, atlas_coords]
+		) \
+		.is_true()
