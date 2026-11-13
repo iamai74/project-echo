@@ -53,6 +53,18 @@ func test_deadzone_custom_deadzone() -> void:
 	assert_float(result).is_equal_approx(0.4, 0.0001)
 
 
+func test_fuzz_deadzone_output_stays_normalized(
+	fuzzer_axis := Fuzzers.rangei(-1000, 1000),
+	_fuzzer_iterations := 50,
+	_fuzzer_seed := 1234) -> void:
+	var axis: float = fuzzer_axis.next_value() / 1000.0
+	var result := input_comp._apply_deadzone(axis)
+
+	assert_float(result).is_between(-1.0, 1.0)
+	if absf(axis) <= input_comp.stick_deadzone:
+		assert_float(result).is_equal(0.0)
+
+
 # --- Command structure ---
 
 func test_command_exists_by_default() -> void:

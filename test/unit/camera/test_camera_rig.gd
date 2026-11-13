@@ -76,6 +76,23 @@ func test_clamp_parameters(case_name: String, zoom: Vector2, _test_parameters :=
 		assert_float(result.y).is_between(clamped_bounds.position.y + half.y, clamped_bounds.end.y - half.y)
 
 
+func test_fuzz_clamp_stays_in_bounds(
+	fuzzer_position := Fuzzers.rangev2(Vector2(-5000, -5000), Vector2(5000, 5000)),
+	_fuzzer_iterations := 50,
+	_fuzzer_seed := 1234) -> void:
+	var rig := auto_free(CameraRig.new()) as CameraRig
+	var bounds := _room_bounds()
+	var half := _half_view(Vector2.ONE)
+	rig.set_room_bounds(bounds)
+
+	var position: Vector2 = fuzzer_position.next_value()
+	var clamped := rig._clamp(position)
+
+	assert_bool(bounds.has_point(clamped)).is_true()
+	assert_float(clamped.x).is_between(bounds.position.x + half.x, bounds.end.x - half.x)
+	assert_float(clamped.y).is_between(bounds.position.y + half.y, bounds.end.y - half.y)
+
+
 # --- _process: follow and no-op paths ---
 
 

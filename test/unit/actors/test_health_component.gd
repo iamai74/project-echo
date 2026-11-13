@@ -144,3 +144,28 @@ func test_damage_after_death_does_nothing() -> void:
 	var extra_data = AttackData.new(10)
 	health.take_damage(extra_data)
 	assert_int(health.current_health).is_zero()
+
+
+func test_fuzz_damage_and_heal_invariants(
+	fuzzer_damage := Fuzzers.rangei(-1000, 1000),
+	fuzzer_heal := Fuzzers.rangei(-1000, 1000),
+	_fuzzer_iterations := 50,
+	_fuzzer_seed := 1234) -> void:
+	health.current_health = 100
+	health.max_health = 100
+
+	var damage: int = fuzzer_damage.next_value()
+	var health_before_damage := health.current_health
+	health.take_damage(AttackData.new(damage))
+	if damage <= 0:
+		assert_int(health.current_health).is_equal(health_before_damage)
+	assert_int(health.current_health).is_between(0, health.max_health)
+	assert_bool(health.is_alive()).is_equal(health.current_health > 0)
+
+	var heal_amount: int = fuzzer_heal.next_value()
+	var health_before_heal := health.current_health
+	health.heal(heal_amount)
+	if heal_amount <= 0:
+		assert_int(health.current_health).is_equal(health_before_heal)
+	assert_int(health.current_health).is_between(0, health.max_health)
+	assert_bool(health.is_alive()).is_equal(health.current_health > 0)
