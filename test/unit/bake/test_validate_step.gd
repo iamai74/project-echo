@@ -4,18 +4,6 @@
 extends GdUnitTestSuite
 
 
-# Minimal mock validator that records whether validate() was called.
-class MockValidator:
-	extends BakeValidator
-	var _called: bool = false
-
-	func get_called() -> bool:
-		return _called
-
-	func validate(context: RoomBakeContext) -> void:
-		_called = true
-
-
 # --- Step metadata ---
 
 func test_get_id_returns_validate() -> void:
@@ -31,12 +19,22 @@ func test_get_display_name_returns_string() -> void:
 # --- Validators run ---
 
 func test_run_invokes_all_validators() -> void:
+	var v1: BakeValidator = mock(BakeValidator)
+	var v2: BakeValidator = mock(BakeValidator)
+	var v3: BakeValidator = mock(BakeValidator)
+	var v4: BakeValidator = mock(BakeValidator)
+
 	var context = _make_minimal_context()
 
-	# We cannot inject custom validators into ValidateStep, but we can verify
-	# that the step runs without error and returns the context unchanged.
-	var result = step_run(context)
+	var validators: Array[BakeValidator] = [v1, v2, v3, v4]
+	var step := ValidateStep.new(validators)
 
+	var result = step.run(context)
+
+	verify(v1, 1).validate(context)
+	verify(v2, 1).validate(context)
+	verify(v3, 1).validate(context)
+	verify(v4, 1).validate(context)
 	assert_object(result).is_equal(context)
 
 
