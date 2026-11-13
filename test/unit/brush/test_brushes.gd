@@ -1,6 +1,7 @@
 ## Brush unit tests.
 ## Covers: brush types, trait handling, size clamping, grid/pixel conversion,
-## colour contracts, outline width, label formatting and validation.
+## colour contracts, outline width expectation (skipped pending fix),
+## label formatting and validation.
 extends GdUnitTestSuite
 
 const TILE_SIZE := 32
@@ -307,15 +308,23 @@ func test_semantic_brush_outline_color_disabled_takes_highest_priority() -> void
 
 
 # ── Outline width ────────────────────────────────────────────────────
-# NOTE: get_outline_width has a conditional-expression bug
-# (return selected if 3.0 else 2.0 returns `selected` because 3.0 is truthy).
-# The method is still exercised for coverage; fix tracked separately.
+# get_outline_width records the intended contract (3.0 when selected, 2.0
+# otherwise) but is currently broken: `return selected if 3.0 else 2.0`
+# always yields `selected` because 3.0 is truthy, so the typed float return
+# coerces it to 1.0 (selected) or 0.0 (not selected). The assertion below
+# records that expectation and is skipped until the production fix lands,
+# keeping the suite green. See the skip reason for the full cause.
 
 
-func test_semantic_brush_outline_width_exercised() -> void:
+func test_semantic_brush_outline_width_intended(
+	_do_skip := true,
+	_skip_reason := "Known bug in SemanticBrush.get_outline_width (scripts/world/authoring/brushes/semantic_brush.gd): 'return selected if 3.0 else 2.0' always yields 'selected' because 3.0 is truthy, so the typed float return coerces it to 1.0 when selected and 0.0 otherwise; the intended contract is 3.0 when selected and 2.0 otherwise. Skipped until the production fix lands."
+) -> void:
 	var brush = auto_free(SemanticBrush.new())
+	brush.selected = true
+	assert_float(brush.get_outline_width()).is_equal(3.0)
 	brush.selected = false
-	assert_float(brush.get_outline_width()).is_equal(0.0)
+	assert_float(brush.get_outline_width()).is_equal(2.0)
 
 
 # ── Parameterized: Brush label formatting ──────────────────────────

@@ -14,7 +14,6 @@ func get_target_position() -> Vector2:
 
 
 func _ready():
-	print("detection ready")
 	area_entered.connect(_on_area_entered)
 	area_exited.connect(_on_area_exited)
 
@@ -22,7 +21,6 @@ func _ready():
 func _on_area_entered(area: Area2D) -> void:
 	if not _check_is_player(area):
 		return
-	print("detect player")
 	if _detected_player:
 		return
 	_detected_player = area.get_parent()
@@ -32,7 +30,6 @@ func _on_area_entered(area: Area2D) -> void:
 func _on_area_exited(area: Area2D) -> void:
 	if not _check_is_player(area):
 		return
-	print("player lose")
 	if area.get_parent() != _detected_player:
 		return
 	_detected_player = null

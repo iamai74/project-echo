@@ -103,10 +103,44 @@ func test_save_room_data_step_saves_data_successfully() -> void:
 	context.room = room
 	context.runtime_room = auto_free(Node2D.new())
 
+	# Populate the data the step serializes so the reload can assert real content.
+	var platform_cell := SemanticCell.new()
+	platform_cell.position = Vector2i(0, 0)
+	context.runtime_room_data.platforms.append(platform_cell)
+	var wall_cell := SemanticCell.new()
+	wall_cell.position = Vector2i(1, 0)
+	context.runtime_room_data.walls.append(wall_cell)
+
 	step.run(context)
 
+	# The happy path records no errors.
 	assert_bool(context.report.is_has_fatal()).is_false()
 	assert_bool(context.report.is_has_issues()).is_false()
+
+	# Both artifacts must exist on disk, derived the same way the step writes them.
+	var room_dir = step._get_room_dir(context.room)
+	var data_path = room_dir.path_join("%s_room_data.tres" % step._get_room_filename(context.room))
+	var runtime_path = room_dir.path_join("%s_runtime.tscn" % step._get_room_filename(context.room))
+	assert_file(data_path).exists()
+	assert_file(runtime_path).exists()
+
+	# The saved RoomData must reload and keep the layer content that was saved.
+	var loaded: RoomData = ResourceLoader.load(data_path)
+	assert_object(loaded).is_not_null()
+	assert_object(loaded).is_class("RoomData")
+	assert_int(loaded.version).is_equal(1)
+	assert_int(loaded.platforms.size()).is_equal(1)
+	assert_int(loaded.platforms[0].position.x).is_equal(0)
+	assert_int(loaded.platforms[0].position.y).is_equal(0)
+	assert_int(loaded.walls.size()).is_equal(1)
+	assert_int(loaded.walls[0].position.x).is_equal(1)
+	assert_int(loaded.walls[0].position.y).is_equal(0)
+
+	# The runtime scene must be saved and loadable. Its Semantic/Tiles structure
+	# is verified by the integration suite
+	# (test_saved_runtime_room_loads_with_expected_structure).
+	var runtime_scene = load(runtime_path)
+	assert_object(runtime_scene).is_not_null()
 
 
 func test_save_room_data_step_skips_scene_save_when_runtime_room_null() -> void:

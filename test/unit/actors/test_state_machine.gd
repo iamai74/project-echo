@@ -1,6 +1,7 @@
 ## StateMachine unit tests.
 ## Covers: start, change, previous state, same-state no-op, missing state error,
-## update forwarding, initialize populates states dictionary.
+## update/physics_update/handle_input/handle_attack_finished forwarding to the current
+## state, no-current-state no-ops, initialize populates states dictionary.
 extends GdUnitTestSuite
 
 # Minimal test fixture: a State subclass that tracks enter/exit calls.
@@ -117,6 +118,61 @@ func test_update_noops_when_no_current_state() -> void:
 	var sm = _make_state_machine_with_states()
 	# Don't start any state — update should not crash
 	sm.update(0.05)
+	assert_object(sm.current_state).is_null()
+
+
+# --- Forwarding to current state ---
+
+func test_physics_update_forwards_to_current_state() -> void:
+	var sm = _make_state_machine_with_states()
+	sm.start("StateA")
+	var state_spy = spy(sm.current_state)
+	sm.current_state = state_spy
+	var delta := 0.25
+	sm.physics_update(delta)
+	verify(state_spy, 1).physics_update(delta)
+	verify_no_more_interactions(state_spy)
+
+
+func test_handle_input_forwards_to_current_state() -> void:
+	var sm = _make_state_machine_with_states()
+	sm.start("StateA")
+	var state_spy = spy(sm.current_state)
+	sm.current_state = state_spy
+	var event := InputEventAction.new()
+	sm.handle_input(event)
+	verify(state_spy, 1).handle_input(event)
+	verify_no_more_interactions(state_spy)
+
+
+func test_handle_attack_finished_forwards_to_current_state() -> void:
+	var sm = _make_state_machine_with_states()
+	sm.start("StateA")
+	var state_spy = spy(sm.current_state)
+	sm.current_state = state_spy
+	var attack := AttackDefinition.new()
+	sm.handle_attack_finished(attack)
+	verify(state_spy, 1).on_attack_finished(attack)
+	verify_no_more_interactions(state_spy)
+
+
+# --- No current state no-ops ---
+
+func test_physics_update_noops_when_no_current_state() -> void:
+	var sm = _make_state_machine_with_states()
+	assert_error(func() -> void: sm.physics_update(0.25)).is_success()
+	assert_object(sm.current_state).is_null()
+
+
+func test_handle_input_noops_when_no_current_state() -> void:
+	var sm = _make_state_machine_with_states()
+	assert_error(func() -> void: sm.handle_input(InputEventAction.new())).is_success()
+	assert_object(sm.current_state).is_null()
+
+
+func test_handle_attack_finished_noops_when_no_current_state() -> void:
+	var sm = _make_state_machine_with_states()
+	assert_error(func() -> void: sm.handle_attack_finished(AttackDefinition.new())).is_success()
 	assert_object(sm.current_state).is_null()
 
 
