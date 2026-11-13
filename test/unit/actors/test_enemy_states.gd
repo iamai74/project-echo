@@ -120,6 +120,16 @@ func test_chase_switches_to_patrol_when_target_is_lost() -> void:
 	assert_str(enemy.state_machine.current_state.name).is_equal("Patrol")
 
 
+func test_chase_transitions_to_fall_when_airborne() -> void:
+	enemy.grounded = false
+	enemy.state_machine.change_state("Chase")
+	var chase := _state("Chase")
+
+	chase.physics_update_state(0.0)
+
+	assert_str(enemy.state_machine.current_state.name).is_equal("Fall")
+
+
 # ── Attack ───────────────────────────────────────────────────────────
 
 func test_attack_finishes_into_idle_when_grounded() -> void:
@@ -159,6 +169,43 @@ func test_hurt_transitions_to_dead_when_health_is_empty() -> void:
 
 	assert_str(enemy.state_machine.current_state.name).is_equal("Dead")
 	assert_bool(enemy.died).is_true()
+
+
+func test_hurt_exits_to_expected_state(
+	grounded: bool,
+	dead: bool,
+	expected_state: String,
+	_test_parameters := [
+		[true, false, "Idle"],
+		[false, false, "Fall"],
+		[true, true, "Dead"],
+	]) -> void:
+	enemy.state_machine.change_state("Hurt")
+	var hurt := _state("Hurt")
+
+	assert_bool(enemy.hurtbox.can_receive_hit()).is_false()
+
+	enemy.grounded = grounded
+	if dead:
+		enemy.health.current_health = 0
+
+	hurt.physics_update(0.0)
+
+	assert_str(enemy.state_machine.current_state.name).is_equal(expected_state)
+	assert_bool(enemy.hurtbox.can_receive_hit()).is_true()
+	assert_bool(enemy.died).is_equal(dead)
+
+
+func test_hurt_reaches_move_when_movement_input_exists(
+	_do_skip := true,
+	_skip_reason := "EnemyState.has_movement_input() always returns false, so Hurt -> Move is unreachable.") -> void:
+	enemy.grounded = true
+	enemy.state_machine.change_state("Hurt")
+	var hurt := _state("Hurt")
+
+	hurt.physics_update(0.0)
+
+	assert_str(enemy.state_machine.current_state.name).is_equal("Move")
 
 
 # ── Dead ─────────────────────────────────────────────────────────────

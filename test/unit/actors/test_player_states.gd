@@ -116,6 +116,18 @@ func test_fall_transitions_to_idle_on_landing() -> void:
 	assert_str(player.state_machine.current_state.name).is_equal("Idle")
 
 
+func test_fall_applies_move_direction_while_airborne() -> void:
+	player.grounded = false
+	_command().move_direction = 0.5
+	player.state_machine.change_state("Fall")
+	var fall := _state("Fall")
+
+	fall.physics_update_state(0.0)
+
+	assert_str(player.state_machine.current_state.name).is_equal("Fall")
+	assert_float(player.velocity.x).is_equal(0.5 * player.data.move_speed)
+
+
 # ── Attack ───────────────────────────────────────────────────────────
 
 func test_attack_locks_input_and_starts_light_attack() -> void:
@@ -167,29 +179,34 @@ func test_attack_finishes_into_fall_when_airborne() -> void:
 
 # ── Hurt ─────────────────────────────────────────────────────────────
 
-func test_hurt_sets_invulnerability_on_enter() -> void:
-	player.state_machine.change_state("Hurt")
-
-	assert_bool(player.hurtbox.can_receive_hit()).is_false()
-
-
-func test_hurt_clears_invulnerability_on_exit() -> void:
-	player.state_machine.change_state("Hurt")
-
-	player.state_machine.change_state("Idle")
-
-	assert_bool(player.hurtbox.can_receive_hit()).is_true()
-
-
-func test_hurt_transitions_to_dead_when_health_is_empty() -> void:
+func test_hurt_exits_to_expected_state(
+	grounded: bool,
+	move_direction: float,
+	dead: bool,
+	expected_state: String,
+	_test_parameters := [
+		[true, 0.5, false, "Move"],
+		[true, 0.0, false, "Idle"],
+		[false, 0.0, false, "Fall"],
+		[true, 0.0, true, "Dead"],
+	]) -> void:
 	player.state_machine.change_state("Hurt")
 	var hurt := _state("Hurt")
-	player.health.current_health = 0
+
+	assert_int(player.input_component.process_mode).is_equal(Node.PROCESS_MODE_DISABLED)
+	assert_bool(player.hurtbox.can_receive_hit()).is_false()
+
+	player.grounded = grounded
+	_command().move_direction = move_direction
+	if dead:
+		player.health.current_health = 0
 
 	hurt.physics_update(0.0)
 
-	assert_str(player.state_machine.current_state.name).is_equal("Dead")
-	assert_bool(player.died).is_true()
+	assert_str(player.state_machine.current_state.name).is_equal(expected_state)
+	assert_int(player.input_component.process_mode).is_equal(Node.PROCESS_MODE_INHERIT)
+	assert_bool(player.hurtbox.can_receive_hit()).is_true()
+	assert_bool(player.died).is_equal(dead)
 
 
 # ── Dead ─────────────────────────────────────────────────────────────
