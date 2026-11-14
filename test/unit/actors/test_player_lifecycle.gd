@@ -45,6 +45,7 @@ func test_process() -> void:
 	player.state_machine = state_machine_spy
 	player._process(0.1)
 	verify(state_machine_spy, 1).update(0.1)
+	verify_no_more_interactions(state_machine_spy)
 
 func test_physics_process() -> void:
 	var state_machine_spy = spy(player.state_machine)
@@ -52,6 +53,7 @@ func test_physics_process() -> void:
 	var velocity_before = player.velocity
 	player._physics_process(0.1)
 	verify(state_machine_spy, 1).physics_update(0.1)
+	verify_no_more_interactions(state_machine_spy)
 	assert_float(player.velocity.y).is_equal(velocity_before.y + (player.data.gravity * 0.1))
 
 
@@ -92,3 +94,4 @@ func test_attack_finished_signal_forwarding() -> void:
 	player.state_machine = state_machine_spy
 	player._on_attack_finished(attack)
 	verify(state_machine_spy, 1).handle_attack_finished(attack)
+	verify_no_more_interactions(state_machine_spy)

@@ -56,6 +56,7 @@ func test_get_target_position_delegates_to_detection() -> void:
 	var target_pos = real_enemy.get_target_position()
 	assert_vector(target_pos).is_equal(Vector2(50, 50))
 	verify(det, 1).get_target_position()
+	verify_no_more_interactions(det)
 
 func test_is_attacking_delegates_to_weapon() -> void:
 	var weapon_mock = mock(WeaponComponent)
@@ -63,6 +64,7 @@ func test_is_attacking_delegates_to_weapon() -> void:
 	enemy.weapon_component = weapon_mock
 	assert_bool(enemy.is_attacking()).is_true()
 	verify(weapon_mock, 1).is_attacking()
+	verify_no_more_interactions(weapon_mock)
 
 func test_on_attack_finished_forwards_to_state_machine() -> void:
 	var attack = AttackDefinition.new()
@@ -70,6 +72,7 @@ func test_on_attack_finished_forwards_to_state_machine() -> void:
 	enemy.state_machine = state_machine_spy
 	enemy._on_attack_finished(attack)
 	verify(state_machine_spy, 1).handle_attack_finished(attack)
+	verify_no_more_interactions(state_machine_spy)
 
 # A prior test here checked stub setup rather than real signal connections.
 # Real scene wiring (detection signals, boot to Idle) is now covered by
