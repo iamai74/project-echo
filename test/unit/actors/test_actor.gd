@@ -2,6 +2,8 @@
 ## Covers: component init, signal connection, attack delegation, movement, jump, facing direction, utility methods, knockback, and death state.
 extends GdUnitTestSuite
 
+const ActorFixture = preload("res://test/fixtures/actor_fixture.gd")
+
 var actor: Actor
 var health: HealthComponent
 var hurtbox: HurtboxComponent
@@ -12,9 +14,6 @@ var data: ActorData
 
 
 func before_test() -> void:
-	actor = auto_free(Actor.new()) as Actor
-	actor.name = "Actor"
-
 	data = ActorData.new()
 	data.max_health = 5
 	data.move_speed = 200.0
@@ -22,30 +21,6 @@ func before_test() -> void:
 	data.gravity = 1000.0
 	data.coyote_time = 0.1
 	data.max_jumps = 1
-	actor.data = data
-
-	health = HealthComponent.new()
-	health.name = "HealthComponent"
-	actor.add_child(health)
-
-	hurtbox = HurtboxComponent.new()
-	hurtbox.name = "HurtboxComponent"
-	actor.add_child(hurtbox)
-
-	state_machine = StateMachine.new()
-	state_machine.name = "StateMachine"
-	actor.add_child(state_machine)
-
-	var dead_state := State.new()
-	dead_state.name = "Dead"
-	state_machine.add_child(dead_state)
-
-	var hurt_state := State.new()
-	hurt_state.name = "Hurt"
-	state_machine.add_child(hurt_state)
-
-	weapon = WeaponComponent.new()
-	weapon.name = "WeaponComponent"
 
 	# Setup weapon_data properly so it's not null and has attacks
 	var w_data = WeaponData.new()
@@ -58,17 +33,16 @@ func before_test() -> void:
 	attack_def.recovery = 0.1
 	w_data.attacks.append(attack_def)
 	w_data.initialize()
-	weapon.weapon_data = w_data
 
-	actor.add_child(weapon)
+	actor = auto_free(ActorFixture.build_actor_with_weapon(data, w_data)) as Actor
+	actor.name = "Actor"
 
-	var hitbox = HitboxComponent.new()
-	hitbox.name = "HitboxComponent"
-	weapon.add_child(hitbox)
-	var shape := CollisionShape2D.new()
-	shape.name = "CollisionShape2D"
-	shape.shape = RectangleShape2D.new()
-	hitbox.add_child(shape)
+	ActorFixture.add_hurt_and_dead_states(actor)
+
+	health = actor.health
+	hurtbox = actor.hurtbox
+	state_machine = actor.state_machine
+	weapon = actor.weapon_component
 
 	sprite = Sprite2D.new()
 	sprite.name = "Sprite2D"

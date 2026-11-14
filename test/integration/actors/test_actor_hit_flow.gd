@@ -2,6 +2,8 @@
 ## Covers: Hitbox -> Hurtbox -> HealthComponent flow.
 extends GdUnitTestSuite
 
+const ActorFixture = preload("res://test/fixtures/actor_fixture.gd")
+
 var actor: Actor
 var health: HealthComponent
 var hurtbox: HurtboxComponent
@@ -29,32 +31,13 @@ func before_test() -> void:
 	data = ActorData.new()
 	data.max_health = 100
 
-	actor = auto_free(Actor.new())
-	actor.data = data
+	actor = auto_free(ActorFixture.build_actor(data))
+	health = actor.health
+	hurtbox = actor.hurtbox
+	state_machine = actor.state_machine
 
-	health = HealthComponent.new()
-	hurtbox = HurtboxComponent.new()
-	state_machine = StateMachine.new()
+	ActorFixture.add_hurt_and_dead_states(actor)
 
-	actor.add_child(health)
-	actor.add_child(hurtbox)
-	actor.add_child(state_machine)
-
-	# Minimal states so hit responses can transition without errors.
-	var hurt_state := State.new()
-	hurt_state.name = "Hurt"
-	state_machine.add_child(hurt_state)
-
-	var dead_state := State.new()
-	dead_state.name = "Dead"
-	state_machine.add_child(dead_state)
-
-	# Manually satisfy the @onready requirements for the test.
-	actor.health = health
-	actor.hurtbox = hurtbox
-	actor.state_machine = state_machine
-
-	# Manually call the initialization methods.
 	actor._initialize_components()
 	actor._connect_signals()
 	state_machine.initialize(actor)
@@ -65,16 +48,13 @@ func test_hitbox_health_integration(
 	_test_parameters := _test_parameters
 ) -> void:
 	# Build attacker: Actor scene with Health + Hitbox
-	attacker = auto_free(Actor.new())
+	var attacker_data := ActorData.new()
+	attacker_data.max_health = 100
+	attacker = auto_free(ActorFixture.build_actor(attacker_data))
 	attacker.name = "Attacker"
-	attacker.data = ActorData.new()
-	attacker.data.max_health = 100
-
-	# Add Health
-	attacker.health = HealthComponent.new()
-	attacker.health.name = "HealthComponent"
-	attacker.health.initialize(100)  # Initialize health
-	attacker.add_child(attacker.health)
+	attacker_state_machine = attacker.state_machine
+	attacker_hurtbox = attacker.hurtbox
+	ActorFixture.add_hurt_and_dead_states(attacker)
 
 	# Add Hitbox with explicit layer/mask
 	attacker_hitbox = HitboxComponent.new()
@@ -95,42 +75,17 @@ func test_hitbox_health_integration(
 		attacker_shape.shape.height = 95.0
 	attacker_hitbox.add_child(attacker_shape)
 
-	# Add Hurtbox to attacker (as attacker's hurtbox - will be unused)
-	attacker_hurtbox = HurtboxComponent.new()
-	attacker_hurtbox.name = "HurtboxComponent"
-	attacker.add_child(attacker_hurtbox)
-
-	# Add StateMachine with Hurt and Dead states
-	attacker_state_machine = StateMachine.new()
-	attacker_state_machine.name = "StateMachine"
-	attacker.add_child(attacker_state_machine)
-
-	var hurt_state := State.new()
-	hurt_state.name = "Hurt"
-	attacker_state_machine.add_child(hurt_state)
-
-	var dead_state := State.new()
-	dead_state.name = "Dead"
-	attacker_state_machine.add_child(dead_state)
-
 	# Build defender: Actor scene with Health + Hurtbox
-	defender = auto_free(Actor.new())
+	var defender_data := ActorData.new()
+	defender_data.max_health = 100
+	defender = auto_free(ActorFixture.build_actor(defender_data))
 	defender.name = "Defender"
-	defender.data = ActorData.new()
-	defender.data.max_health = 100
-
-	# Add Health
-	defender_health = HealthComponent.new()
-	defender_health.name = "HealthComponent"
-	defender_health.initialize(100)  # Initialize health
-	defender.add_child(defender_health)
-
-	# Add Hurtbox with explicit layer/mask
-	defender_hurtbox = HurtboxComponent.new()
-	defender_hurtbox.name = "HurtboxComponent"
+	defender_health = defender.health
+	defender_hurtbox = defender.hurtbox
 	defender_hurtbox.collision_layer = 8
 	defender_hurtbox.collision_mask = 4
-	defender.add_child(defender_hurtbox)
+	defender_state_machine = defender.state_machine
+	ActorFixture.add_hurt_and_dead_states(defender)
 
 	# Add collision shape to hurtbox
 	var defender_shape := CollisionShape2D.new()
@@ -143,19 +98,6 @@ func test_hitbox_health_integration(
 		defender_shape.shape.radius = 16.0
 		defender_shape.shape.height = 95.0
 	defender_hurtbox.add_child(defender_shape)
-
-	# Add StateMachine with Hurt and Dead states
-	defender_state_machine = StateMachine.new()
-	defender_state_machine.name = "StateMachine"
-	defender.add_child(defender_state_machine)
-
-	var def_hurt_state := State.new()
-	def_hurt_state.name = "Hurt"
-	defender_state_machine.add_child(def_hurt_state)
-
-	var def_dead_state := State.new()
-	def_dead_state.name = "Dead"
-	defender_state_machine.add_child(def_dead_state)
 
 	# Adding the actors to the tree runs Actor._ready, which resolves the
 	# @onready component fields and wires health.died -> _on_died and

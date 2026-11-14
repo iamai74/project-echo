@@ -11,6 +11,15 @@ func before_test() -> void:
 	input_comp.stick_deadzone = 0.2
 
 
+# Failure-path cleanup: release every action this file presses so an aborted assertion cannot leak pressed input into later tests.
+const TESTED_ACTIONS := ["jump", "attack", "dash", "interact", "move_left", "move_right"]
+
+
+func after_test() -> void:
+	for action in TESTED_ACTIONS:
+		Input.action_release(action)
+
+
 # --- Deadzone ---
 
 func test_deadzone_zero_input_returns_zero() -> void:

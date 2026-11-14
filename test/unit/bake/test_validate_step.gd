@@ -1,6 +1,6 @@
 ## ValidateStep unit tests.
 ## Covers: all validators run, errors accumulate in the report,
-## step metadata, and that the step does not skip validators.
+## step metadata, the default validator list, and that the step does not skip validators.
 extends GdUnitTestSuite
 
 
@@ -14,6 +14,18 @@ func test_get_id_returns_validate() -> void:
 func test_get_display_name_returns_string() -> void:
 	var step = ValidateStep.new()
 	assert_str(step.get_display_name()).is_not_empty()
+
+
+# --- Validator access ---
+
+func test_get_validators_returns_the_default_validators() -> void:
+	var validators := ValidateStep.new().get_validators()
+
+	assert_array(validators).has_size(4)
+	assert_object(validators[0]).is_instanceof(DuplicateCellValidator)
+	assert_object(validators[1]).is_instanceof(SemanticOverlapValidator)
+	assert_object(validators[2]).is_instanceof(TopologyValidator)
+	assert_object(validators[3]).is_instanceof(SemanticCellValidator)
 
 
 # --- Validators run ---

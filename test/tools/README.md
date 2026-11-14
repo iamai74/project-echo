@@ -41,8 +41,10 @@ The working tree, its `.godot` cache and its Git state are never modified.
 ### Scope
 
 - Measured: every `.gd` file under `scripts/` and `autoload/`.
-- Excluded from targets: `scripts/world/debug/` and `scripts/theme/debug/`. They are still measured so the original baseline stays comparable.
+- Excluded from targets: the `report.py` rule names `scripts/world/debug/` and `scripts/theme/debug/`, but neither path exists in the current tree, so the refreshed baseline excludes 0 files / 0 statements.
 - Not measured: `addons/` and `test/`.
+- Not measured: `debug/scripts/`. It holds prototype scaffolding rather than production code: the `Walker`, `Runner` and `Heavy` enemy subclasses and two world debug drivers. `Walker` has unit tests (`test/unit/actors/test_walker.gd`), but none of these files is measured, so no coverage number describes them; `Runner`, `Heavy` and the drivers have no tests at all. The debug scenes are also the current playable entry point (`project.godot` `run/main_scene` points at `debug/scenes/test_scene.tscn`), so this is a real, accepted gap, not dead code.
+- The `Actors` area covers `scripts/actors/` only: `player.gd` and `enemy.gd`. It is not a coverage figure for all actor code, because the enemy subclasses live under the unmeasured `debug/scripts/actors/`. Do not fold that directory into the target scope or the gate; if the prototypes are promoted to production code, measure them in a separate informational area.
 - Metric: executable statement-line coverage. A line is a statement start when it is inside a function body and does not continue a multi-line expression, string, match arm or block header. `pass` lines are counted, matching the original baseline harness.
 - Branch coverage is not measured.
 
@@ -63,7 +65,24 @@ The gate compares the current `target_totals` against `baseline.json`:
 - overall drop larger than **0.5 percentage points** fails;
 - any regression in a file already at or above **80%** fails.
 
-The gate is informational by default. Pass `--enforce-gate` once the ratchet is enabled. Without a baseline file the gate is reported as not enforced.
+The gate is informational unless `--enforce-gate` is passed; without a baseline file it is reported as not enforced.
+
+**Project policy** — a manual local ratchet:
+
+- Before merging changes that touch `scripts/`, `autoload/` or `test/`, run `python3 test/tools/coverage/run_coverage.py --enforce-gate` and treat a non-zero exit as a regression to fix or explicitly accept.
+- Refreshing: run `--write-baseline` only from a green suite and only after the current gate passes, then re-run with `--enforce-gate` to confirm the new reference; never edit `baseline.json` by hand.
+- CI: the repository has no CI job yet; when one is added it should run the same command with `--enforce-gate`. Until then, enforcement is manual.
+- Location: the baseline lives under Git-ignored `reports/coverage/`, so it is per-machine and regenerable; it is not shared through Git, and a fresh clone starts without a baseline until one is generated.
+
+### Baseline
+
+The refreshed reference in `reports/coverage/baseline.json` (local, Git-ignored and regenerable — see the policy above):
+
+- Generated `2026-11-14T10:32:57+00:00` with Godot `4.7.2.stable.official.ed1daf0bf`.
+- Tests: 613 cases, 56 suites, 0 failures, 0 errors, 2 skipped, 0 orphans.
+- Target coverage: 1413 / 1521 statements (92.9%).
+- All measured files: 1413 / 1521 statements (92.9%); target and all-files statement coverage coincide because the refreshed baseline excludes no files and the 23 declaration-only files add no statements.
+- Files with executed statements: 81 of 83 instrumentable.
 
 ### Instrumentation details
 

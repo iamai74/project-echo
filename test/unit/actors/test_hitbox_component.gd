@@ -3,6 +3,7 @@
 ## activate/deactivate lifecycle, hit_targets deduplication, area_entered wiring.
 extends GdUnitTestSuite
 
+const ActorFixture = preload("res://test/fixtures/actor_fixture.gd")
 
 var hitbox: HitboxComponent
 var actor: Actor
@@ -36,21 +37,8 @@ func test_ready_connects_area_entered_signal() -> void:
 
 
 func test_ready_finds_actor_and_stores_reference() -> void:
-	actor = Actor.new()
+	actor = ActorFixture.build_actor()
 	actor.name = "TestActor"
-	actor.data = ActorData.new()
-
-	var health := HealthComponent.new()
-	health.name = "HealthComponent"
-	actor.add_child(health)
-
-	var hurtbox_node := HurtboxComponent.new()
-	hurtbox_node.name = "HurtboxComponent"
-	actor.add_child(hurtbox_node)
-
-	var state_machine := StateMachine.new()
-	state_machine.name = "StateMachine"
-	actor.add_child(state_machine)
 
 	hitbox = HitboxComponent.new()
 	hitbox.name = "HitboxComponent"
@@ -67,21 +55,8 @@ func test_ready_finds_actor_and_stores_reference() -> void:
 # --- _find_actor ---
 
 func test_find_actor_finds_direct_parent() -> void:
-	actor = Actor.new()
+	actor = ActorFixture.build_actor()
 	actor.name = "TestActor"
-	actor.data = ActorData.new()
-
-	var health := HealthComponent.new()
-	health.name = "HealthComponent"
-	actor.add_child(health)
-
-	var hurtbox_node := HurtboxComponent.new()
-	hurtbox_node.name = "HurtboxComponent"
-	actor.add_child(hurtbox_node)
-
-	var state_machine := StateMachine.new()
-	state_machine.name = "StateMachine"
-	actor.add_child(state_machine)
 
 	hitbox = HitboxComponent.new()
 	hitbox.name = "HitboxComponent"
@@ -94,21 +69,8 @@ func test_find_actor_finds_direct_parent() -> void:
 
 
 func test_find_actor_finds_nested_actor_grandparent() -> void:
-	actor = Actor.new()
+	actor = ActorFixture.build_actor()
 	actor.name = "TestActor"
-	actor.data = ActorData.new()
-
-	var health := HealthComponent.new()
-	health.name = "HealthComponent"
-	actor.add_child(health)
-
-	var hurtbox_node := HurtboxComponent.new()
-	hurtbox_node.name = "HurtboxComponent"
-	actor.add_child(hurtbox_node)
-
-	var state_machine := StateMachine.new()
-	state_machine.name = "StateMachine"
-	actor.add_child(state_machine)
 
 	var intermediate := Node2D.new()
 	intermediate.name = "Intermediate"
@@ -168,21 +130,8 @@ func test_try_hit_ignores_non_hurtbox_area() -> void:
 # --- _try_hit guard: same actor ---
 
 func test_try_hit_ignores_hurtbox_from_same_actor() -> void:
-	actor = Actor.new()
+	actor = ActorFixture.build_actor()
 	actor.name = "TestActor"
-	actor.data = ActorData.new()
-
-	var health := HealthComponent.new()
-	health.name = "HealthComponent"
-	actor.add_child(health)
-
-	var own_hurtbox := HurtboxComponent.new()
-	own_hurtbox.name = "HurtboxComponent"
-	actor.add_child(own_hurtbox)
-
-	var state_machine := StateMachine.new()
-	state_machine.name = "StateMachine"
-	actor.add_child(state_machine)
 
 	hitbox = HitboxComponent.new()
 	hitbox.name = "HitboxComponent"
@@ -192,7 +141,7 @@ func test_try_hit_ignores_hurtbox_from_same_actor() -> void:
 	hitbox._actor = actor
 	hitbox.active = true
 
-	hitbox._try_hit(own_hurtbox)
+	hitbox._try_hit(actor.hurtbox)
 
 	assert_int(hitbox.hit_targets.size()).is_zero()
 
@@ -320,21 +269,8 @@ func test_deactivate_sets_monitoring_false() -> void:
 # --- area_entered integration ---
 
 func test_area_entered_triggers_try_hit_when_active() -> void:
-	actor = Actor.new()
+	actor = ActorFixture.build_actor()
 	actor.name = "TestActor"
-	actor.data = ActorData.new()
-
-	var health := HealthComponent.new()
-	health.name = "HealthComponent"
-	actor.add_child(health)
-
-	var own_hurtbox := HurtboxComponent.new()
-	own_hurtbox.name = "HurtboxComponent"
-	actor.add_child(own_hurtbox)
-
-	var state_machine := StateMachine.new()
-	state_machine.name = "StateMachine"
-	actor.add_child(state_machine)
 
 	hitbox = HitboxComponent.new()
 	hitbox.name = "HitboxComponent"

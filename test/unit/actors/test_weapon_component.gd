@@ -3,6 +3,7 @@
 ## timer accumulation, hitbox activation/sizing/mirroring, signals and interruption.
 extends GdUnitTestSuite
 
+const ActorFixture = preload("res://test/fixtures/actor_fixture.gd")
 
 var actor: Actor
 var weapon: WeaponComponent
@@ -13,22 +14,6 @@ var light_attack: AttackDefinition
 
 
 func before_test() -> void:
-	actor = auto_free(Actor.new()) as Actor
-	actor.name = "Actor"
-	actor.data = ActorData.new()
-
-	var health := HealthComponent.new()
-	health.name = "HealthComponent"
-	actor.add_child(health)
-
-	var hurtbox := HurtboxComponent.new()
-	hurtbox.name = "HurtboxComponent"
-	actor.add_child(hurtbox)
-
-	var state_machine := StateMachine.new()
-	state_machine.name = "StateMachine"
-	actor.add_child(state_machine)
-
 	light_attack = AttackDefinition.new()
 	light_attack.attack_type = AttackType.Type.LIGHT
 	light_attack.damage = 12
@@ -42,23 +27,14 @@ func before_test() -> void:
 	weapon_data = WeaponData.new()
 	weapon_data.attacks.append(light_attack)
 
-	hitbox_shape = CollisionShape2D.new()
-	hitbox_shape.name = "CollisionShape2D"
-	var rectangle := RectangleShape2D.new()
-	rectangle.size = Vector2(8.0, 8.0)
-	hitbox_shape.shape = rectangle
-
-	hitbox = HitboxComponent.new()
-	hitbox.name = "HitboxComponent"
-	hitbox.add_child(hitbox_shape)
-
-	weapon = auto_free(WeaponComponent.new()) as WeaponComponent
-	weapon.name = "WeaponComponent"
-	weapon.weapon_data = weapon_data
-	weapon.add_child(hitbox)
-	actor.add_child(weapon)
-
+	actor = auto_free(ActorFixture.build_actor_with_weapon(ActorData.new(), weapon_data)) as Actor
+	actor.name = "Actor"
 	add_child(actor)
+
+	weapon = actor.weapon_component
+	hitbox = weapon.hitbox
+	hitbox_shape = weapon.hitbox_shape
+	(hitbox_shape.shape as RectangleShape2D).size = Vector2(8.0, 8.0)
 
 	# Drive phase progression explicitly so frame timing cannot affect the assertions.
 	actor.set_physics_process(false)
