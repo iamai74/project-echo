@@ -2,7 +2,7 @@
 
 > **Status:** In Progress
 >
-> **Last Updated:** 2026-11-06
+> **Last Updated:** 2026-11-14
 >
 > **Related:**
 > - [room-architecture.md](room-architecture.md)
@@ -56,6 +56,17 @@ The current bake pipeline always produces an empty connection list. There is not
 - world-generation consumer.
 
 `ConnectionData` therefore defines the intended baked representation, not a completed authoring workflow.
+
+## Planned identity contract
+
+The authoring and bake path is planned to require:
+
+- an explicit, non-empty ID on every connection point;
+- room-local IDs that stay stable when other connections are added, removed or reordered;
+- unique IDs per room, with duplicates and empty IDs reported as validation errors;
+- bake copies the authored ID verbatim and never generates, rewrites or falls back to one.
+
+The ID is design data, not a bake artifact.
 
 ---
 

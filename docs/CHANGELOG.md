@@ -1,3 +1,13 @@
+## 2026-11-14
+
+- Locked the marker and connection-point room contracts in `docs/architecture/marker-and-connection-points-implementation-plan.md`.
+- Specified a planned `@tool RoomAuthoring` root that owns `room_bounds: Rect2i` in grid cells as the only logical room-size source.
+- Separated the planned `RoomData.room_bounds` (logical playable rectangle) from `RoomData.geometry_bounds` (platform-plus-wall extent); the legacy `bounds` field is planned to keep geometry semantics through read-only version 1 loading.
+- Defined the marker placement point as the lower-edge midpoint of its top-left cell at `(16, 32)` for a 32px tile.
+- Required explicit, room-local, unique connection IDs with no bake-time generation.
+- Required disabled brushes to remain collected but be skipped by every bake and validation consumer, with the spatial filter owned by the `BakeProcessor` implementations.
+- Updated `docs/world/world-authoring.md`, `docs/world/room-architecture.md`, `docs/world/room-data.md`, `docs/world/connection-points.md` and `docs/world/semantic-tiles.md` with the planned contracts and current limitations.
+
 ## 2026-11-07
 
 - Added the project-local coverage runner under `test/tools/coverage/` with JSON, LCOV, text and HTML reports.

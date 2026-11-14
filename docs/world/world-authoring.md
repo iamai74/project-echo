@@ -1,6 +1,6 @@
 # World Authoring
 
-> **Last Updated:** 2026-11-06
+> **Last Updated:** 2026-11-14
 >
 > **Related:**
 > - [overview.md](overview.md)
@@ -28,9 +28,10 @@ Designer
    ▼
 Authored Room Scene
    │
+   ├── Room root with logical bounds (planned)
    ├── Semantic brushes
    ├── Connection authoring (planned)
-   └── Room metadata (planned)
+   └── Marker authoring (planned)
    │
    ▼
 Bake Pipeline
@@ -91,10 +92,39 @@ An authored room scene may contain:
 
 ---
 
+# Logical Room Bounds (planned)
+
+Authored rooms have no explicit playable rectangle today. Room extent is currently derived from platform and wall cells during baking.
+
+The planned authoring contract is a `RoomAuthoring` root:
+
+```gdscript
+@tool
+class_name RoomAuthoring
+extends Node2D
+
+@export var room_bounds: Rect2i
+```
+
+`room_bounds` is expressed in grid cells and describes the full playable rectangle, including empty air. It has an origin as well as a size because authored rooms may use negative grid coordinates.
+
+Planned data ownership:
+
+| Location | Meaning |
+|----------|---------|
+| `RoomAuthoring.room_bounds` | Authored logical playable rectangle |
+| `RoomData.room_bounds` | Baked copy of the logical rectangle |
+| `RoomData.geometry_bounds` | Derived extent of platform and wall cells |
+
+Baking must not infer logical bounds from brushes, markers, connections or theme assets. The `RoomAuthoring` root and both `RoomData` fields are not implemented yet.
+
+---
+
 # Authoring Structure
 
 ```text
 Room Scene
+├── RoomAuthoring root         (planned)
 ├── PlatformBrush(es)
 ├── WallBrush(es)
 ├── BackgroundBrush(es)
@@ -132,7 +162,7 @@ Common properties:
 
 | Property | Description |
 |----------|-------------|
-| `enabled` | Whether the brush contributes to authoring |
+| `enabled` | Intended as a uniform skip for baking and validation; disabled brushes are still collected (not yet enforced by spatial processors) |
 | `size` | Grid size in cells |
 | `priority` | Reserved for overlap resolution |
 
@@ -267,7 +297,7 @@ Benefits:
 
 ## 1. Create the room scene
 
-Create a new scene containing semantic brush nodes.
+Create a new scene containing semantic brush nodes. When logical room bounds land, use a `RoomAuthoring` root and set `room_bounds`; plain `Node2D` roots will bake without logical bounds.
 
 ## 2. Author spatial layout
 
@@ -303,6 +333,7 @@ See [themes.md](themes.md).
 # Current Limitations
 
 - There is no editor command or batch bake UI yet; bake is currently driven from debug/test scripts.
+- There is no `RoomAuthoring` root and no authored logical room bounds. Current room extent is derived from platform and wall cells.
 - Connection authoring and validation are not implemented.
 - Marker and volume authoring is not implemented.
 - Room metadata beyond semantic layout is not implemented.

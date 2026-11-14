@@ -2,7 +2,7 @@
 
 > **Status:** Stable
 >
-> **Last Updated:** 2026-11-06
+> **Last Updated:** 2026-11-14
 >
 > **Related:**
 > - [room-architecture.md](room-architecture.md)
@@ -67,6 +67,17 @@ extends Resource
 | `walls` | `Array[SemanticCell]` | Wall cells |
 | `background` | `Array[BackgroundCell]` | Background cells |
 | `connections` | `Array[ConnectionData]` | Room connection data; currently empty |
+
+## Planned schema change
+
+The marker and connection-point plan separates the two rectangle meanings currently collapsed into `bounds`:
+
+- `room_bounds` — the explicitly authored logical playable rectangle;
+- `geometry_bounds` — the platform-plus-wall extent currently stored in `bounds`.
+
+The planned version 2 schema also adds `markers` and bumps `version` to `2`. Version 1 resources remain read-only compatible: the legacy `bounds` value loads as `geometry_bounds`, `room_bounds` stays empty and nothing is migrated during load.
+
+The implementation still exposes version 1 and `bounds` until that plan is executed. Do not hand-edit generated resources.
 
 ---
 

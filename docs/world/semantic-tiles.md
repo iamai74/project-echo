@@ -2,7 +2,7 @@
 
 > **Status:** In Progress
 >
-> **Last Updated:** 2026-11-06
+> **Last Updated:** 2026-11-14
 >
 > **Related:**
 > - [room-architecture.md](room-architecture.md)
@@ -176,6 +176,8 @@ Common properties:
 
 The brush converts its pixel position and size into grid coordinates using `World.settings.tile_size`.
 
+The marker and connection-point plan locks one disabled-brush rule: a disabled brush is still collected and remains visible in the authoring scene, but every bake processor and validator skips it. The existing spatial processors do not apply that rule yet.
+
 ## Brush types
 
 ```gdscript
@@ -225,6 +227,8 @@ enum VolumeType {
 ```
 
 Runtime marker data is `SemanticMarker { position, properties }`.
+
+The planned replacement is typed `MarkerData`. Its `position` is the top-left grid cell of a one-cell marker square, and its placement point is the midpoint of the lower edge: `(16, 32)` at the current 32px tile size. No marker type has its own anchor, and no pixel position is serialized.
 
 Runtime volume data is `SemanticVolume { polygon, properties }`.
 

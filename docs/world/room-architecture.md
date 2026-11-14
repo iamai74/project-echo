@@ -2,7 +2,7 @@
 
 > **Status:** In Progress
 >
-> **Last Updated:** 2026-11-06
+> **Last Updated:** 2026-11-14
 >
 > **Related:**
 > - [overview.md](overview.md)
@@ -31,7 +31,8 @@ The authored scene is the designer-facing source of truth. It contains:
 
 - semantic brushes for platforms, walls and background;
 - authoring-only nodes;
-- editor visualization.
+- editor visualization;
+- planned `RoomAuthoring` root carrying explicit logical room bounds.
 
 Semantic brushes are `@tool` nodes. They describe intent and draw editor previews, but they do not bake rooms or construct runtime content.
 
@@ -79,6 +80,53 @@ A room is **not** responsible for:
 - selecting its biome;
 - choosing its visual theme;
 - runtime gameplay state.
+
+---
+
+# Logical and Geometry Bounds (planned)
+
+A room needs two distinct rectangles. They have different owners and must not be conflated.
+
+| Rectangle | Meaning | Source |
+|-----------|---------|--------|
+| Logical room bounds | Full playable area, including empty air | Authored `RoomAuthoring.room_bounds` |
+| Geometry bounds | Extent occupied by platform and wall cells | Derived from final spatial cells |
+
+Planned data flow:
+
+```text
+RoomAuthoring.room_bounds
+        │
+        ▼
+RoomBakeContext.room_bounds
+        │
+        ▼
+BuildRuntimeRoomStep / RoomDataBuilder
+        │
+        ▼
+RoomData.room_bounds
+
+platform + wall cells
+        │
+        ▼
+GeometryBounds
+        │
+        ▼
+RoomDataBuilder
+        │
+        ▼
+RoomData.geometry_bounds
+```
+
+Rules:
+
+- logical bounds must not be calculated from platform or wall cells;
+- geometry bounds must not define playable space;
+- marker and connection placement is checked against logical bounds;
+- geometry checks and diagnostics may use geometry bounds;
+- neither rectangle belongs to a theme.
+
+The current implementation has a single geometry-derived `RoomData.bounds`. The `RoomAuthoring` root and the `RoomData.room_bounds` / `RoomData.geometry_bounds` split are planned, not implemented.
 
 ---
 
@@ -205,6 +253,7 @@ This provides:
 # Current Limitations
 
 - The room database and world generator are not implemented.
+- Rooms have no explicit logical bounds. `RoomData.bounds` is currently derived from platform and wall cells; the planned `RoomAuthoring.room_bounds` and `RoomData.room_bounds` / `RoomData.geometry_bounds` split are not implemented.
 - Connections are represented by `ConnectionData`, but no authoring or bake path populates `RoomData.connections` yet.
 - Marker and volume layers are not baked.
 - Runtime room construction currently creates a single `TileMapLayer` named `Tiles`.
