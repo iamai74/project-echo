@@ -111,6 +111,23 @@ func test_save_room_data_step_saves_data_successfully() -> void:
 	wall_cell.position = Vector2i(1, 0)
 	context.runtime_room_data.walls.append(wall_cell)
 
+	# Version 2 bounds and marker/connection content that must survive a round trip.
+	context.runtime_room_data.version = 2
+	context.runtime_room_data.room_bounds = Rect2i(0, 0, 8, 6)
+	context.runtime_room_data.geometry_bounds = Rect2i(0, 0, 2, 1)
+	var marker := MarkerData.new()
+	marker.type = MarkerType.Value.ENEMY_SPAWN
+	marker.position = Vector2i(3, 4)
+	marker.content_id = &"enemy_goblin"
+	marker.marker_id = &"spawn_01"
+	context.runtime_room_data.markers.append(marker)
+	var connection := ConnectionData.new()
+	connection.id = &"main_exit"
+	connection.side = ConnectionSide.Value.BOTTOM
+	connection.position = Vector2i(4, 5)
+	connection.size = Vector2i(2, 1)
+	context.runtime_room_data.connections.append(connection)
+
 	step.run(context)
 
 	# The happy path records no errors.
@@ -124,17 +141,40 @@ func test_save_room_data_step_saves_data_successfully() -> void:
 	assert_file(data_path).exists()
 	assert_file(runtime_path).exists()
 
-	# The saved RoomData must reload and keep the layer content that was saved.
+	# The saved RoomData must reload and keep the content that was saved.
 	var loaded: RoomData = ResourceLoader.load(data_path)
 	assert_object(loaded).is_not_null()
 	assert_object(loaded).is_class("RoomData")
-	assert_int(loaded.version).is_equal(1)
+	# A freshly baked resource is version 2, never the legacy version 1.
+	assert_int(loaded.version).is_equal(2)
+	assert_int(loaded.room_bounds.size.x).is_equal(8)
+	assert_int(loaded.room_bounds.size.y).is_equal(6)
+	assert_int(loaded.geometry_bounds.size.x).is_equal(2)
+	assert_int(loaded.geometry_bounds.size.y).is_equal(1)
 	assert_int(loaded.platforms.size()).is_equal(1)
 	assert_int(loaded.platforms[0].position.x).is_equal(0)
 	assert_int(loaded.platforms[0].position.y).is_equal(0)
 	assert_int(loaded.walls.size()).is_equal(1)
 	assert_int(loaded.walls[0].position.x).is_equal(1)
 	assert_int(loaded.walls[0].position.y).is_equal(0)
+	# Markers and connections round-trip through the saved resource.
+	assert_int(loaded.markers.size()).is_equal(1)
+	assert_int(loaded.markers[0].type).is_equal(MarkerType.Value.ENEMY_SPAWN)
+	assert_vector(loaded.markers[0].position).is_equal(Vector2i(3, 4))
+	assert_str(loaded.markers[0].content_id).is_equal(&"enemy_goblin")
+	assert_str(loaded.markers[0].marker_id).is_equal(&"spawn_01")
+	assert_int(loaded.connections.size()).is_equal(1)
+	assert_str(loaded.connections[0].id).is_equal(&"main_exit")
+	assert_int(loaded.connections[0].side).is_equal(ConnectionSide.Value.BOTTOM)
+	assert_vector(loaded.connections[0].position).is_equal(Vector2i(4, 5))
+	assert_vector(loaded.connections[0].size).is_equal(Vector2i(2, 1))
+	# A version 2 resource must never serialize the legacy bounds property.
+	var property_names: Array[StringName] = []
+	for property in loaded.get_property_list():
+		property_names.append(property.name)
+	assert_bool(property_names.has(&"bounds")).is_false()
+	var data_text := FileAccess.get_file_as_string(data_path)
+	assert_bool(data_text.contains("\nbounds = ")).is_false()
 
 	# The runtime scene must be saved and loadable. Its Semantic/Tiles structure
 	# is verified by the integration suite
@@ -159,6 +199,36 @@ func test_save_room_data_step_skips_scene_save_when_runtime_room_null() -> void:
 
 	# Should not error when runtime_room is null
 	assert_bool(context.report.is_has_fatal()).is_false()
+
+
+# ── Version 1 compatibility ──────────────────────────────────────
+
+func test_legacy_version1_resource_loads_with_geometry_bounds() -> void:
+	# A version 1 artifact serialized only the geometry-derived `bounds` property
+	# and no version 2 fields. Loading it must capture the legacy property without
+	# fabricating logical room bounds.
+	var legacy_path := TEMP_ROOT.path_join("legacy_room_data.tres")
+	var file := FileAccess.open(legacy_path, FileAccess.WRITE)
+	assert_object(file).is_not_null()
+	file.store_string(
+		'[gd_resource type="Resource" script_class="RoomData" format=3]\n'
+		+ '\n'
+		+ '[ext_resource type="Script" path="res://scripts/world/bake/semantic_data/room_data.gd"'
+		+ ' id="1_room"]\n'
+		+ '\n'
+		+ "[resource]\n"
+		+ 'script = ExtResource("1_room")\n'
+		+ "bounds = Rect2i(2, 3, 4, 5)\n"
+	)
+	file.close()
+
+	var loaded: RoomData = ResourceLoader.load(legacy_path)
+	assert_object(loaded).is_not_null()
+	assert_int(loaded.version).is_equal(1)
+	assert_bool(loaded.geometry_bounds == Rect2i(2, 3, 4, 5)).is_true()
+	assert_bool(loaded.room_bounds == Rect2i()).is_true()
+	assert_int(loaded.markers.size()).is_zero()
+	assert_int(loaded.connections.size()).is_zero()
 
 
 # ── Save failure reporting ───────────────────────────────────────

@@ -22,7 +22,7 @@ func run(context: RoomBakeContext) -> RoomBakeContext:
 		return context
 
 	var data_builder = RoomDataBuilder.new()
-	context.runtime_room_data = data_builder.build(context.semantic_data)
+	context.runtime_room_data = data_builder.build(context.semantic_data, context.room_bounds)
 
 	var runtime_builder = RuntimeRoomBuilder.new()
 	context.runtime_room = runtime_builder.build(context.runtime_room_data)

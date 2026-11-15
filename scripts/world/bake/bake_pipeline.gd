@@ -13,6 +13,8 @@ func _init(custom_steps: Array[BakeStep] = []) -> void:
 			InitSemanticDataStep.new(),
 			BakeSemanticLayerStep.new(registry),
 			PostProcessStep.new(),
+			BakeMarkersStep.new(),
+			BakeConnectionsStep.new(),
 			ValidateStep.new(),
 			BuildRuntimeRoomStep.new(),
 			ApplyDefaultThemeStep.new(),

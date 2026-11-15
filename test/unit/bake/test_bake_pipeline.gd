@@ -9,6 +9,8 @@ const DEFAULT_STEP_IDS: Array[StringName] = [
 	&"init_semantic_data",
 	&"bake_semantic_layer",
 	&"post_process",
+	&"bake_markers",
+	&"bake_connections",
 	&"validate",
 	&"build_runtime_room",
 	&"apply_default_theme",
@@ -71,6 +73,20 @@ func test_default_constructor_creates_expected_steps_in_order() -> void:
 		step_ids.append(step.get_id())
 
 	assert_array(step_ids).contains_exactly(DEFAULT_STEP_IDS)
+
+
+func test_default_pipeline_places_markers_before_connections() -> void:
+	var pipeline := BakePipeline.new()
+	var step_ids: Array[StringName] = []
+	for step in pipeline._steps:
+		step_ids.append(step.get_id())
+
+	var markers_index := step_ids.find(&"bake_markers")
+	var connections_index := step_ids.find(&"bake_connections")
+
+	assert_int(markers_index).is_greater_equal(0)
+	assert_int(connections_index).is_greater_equal(0)
+	assert_int(connections_index - markers_index).is_equal(1)
 
 
 func test_custom_steps_replace_defaults() -> void:
