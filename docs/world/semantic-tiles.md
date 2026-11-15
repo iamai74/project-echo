@@ -209,8 +209,10 @@ The semantic model reserves layers for:
 
 ## MarkerLayer
 
+`MarkerLayer` groups markers by `MarkerType.Value` (`scripts/world/semantic/marker_type.gd`). The enum is append-only so serialized integers keep their meaning.
+
 ```gdscript
-enum MarkerType {
+enum Value {
     ENEMY_SPAWN,
     LOOT_SPAWN,
     CHECKPOINT
@@ -226,9 +228,7 @@ enum VolumeType {
 }
 ```
 
-Runtime marker data is `SemanticMarker { position, properties }`.
-
-The planned replacement is typed `MarkerData`. Its `position` is the top-left grid cell of a one-cell marker square, and its placement point is the midpoint of the lower edge: `(16, 32)` at the current 32px tile size. No marker type has its own anchor, and no pixel position is serialized.
+Marker data is the typed `MarkerData { type, position, content_id, marker_id }` resource. Its `position` is the top-left grid cell of a one-cell marker square, and its placement point is the midpoint of the lower edge: `(16, 32)` at the current 32px tile size. No marker type has its own anchor, and no pixel position is serialized.
 
 Runtime volume data is `SemanticVolume { polygon, properties }`.
 

@@ -7,3 +7,5 @@ var spatial_layers: SpatialLayer = SpatialLayer.new()
 var markers: MarkerLayer = MarkerLayer.new()
 #Data about spesial zones (music. light, fog etc)
 var volumes: VolumeLayer = VolumeLayer.new()
+#Data about room connections (links to other rooms)
+var connections: Array[ConnectionData] = []

@@ -8,35 +8,35 @@ extends GdUnitTestSuite
 
 func test_marker_layer_stores_markers_per_type() -> void:
 	var layer = MarkerLayer.new()
-	var marker = SemanticMarker.new()
+	var marker = MarkerData.new()
 	marker.position = Vector2i(1, 1)
-	
-	layer.add_marker(MarkerLayer.MarkerType.ENEMY_SPAWN, marker)
-	
-	var markers = layer.get_markers(MarkerLayer.MarkerType.ENEMY_SPAWN)
+
+	layer.add_marker(MarkerType.Value.ENEMY_SPAWN, marker)
+
+	var markers = layer.get_markers(MarkerType.Value.ENEMY_SPAWN)
 	assert_int(markers.size()).is_equal(1)
 	assert_vector(markers[0].position).is_equal(Vector2i(1, 1))
 
 
 func test_marker_layer_unknown_type_returns_empty() -> void:
 	var layer = MarkerLayer.new()
-	
-	var markers = layer.get_markers(MarkerLayer.MarkerType.ENEMY_SPAWN)
-	
+
+	var markers = layer.get_markers(MarkerType.Value.ENEMY_SPAWN)
+
 	assert_int(markers.size()).is_zero()
 
 
 func test_marker_layer_appends_duplicate_markers() -> void:
 	var layer = MarkerLayer.new()
-	var marker1 = SemanticMarker.new()
+	var marker1 = MarkerData.new()
 	marker1.position = Vector2i(1, 1)
-	var marker2 = SemanticMarker.new()
+	var marker2 = MarkerData.new()
 	marker2.position = Vector2i(2, 2)
-	
-	layer.add_marker(MarkerLayer.MarkerType.ENEMY_SPAWN, marker1)
-	layer.add_marker(MarkerLayer.MarkerType.ENEMY_SPAWN, marker2)
-	
-	var markers = layer.get_markers(MarkerLayer.MarkerType.ENEMY_SPAWN)
+
+	layer.add_marker(MarkerType.Value.ENEMY_SPAWN, marker1)
+	layer.add_marker(MarkerType.Value.ENEMY_SPAWN, marker2)
+
+	var markers = layer.get_markers(MarkerType.Value.ENEMY_SPAWN)
 	assert_int(markers.size()).is_equal(2)
 
 

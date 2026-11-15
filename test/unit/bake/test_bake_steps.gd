@@ -37,6 +37,37 @@ func test_collect_brushes_step_empty_room() -> void:
 	assert_object(context.brushes).is_not_null()
 
 
+func test_collect_brushes_step_copies_room_bounds_from_room_authoring() -> void:
+	var collector = BrushCollector.new()
+	var step = CollectBrushesStep.new(collector)
+	var context = _make_empty_context()
+
+	var room = auto_free(RoomAuthoring.new())
+	room.room_bounds = RoomBounds.from_origin_and_size(Vector2i(-2, -3), Vector2i(8, 6))
+	context.room = room
+
+	step.run(context)
+
+	assert_int(context.room_bounds.position.x).is_equal(-2)
+	assert_int(context.room_bounds.position.y).is_equal(-3)
+	assert_int(context.room_bounds.size.x).is_equal(8)
+	assert_int(context.room_bounds.size.y).is_equal(6)
+
+
+func test_collect_brushes_step_leaves_bounds_empty_for_plain_node() -> void:
+	var collector = BrushCollector.new()
+	var step = CollectBrushesStep.new(collector)
+	var context = _make_empty_context()
+
+	var room = auto_free(Node2D.new())
+	room.add_child(auto_free(PlatformBrush.new()))
+	context.room = room
+
+	step.run(context)
+
+	assert_bool(context.room_bounds == Rect2i()).is_true()
+
+
 # ── InitSemanticDataStep ──────────────────────────────────────────
 
 func test_init_semantic_data_creates_empty_data() -> void:
