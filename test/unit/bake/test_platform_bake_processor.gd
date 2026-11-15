@@ -122,3 +122,18 @@ func test_no_traits_produces_empty_trait_array() -> void:
 	assert_int(cells.size()).is_equal(1)
 	var cell := cells[0] as SemanticSpatialPlatformCell
 	assert_int(cell.traits.size()).is_zero()
+
+
+func test_disabled_brush_produces_no_cells() -> void:
+	var processor = PlatformBakeProcessor.new()
+	var room_data = SemanticRoomData.new()
+	var brush = auto_free(PlatformBrush.new())
+	brush.position = Vector2(0, 0)
+	brush.size = Vector2i(1, 1)
+	brush.enabled = false
+
+	var brushes: Array[SemanticBrush] = [brush]
+	processor.execute(brushes, room_data)
+
+	var cells = room_data.spatial_layers.get_cells(SpatialLayer.SpatialType.PLATFORM)
+	assert_int(cells.size()).is_zero()

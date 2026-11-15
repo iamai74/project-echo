@@ -4,6 +4,8 @@ extends BakeProcessor
 
 func execute(brushes: Array[SemanticBrush], semantic_room: SemanticRoomData) -> void:
 	for brush in brushes:
+		if not is_brush_enabled(brush):
+			continue
 		_bake_platform(brush as PlatformBrush, semantic_room)
 
 

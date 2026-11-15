@@ -1,5 +1,6 @@
 ## BrushCollection unit tests.
-## Covers: add brushes, get brushes by type, unknown brush ignored, empty collection.
+## Covers: add brushes, get brushes by type, unknown brush ignored,
+## get_all_brushes retains unknown and preserves order, empty collection.
 extends GdUnitTestSuite
 
 
@@ -66,3 +67,46 @@ func test_add_multiple_types_independently() -> void:
 	assert_int(collection.get_brushes(SemanticBrush.BrushType.PLATFORM).size()).is_equal(1)
 	assert_int(collection.get_brushes(SemanticBrush.BrushType.WALL).size()).is_equal(1)
 	assert_int(collection.get_brushes(SemanticBrush.BrushType.BACKGROUND).size()).is_equal(1)
+
+
+func test_get_all_brushes_includes_unknown_brush() -> void:
+	var collection = BrushCollection.new()
+	var platform = auto_free(MockSemanticBrush.new(SemanticBrush.BrushType.PLATFORM))
+	var unknown = auto_free(MockSemanticBrush.new(SemanticBrush.BrushType.UNKNOWN))
+
+	collection.add_brush(platform)
+	collection.add_brush(unknown)
+
+	# get_all_brushes() retains every brush, including UNKNOWN, for authoring validation.
+	var all = collection.get_all_brushes()
+	assert_int(all.size()).is_equal(2)
+	assert_array(all).contains_same(unknown)
+	assert_array(all).contains_same(platform)
+
+	# get_brushes() still drops UNKNOWN brushes.
+	assert_int(collection.get_brushes(SemanticBrush.BrushType.UNKNOWN).size()).is_zero()
+
+
+func test_get_all_brushes_preserves_insertion_order() -> void:
+	var collection = BrushCollection.new()
+	var platform = auto_free(MockSemanticBrush.new(SemanticBrush.BrushType.PLATFORM))
+	var wall = auto_free(MockSemanticBrush.new(SemanticBrush.BrushType.WALL))
+	var unknown = auto_free(MockSemanticBrush.new(SemanticBrush.BrushType.UNKNOWN))
+
+	collection.add_brush(platform)
+	collection.add_brush(wall)
+	collection.add_brush(unknown)
+
+	var all = collection.get_all_brushes()
+	assert_array(all).contains_same_exactly([platform, wall, unknown])
+
+
+func test_get_all_brushes_returns_a_copy() -> void:
+	var collection = BrushCollection.new()
+	var platform = auto_free(MockSemanticBrush.new(SemanticBrush.BrushType.PLATFORM))
+	collection.add_brush(platform)
+
+	var all = collection.get_all_brushes()
+	all.clear()
+
+	assert_int(collection.get_all_brushes().size()).is_equal(1)

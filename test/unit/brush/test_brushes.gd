@@ -29,7 +29,102 @@ func test_background_brush_reports_background_type() -> void:
 
 func test_marker_brush_reports_type() -> void:
 	var brush = auto_free(MarkerBrush.new())
-	assert_int(brush.get_brush_type()).is_equal(SemanticBrush.BrushType.UNKNOWN)
+	assert_int(brush.get_brush_type()).is_equal(SemanticBrush.BrushType.MARKER)
+
+
+func test_marker_brush_default_fields() -> void:
+	var brush = auto_free(MarkerBrush.new())
+	assert_int(brush.marker_type).is_equal(MarkerType.Value.ENEMY_SPAWN)
+	assert_bool(brush.content_id == &"").is_true()
+	assert_bool(brush.marker_id == &"").is_true()
+
+
+# ── MarkerBrush validation ───────────────────────────────────────────
+
+
+func test_marker_brush_valid_when_one_and_aligned() -> void:
+	var brush = auto_free(MarkerBrush.new())
+	brush.position = Vector2.ZERO
+	brush.size = Vector2i(1, 1)
+	assert_bool(brush.is_valid_brush()).is_true()
+
+
+func test_marker_brush_invalid_when_stretched() -> void:
+	var brush = auto_free(MarkerBrush.new())
+	brush.position = Vector2.ZERO
+	brush.size = Vector2i(2, 1)
+	assert_bool(brush.is_valid_brush()).is_false()
+
+
+func test_marker_brush_invalid_when_not_aligned() -> void:
+	var brush = auto_free(MarkerBrush.new())
+	brush.position = Vector2(10, 10)
+	brush.size = Vector2i(1, 1)
+	assert_bool(brush.is_valid_brush()).is_false()
+
+
+# ── MarkerBrush label ────────────────────────────────────────────────
+
+
+func test_marker_brush_label_default() -> void:
+	var brush = auto_free(MarkerBrush.new())
+	assert_str(brush.get_label()).is_equal("ENEMY_SPAWN\n<missing content_id>")
+
+
+func test_marker_brush_label_with_content_id() -> void:
+	var brush = auto_free(MarkerBrush.new())
+	brush.content_id = &"enemy_goblin"
+	assert_str(brush.get_label()).is_equal("ENEMY_SPAWN\nenemy_goblin")
+
+
+func test_marker_brush_label_with_content_and_marker_id() -> void:
+	var brush = auto_free(MarkerBrush.new())
+	brush.content_id = &"enemy_goblin"
+	brush.marker_id = &"spawn_01"
+	assert_str(brush.get_label()).is_equal("ENEMY_SPAWN\nenemy_goblin\nspawn_01")
+
+
+func test_marker_brush_label_loot_type() -> void:
+	var brush = auto_free(MarkerBrush.new())
+	brush.marker_type = MarkerType.Value.LOOT_SPAWN
+	brush.content_id = &"chest_gold"
+	assert_str(brush.get_label()).is_equal("LOOT_SPAWN\nchest_gold")
+
+
+func test_marker_brush_label_out_of_range_type() -> void:
+	var brush = auto_free(MarkerBrush.new())
+	brush.marker_type = 99
+	brush.content_id = &"enemy_goblin"
+	assert_str(brush.get_label()).is_equal("UNKNOWN\nenemy_goblin")
+
+
+# ── MarkerBrush fill and outline colour ──────────────────────────────
+
+
+func test_marker_brush_fill_and_outline_color_per_type() -> void:
+	var brush = auto_free(MarkerBrush.new())
+	brush.marker_type = MarkerType.Value.ENEMY_SPAWN
+	_assert_marker_colors(brush, Color.ORANGE)
+	brush.marker_type = MarkerType.Value.LOOT_SPAWN
+	_assert_marker_colors(brush, Color.GOLD)
+	brush.marker_type = MarkerType.Value.CHECKPOINT
+	_assert_marker_colors(brush, Color.CYAN)
+
+
+func test_marker_brush_fill_and_outline_fall_back_to_white() -> void:
+	var brush = auto_free(MarkerBrush.new())
+	brush.marker_type = 99
+	_assert_marker_colors(brush, Color.WHITE)
+
+
+func _assert_marker_colors(brush: MarkerBrush, color: Color) -> void:
+	var fill: Color = brush.get_fill_color()
+	assert_float(fill.r).is_equal(color.r)
+	assert_float(fill.g).is_equal(color.g)
+	assert_float(fill.b).is_equal(color.b)
+	assert_bool(fill.a > 0.0 and fill.a < 1.0).is_true()
+	assert_that(brush.get_outline_color()).is_equal(color)
+	assert_float(brush.get_outline_color().a).is_equal(1.0)
 
 
 func test_volume_brush_reports_type() -> void:
@@ -371,3 +466,24 @@ func test_is_valid_brush(
 	var brush = auto_free(SemanticBrush.new())
 	brush.position = initial_position
 	assert_bool(brush.is_valid_brush()).is_equal(expected_valid)
+
+
+# ── is_grid_aligned (public, delegates into is_valid_brush) ──────────
+
+
+func test_is_grid_aligned(
+	initial_position: Vector2,
+	expected_aligned: bool,
+	_test_parameters := [
+		[Vector2(64, 96), true],
+		[Vector2(10, 10), false],
+		[Vector2.ZERO, true],
+		[Vector2(TILE_SIZE, TILE_SIZE * 3), true],
+		[Vector2(TILE_SIZE * 0.5, TILE_SIZE), false],
+		[Vector2(-10, 32), false],
+		[Vector2(-TILE_SIZE, -TILE_SIZE * 2), true]
+	]
+) -> void:
+	var brush = auto_free(SemanticBrush.new())
+	brush.position = initial_position
+	assert_bool(brush.is_grid_aligned()).is_equal(expected_aligned)

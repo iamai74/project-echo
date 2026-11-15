@@ -15,6 +15,27 @@ func test_collects_brush_at_root_node() -> void:
 	assert_int(collection.get_brushes(SemanticBrush.BrushType.PLATFORM).size()).is_equal(1)
 
 
+func test_collects_connection_point_brush() -> void:
+	var root = auto_free(ConnectionPointBrush.new())
+	root.position = Vector2(0, 0)
+	root.size = Vector2i(3, 1)
+
+	var collector = BrushCollector.new()
+	var collection = collector.collect(root)
+
+	assert_int(collection.get_brushes(SemanticBrush.BrushType.CONNECTION_POINT).size()).is_equal(1)
+
+
+func test_collects_marker_brush() -> void:
+	var root = auto_free(MarkerBrush.new())
+	root.position = Vector2(0, 0)
+
+	var collector = BrushCollector.new()
+	var collection = collector.collect(root)
+
+	assert_int(collection.get_brushes(SemanticBrush.BrushType.MARKER).size()).is_equal(1)
+
+
 func test_recursively_collects_nested_brushes() -> void:
 	var root = auto_free(Node2D.new())
 	var child = Node2D.new()
@@ -64,7 +85,7 @@ func test_preserves_collection_when_no_brushes_exist() -> void:
 	assert_int(collection.get_brushes(SemanticBrush.BrushType.BACKGROUND).size()).is_zero()
 
 
-func test_does_not_collect_disabled_brushes() -> void:
+func test_collects_disabled_brushes() -> void:
 	var root = auto_free(Node2D.new())
 	var brush = PlatformBrush.new()
 	brush.position = Vector2(0, 0)

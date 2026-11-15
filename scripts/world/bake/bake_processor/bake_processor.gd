@@ -6,3 +6,7 @@ signal issue_found(issue: BakeIssue)
 
 func execute(brushes: Array[SemanticBrush], semantic_room: SemanticRoomData) -> void:
 	pass
+
+
+func is_brush_enabled(brush: SemanticBrush) -> bool:
+	return brush.enabled

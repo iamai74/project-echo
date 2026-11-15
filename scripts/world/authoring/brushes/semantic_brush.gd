@@ -8,9 +8,9 @@ enum BrushType {
 	PLATFORM,
 	WALL,
 	BACKGROUND,
-	#marker
-	ENEMY_SPAWN,
-	LOOT_SPAWN,
+	#point and socket
+	MARKER,
+	CONNECTION_POINT,
 	#volume
 }
 
@@ -113,9 +113,13 @@ func _draw_label(rect: Rect2) -> void:
 	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, get_label_color())
 
 
-func is_valid_brush() -> bool:
+func is_grid_aligned() -> bool:
 	var tile_size := World.settings.tile_size
 	return int(position.x) % tile_size == 0 and int(position.y) % tile_size == 0
+
+
+func is_valid_brush() -> bool:
+	return is_grid_aligned()
 
 
 func _resolve_outline_color() -> Color:

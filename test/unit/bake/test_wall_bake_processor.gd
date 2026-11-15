@@ -56,3 +56,17 @@ func test_cells_added_to_wall_layer_only() -> void:
 	assert_int(room_data.spatial_layers.get_cells(SpatialLayer.SpatialType.WALL).size()).is_equal(1)
 	assert_int(room_data.spatial_layers.get_cells(SpatialLayer.SpatialType.PLATFORM).size()).is_zero()
 	assert_int(room_data.spatial_layers.get_cells(SpatialLayer.SpatialType.BACKGROUND).size()).is_zero()
+
+
+func test_disabled_brush_produces_no_cells() -> void:
+	var processor = WallBakeProcessor.new()
+	var room_data = SemanticRoomData.new()
+	var brush = auto_free(WallBrush.new())
+	brush.position = Vector2(0, 0)
+	brush.size = Vector2i(1, 1)
+	brush.enabled = false
+
+	var brushes: Array[SemanticBrush] = [brush]
+	processor.execute(brushes, room_data)
+
+	assert_int(room_data.spatial_layers.get_cells(SpatialLayer.SpatialType.WALL).size()).is_zero()
