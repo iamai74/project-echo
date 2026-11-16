@@ -28,10 +28,10 @@ Designer
    ▼
 Authored Room Scene
    │
-   ├── Room root with logical bounds (planned)
+   ├── Room root with logical bounds (implemented)
    ├── Semantic brushes
-   ├── Connection authoring (planned)
-   └── Marker authoring (planned)
+   ├── Connection authoring    (implemented)
+   └── Marker authoring        (implemented)
    │
    ▼
 Bake Pipeline
@@ -92,11 +92,11 @@ An authored room scene may contain:
 
 ---
 
-# Logical Room Bounds (planned)
+# Logical Room Bounds (implemented)
 
-Authored rooms have no explicit playable rectangle today. Room extent is currently derived from platform and wall cells during baking.
+Authored rooms use an explicit playable rectangle via `RoomAuthoring.room_bounds`. Room extent is no longer derived from platform and wall cells.
 
-The planned authoring contract is a `RoomAuthoring` root:
+The authoring contract is a `RoomAuthoring` root:
 
 ```gdscript
 @tool
@@ -108,7 +108,7 @@ extends Node2D
 
 `room_bounds` is expressed in grid cells and describes the full playable rectangle, including empty air. It has an origin as well as a size because authored rooms may use negative grid coordinates.
 
-Planned data ownership:
+Data ownership:
 
 | Location | Meaning |
 |----------|---------|
@@ -116,7 +116,7 @@ Planned data ownership:
 | `RoomData.room_bounds` | Baked copy of the logical rectangle |
 | `RoomData.geometry_bounds` | Derived extent of platform and wall cells |
 
-Baking must not infer logical bounds from brushes, markers, connections or theme assets. The `RoomAuthoring` root and both `RoomData` fields are not implemented yet.
+Baking must not infer logical bounds from brushes, markers, connections or theme assets. The `RoomAuthoring` root and both `RoomData` fields are implemented.
 
 ---
 
@@ -124,13 +124,13 @@ Baking must not infer logical bounds from brushes, markers, connections or theme
 
 ```text
 Room Scene
-├── RoomAuthoring root         (planned)
+├── RoomAuthoring root         (implemented)
 ├── PlatformBrush(es)
 ├── WallBrush(es)
 ├── BackgroundBrush(es)
-├── Marker brushes            (data model exists; authoring incomplete)
+├── Marker brushes            (implemented)
 ├── Volume brushes            (data model exists; authoring incomplete)
-└── Connection authoring      (planned)
+└── Connection authoring      (implemented)
 ```
 
 All brushes are discovered recursively by `BrushCollector`. Brushes must inherit from `SemanticBrush` and return a non-`UNKNOWN` brush type to be collected.
@@ -153,8 +153,8 @@ enum BrushType {
     PLATFORM,
     WALL,
     BACKGROUND,
-    ENEMY_SPAWN,
-    LOOT_SPAWN,
+    MARKER,
+    CONNECTION_POINT,
 }
 ```
 
@@ -162,7 +162,7 @@ Common properties:
 
 | Property | Description |
 |----------|-------------|
-| `enabled` | Intended as a uniform skip for baking and validation; disabled brushes are still collected (not yet enforced by spatial processors) |
+| `enabled` | Uniform skip for baking and validation; disabled brushes are still collected but skipped by every processor and validator |
 | `size` | Grid size in cells |
 | `priority` | Reserved for overlap resolution |
 
@@ -193,7 +193,7 @@ Brushes convert their pixel position and size into grid coordinates using `World
 
 ## Marker and Volume Brushes
 
-`MarkerBrush` and `VolumeBrush` exist as base classes. Concrete brush types and bake processors for markers/volumes are not registered yet.
+`MarkerBrush` is implemented and baked by `BakeMarkersStep`. `VolumeBrush` remains a placeholder; volume authoring is not implemented.
 
 ---
 
@@ -307,7 +307,7 @@ Use platform traits where appropriate.
 
 ## 3. Author gameplay data
 
-Marker, volume and connection authoring are still in progress. Do not assume those brushes are baked yet.
+Marker and connection authoring are implemented and baked. Volume authoring is still in progress.
 
 ## 4. Bake the room
 
@@ -333,9 +333,9 @@ See [themes.md](themes.md).
 # Current Limitations
 
 - There is no editor command or batch bake UI yet; bake is currently driven from debug/test scripts.
-- There is no `RoomAuthoring` root and no authored logical room bounds. Current room extent is derived from platform and wall cells.
-- Connection authoring and validation are not implemented.
-- Marker and volume authoring is not implemented.
+- Logical room bounds are authored through the `RoomAuthoring` root.
+- Connection authoring and validation are implemented.
+- Marker authoring and baking are implemented; volume authoring is not.
 - Room metadata beyond semantic layout is not implemented.
 - The runtime scene contains a single `TileMapLayer`; entities are not spawned during bake.
 

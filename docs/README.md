@@ -8,7 +8,7 @@ This documentation is the project's reference for architecture, gameplay systems
 
 ## Project Status
 
-> **Status:** Early prototype
+> **Status:** Early prototype - marker and connection authoring/baking implemented
 > **Engine:** Godot 4.x
 > **Language:** GDScript
 
@@ -89,7 +89,7 @@ docs/
 | [`world-authoring.md`](world/world-authoring.md) | Brush-based room authoring workflow |
 | [`bake-pipeline.md`](world/bake-pipeline.md) | Room bake steps, processors and validators |
 | [`themes.md`](world/themes.md) | Theme building and theme application |
-| [`connection-points.md`](world/connection-points.md) | Room connection data and planned usage |
+| [`connection-points.md`](world/connection-points.md) | Room connection data and implemented usage |
 | [`world-generation.md`](world/world-generation.md) | Planned procedural world assembly |
 
 ---
@@ -143,7 +143,7 @@ Implemented systems:
 
 In progress or partially implemented:
 
-- marker and volume authoring/baking;
+- marker authoring and baking (implemented); volume authoring (planned);
 - enemy detection-to-behaviour wiring for the base `Enemy`;
 - player dash and jump-attack states;
 - room database and world generation.
@@ -153,7 +153,6 @@ Planned:
 - procedural world assembly;
 - biomes and room selection;
 - world streaming;
-- room connection authoring and validation.
 
 ---
 

@@ -175,6 +175,8 @@ func _make_pipeline_without_save() -> BakePipeline:
 		InitSemanticDataStep.new(),
 		BakeSemanticLayerStep.new(registry),
 		PostProcessStep.new(),
+		BakeMarkersStep.new(),
+		BakeConnectionsStep.new(),
 		ValidateStep.new(),
 		BuildRuntimeRoomStep.new(),
 		ApplyDefaultThemeStep.new(),
@@ -296,6 +298,7 @@ func test_saved_runtime_room_loads_with_expected_structure() -> void:
 		load("res://test/fixtures/test_room_scene.tscn")
 		.instantiate()
 	)
+	room.room_bounds = Rect2i(0, 0, 2, 2)
 
 	var brush = PlatformBrush.new()
 	brush.position = Vector2(0, 0)
@@ -318,6 +321,8 @@ func test_saved_runtime_room_loads_with_expected_structure() -> void:
 		InitSemanticDataStep.new(),
 		BakeSemanticLayerStep.new(registry),
 		PostProcessStep.new(),
+		BakeMarkersStep.new(),
+		BakeConnectionsStep.new(),
 		ValidateStep.new(),
 		BuildRuntimeRoomStep.new(),
 		ApplyDefaultThemeStep.new(),
@@ -356,8 +361,9 @@ func _make_empty_context() -> RoomBakeContext:
 func _make_bake_context_with_platform() -> RoomBakeContext:
 	var context = _make_empty_context()
 
-	# Create a room node with a single platform brush (1×1 produces one cell)
-	var room = Node2D.new()
+	# Create an authored room with a single platform brush (1×1 produces one cell).
+	var room = RoomAuthoring.new()
+	room.room_bounds = Rect2i(-1, -1, 3, 3)
 	var brush = PlatformBrush.new()
 	brush.position = Vector2(0, 0)
 	brush.size = Vector2i.ONE
@@ -373,7 +379,8 @@ func _make_bake_context_with_platform() -> RoomBakeContext:
 func _make_bake_context_with_wall() -> RoomBakeContext:
 	var context = _make_empty_context()
 
-	var room = Node2D.new()
+	var room = RoomAuthoring.new()
+	room.room_bounds = Rect2i(-1, -1, 3, 3)
 	var brush = WallBrush.new()
 	brush.position = Vector2(0, 0)
 	brush.size = Vector2i.ONE

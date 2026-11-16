@@ -1,6 +1,15 @@
 ## 2026-11-14
 
-- Locked the marker and connection-point room contracts in `docs/architecture/marker-and-connection-points-implementation-plan.md`.
+- Marker and connection point pipeline fully implemented:
+  - `room-data.md`: version 2 schema with `room_bounds`, `geometry_bounds`, `markers`, `connections`; v1 compatibility documented
+  - `connection-points.md`: authoring with `ConnectionPointBrush`, baking with `BakeConnectionsStep`, validation with three new validators
+  - `bake-pipeline.md`: 10 steps including `bake_markers` and `bake_connections`; 7 validators including the three new ones
+  - `world-authoring.md`: both `MarkerBrush` and `ConnectionPointBrush` listed as implemented
+  - `semantic-tiles.md`: marker layer uses `MarkerData` and `MarkerType.Value`
+  - `resources-catalog.md`: added `MarkerData`, `MarkerType`, `ConnectionSide`, `RoomBounds`, `GeometryBounds` entries
+  - `README.md`: status updated
+  - `CHANGELOG.md`: this entry
+  - `implementation plan`: status changed from `Proposal` to `Implemented`
 - Specified a planned `@tool RoomAuthoring` root that owns `room_bounds: Rect2i` in grid cells as the only logical room-size source.
 - Separated the planned `RoomData.room_bounds` (logical playable rectangle) from `RoomData.geometry_bounds` (platform-plus-wall extent); the legacy `bounds` field is planned to keep geometry semantics through read-only version 1 loading.
 - Defined the marker placement point as the lower-edge midpoint of its top-left cell at `(16, 32)` for a 32px tile.

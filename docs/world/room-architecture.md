@@ -32,7 +32,7 @@ The authored scene is the designer-facing source of truth. It contains:
 - semantic brushes for platforms, walls and background;
 - authoring-only nodes;
 - editor visualization;
-- planned `RoomAuthoring` root carrying explicit logical room bounds.
+- `RoomAuthoring` root carrying explicit logical room bounds (implemented).
 
 Semantic brushes are `@tool` nodes. They describe intent and draw editor previews, but they do not bake rooms or construct runtime content.
 
@@ -83,7 +83,7 @@ A room is **not** responsible for:
 
 ---
 
-# Logical and Geometry Bounds (planned)
+# Logical and Geometry Bounds (implemented)
 
 A room needs two distinct rectangles. They have different owners and must not be conflated.
 
@@ -126,7 +126,7 @@ Rules:
 - geometry checks and diagnostics may use geometry bounds;
 - neither rectangle belongs to a theme.
 
-The current implementation has a single geometry-derived `RoomData.bounds`. The `RoomAuthoring` root and the `RoomData.room_bounds` / `RoomData.geometry_bounds` split are planned, not implemented.
+`RoomData` now stores both `room_bounds` (authored logical rectangle) and `geometry_bounds` (derived extent). The `RoomAuthoring` root owns `room_bounds`; `GeometryBounds.compute()` derives the geometry extent. Legacy version 1 `bounds` loads as `geometry_bounds`.
 
 ---
 
@@ -253,9 +253,9 @@ This provides:
 # Current Limitations
 
 - The room database and world generator are not implemented.
-- Rooms have no explicit logical bounds. `RoomData.bounds` is currently derived from platform and wall cells; the planned `RoomAuthoring.room_bounds` and `RoomData.room_bounds` / `RoomData.geometry_bounds` split are not implemented.
-- Connections are represented by `ConnectionData`, but no authoring or bake path populates `RoomData.connections` yet.
-- Marker and volume layers are not baked.
+- Logical room bounds are authored through `RoomAuthoring.room_bounds` and stored as `RoomData.room_bounds`; `RoomData.geometry_bounds` is derived from platform and wall cells.
+- Connections are authored as `ConnectionPointBrush` nodes and baked into `RoomData.connections` by `BakeConnectionsStep`.
+- The marker layer is baked into `RoomData.markers`; the volume layer is not baked.
 - Runtime room construction currently creates a single `TileMapLayer` named `Tiles`.
 - The default theme is applied during bake; biome-driven theme selection is planned.
 

@@ -129,7 +129,7 @@ Components are owned by an Actor (or by its weapon node, for hitboxes).
 
 A `Resource` describing a room connection: `id`, `side`, `position` and `size`.
 
-The baked representation of the architectural ConnectionPoint concept. `RoomData.connections` is currently always empty because no authoring or baking path exists.
+The baked representation of the architectural ConnectionPoint concept. `RoomData.connections` is populated by `BakeConnectionsStep` from authored `ConnectionPointBrush` nodes.
 
 ## ConnectionPoint
 

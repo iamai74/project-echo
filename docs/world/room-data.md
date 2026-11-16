@@ -47,13 +47,15 @@ The authored room scene remains the source of truth. Baked files should be regen
 class_name RoomData
 extends Resource
 
-@export var version: int = 1
-@export var bounds: Rect2i
+@export var version: int = 2
+@export var room_bounds: Rect2i
+@export var geometry_bounds: Rect2i
 
 @export var platforms: Array[SemanticCell]
 @export var walls: Array[SemanticCell]
 @export var background: Array[BackgroundCell]
 
+@export var markers: Array[MarkerData]
 @export var connections: Array[ConnectionData]
 ```
 
@@ -61,23 +63,26 @@ extends Resource
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `version` | `int` | Format version, currently `1` |
-| `bounds` | `Rect2i` | Bounding rectangle computed from platform and wall cells |
+| `version` | `int` | Format version, currently `2` |
+| `room_bounds` | `Rect2i` | Authored logical playable rectangle; empty in version 1 resources |
+| `geometry_bounds` | `Rect2i` | Derived extent of platform and wall cells; legacy `bounds` loads as `geometry_bounds` |
 | `platforms` | `Array[SemanticCell]` | Platform cells |
 | `walls` | `Array[SemanticCell]` | Wall cells |
 | `background` | `Array[BackgroundCell]` | Background cells |
-| `connections` | `Array[ConnectionData]` | Room connection data; currently empty |
+| `markers` | `Array[MarkerData]` | Authored marker placements |
+| `connections` | `Array[ConnectionData]` | Room connection data |
 
-## Planned schema change
+## Version 1 compatibility
 
-The marker and connection-point plan separates the two rectangle meanings currently collapsed into `bounds`:
+Version 1 `RoomData` resources (with `version: 1` and legacy `bounds` field) remain read-only compatible. On load:
 
-- `room_bounds` — the explicitly authored logical playable rectangle;
-- `geometry_bounds` — the platform-plus-wall extent currently stored in `bounds`.
+- `bounds` → `geometry_bounds` (the legacy bounding extent)
+- `room_bounds` → empty `Rect2i(0, 0, 0, 0)`
+- `markers` → empty array
+- `connections` → empty array
+- `version` stays `1`; does not auto-upgrade
 
-The planned version 2 schema also adds `markers` and bumps `version` to `2`. Version 1 resources remain read-only compatible: the legacy `bounds` value loads as `geometry_bounds`, `room_bounds` stays empty and nothing is migrated during load.
-
-The implementation still exposes version 1 and `bounds` until that plan is executed. Do not hand-edit generated resources.
+New resources should set `version: 2` and populate `room_bounds` and `geometry_bounds` explicitly. Do not hand-edit generated resources.
 
 ---
 
@@ -125,15 +130,13 @@ Background cells currently carry only a position.
 class_name ConnectionData
 extends Resource
 
-enum Side { TOP, BOTTOM, RIGHT, LEFT }
-
 @export var id: StringName
-@export var side: Side
+@export var side: ConnectionSide.Value
 @export var position: Vector2i
 @export var size: Vector2i
 ```
 
-The data type exists and is part of `RoomData`, but connection authoring, baking and validation are not implemented yet.
+Connection authoring, baking and validation are implemented; see [connection-points.md](connection-points.md).
 
 See [connection-points.md](connection-points.md).
 
@@ -146,8 +149,8 @@ See [connection-points.md](connection-points.md).
 - platform cells come from the `PLATFORM` spatial layer;
 - wall cells come from the `WALL` spatial layer;
 - background cells come from the `BACKGROUND` spatial layer;
-- `bounds` is computed from platform and wall cells only;
-- `connections` is left empty.
+- `room_bounds` is copied from the authored `RoomAuthoring.room_bounds`; `geometry_bounds` is computed from platform and wall cells only;
+- `connections` are copied from `context.connections` (produced by `BakeConnectionsStep`).
 
 The builder is invoked by `BuildRuntimeRoomStep` after validation and post-processing.
 

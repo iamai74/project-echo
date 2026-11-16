@@ -1,6 +1,6 @@
 # Connection Points
 
-> **Status:** In Progress
+> **Status:** Implemented
 >
 > **Last Updated:** 2026-11-14
 >
@@ -38,28 +38,42 @@ The baked data model exists:
 class_name ConnectionData
 extends Resource
 
-enum Side { TOP, BOTTOM, RIGHT, LEFT }
-
 @export var id: StringName
-@export var side: Side
+@export var side: ConnectionSide.Value
 @export var position: Vector2i
 @export var size: Vector2i
 ```
 
 `RoomData.connections` is typed as `Array[ConnectionData]`.
 
-The current bake pipeline always produces an empty connection list. There is not yet:
+## Authoring
 
-- a connection authoring brush or marker;
-- collection of connections during baking;
-- validation of connection placement;
-- world-generation consumer.
+Connection points are authored using `ConnectionPointBrush` in the room scene. Designers place connection point brushes on room exits to designate where rooms may connect.
 
-`ConnectionData` therefore defines the intended baked representation, not a completed authoring workflow.
+Connection points must have:
+
+- **explicit, non-empty ID** (`StringName`) - required, no bake-time generation;
+- **room-local side** (`ConnectionSide`) - which room side the connection belongs to;
+- **position** - in the room local grid;
+- **size** - the opening size (`Vector2i`).
+
+## Baking
+
+The bake pipeline collects `ConnectionPointBrush` instances and produces `ConnectionData` entries. The bake copies the authored ID verbatim and never generates, rewrites or falls back to one.
+
+## Validation
+
+Three new validators operate on connection points:
+
+1. `ConnectionPointValidator` - validates connection geometry, boundary, orientation, emptiness, ID uniqueness and overlap.
+
+Connection point validation errors remain in the report and should be fixed at the authoring source; they do not automatically abort the pipeline unless escalated to fatal.
+
+---
 
 ## Planned identity contract
 
-The authoring and bake path is planned to require:
+The authoring and bake path requires:
 
 - an explicit, non-empty ID on every connection point;
 - room-local IDs that stay stable when other connections are added, removed or reordered;

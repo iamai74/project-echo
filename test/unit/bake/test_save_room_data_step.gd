@@ -1,6 +1,7 @@
 ## SaveRoomDataStep unit tests.
-## Covers: null runtime data error, successful save, save failure reporting,
-## filename and directory derivation.
+## Covers: null runtime data error, successful save with marker and connection
+## round-trip, runtime scene structure, version 1 compatibility, save failure
+## reporting, filename and directory derivation.
 ## All saves go to a temporary user:// directory and are cleaned up afterwards.
 extends GdUnitTestSuite
 
@@ -101,7 +102,6 @@ func test_save_room_data_step_saves_data_successfully() -> void:
 
 	var context = _make_context_with_data()
 	context.room = room
-	context.runtime_room = auto_free(Node2D.new())
 
 	# Populate the data the step serializes so the reload can assert real content.
 	var platform_cell := SemanticCell.new()
@@ -127,6 +127,10 @@ func test_save_room_data_step_saves_data_successfully() -> void:
 	connection.position = Vector2i(4, 5)
 	connection.size = Vector2i(2, 1)
 	context.runtime_room_data.connections.append(connection)
+
+	# Save a real runtime room built from the populating data so the reloaded
+	# scene can prove its RuntimeRoom > Semantic > Tiles structure.
+	context.runtime_room = auto_free(RuntimeRoomBuilder.new().build(context.runtime_room_data))
 
 	step.run(context)
 
@@ -176,15 +180,25 @@ func test_save_room_data_step_saves_data_successfully() -> void:
 	var data_text := FileAccess.get_file_as_string(data_path)
 	assert_bool(data_text.contains("\nbounds = ")).is_false()
 
-	# The runtime scene must be saved and loadable. Its Semantic/Tiles structure
-	# is verified by the integration suite
-	# (test_saved_runtime_room_loads_with_expected_structure).
+	# The saved runtime scene must load and keep the RuntimeRoom > Semantic > Tiles
+	# structure. Markers and connections are data, never runtime nodes.
 	var runtime_scene = load(runtime_path)
 	assert_object(runtime_scene).is_not_null()
+	var runtime_room = auto_free(runtime_scene.instantiate())
+	assert_str(runtime_room.name).is_equal("RuntimeRoom")
+	assert_int(runtime_room.get_child_count()).is_equal(1)
+	var semantic = runtime_room.get_node_or_null("Semantic")
+	assert_object(semantic).is_not_null()
+	assert_int(semantic.get_child_count()).is_equal(1)
+	var tiles = semantic.get_node_or_null("Tiles")
+	assert_object(tiles).is_not_null()
+	assert_object(tiles).is_class("TileMapLayer")
 
 
 func test_save_room_data_step_skips_scene_save_when_runtime_room_null() -> void:
 	var step = SaveRoomDataStep.new()
+	# Keep saves inside the temporary test directory, never in the repository.
+	step.output_root = TEMP_ROOT
 	# Use the test fixture instead of the debug scene
 	var room = auto_free(
 		load("res://test/fixtures/test_room_scene.tscn")
@@ -203,32 +217,30 @@ func test_save_room_data_step_skips_scene_save_when_runtime_room_null() -> void:
 
 # ── Version 1 compatibility ──────────────────────────────────────
 
-func test_legacy_version1_resource_loads_with_geometry_bounds() -> void:
+func test_legacy_version1_bounds_property_populates_geometry_bounds() -> void:
 	# A version 1 artifact serialized only the geometry-derived `bounds` property
-	# and no version 2 fields. Loading it must capture the legacy property without
-	# fabricating logical room bounds.
-	var legacy_path := TEMP_ROOT.path_join("legacy_room_data.tres")
-	var file := FileAccess.open(legacy_path, FileAccess.WRITE)
-	assert_object(file).is_not_null()
-	file.store_string(
-		'[gd_resource type="Resource" script_class="RoomData" format=3]\n'
-		+ '\n'
-		+ '[ext_resource type="Script" path="res://scripts/world/bake/semantic_data/room_data.gd"'
-		+ ' id="1_room"]\n'
-		+ '\n'
-		+ "[resource]\n"
-		+ 'script = ExtResource("1_room")\n'
-		+ "bounds = Rect2i(2, 3, 4, 5)\n"
-	)
-	file.close()
+	# and none of the version 2 fields. The legacy property path is exercised on
+	# a resource built in code: no checked-in legacy fixture is required.
+	var legacy: RoomData = auto_free(RoomData.new())
+	legacy.set(&"bounds", Rect2i(2, 3, 4, 5))
 
-	var loaded: RoomData = ResourceLoader.load(legacy_path)
-	assert_object(loaded).is_not_null()
-	assert_int(loaded.version).is_equal(1)
-	assert_bool(loaded.geometry_bounds == Rect2i(2, 3, 4, 5)).is_true()
-	assert_bool(loaded.room_bounds == Rect2i()).is_true()
-	assert_int(loaded.markers.size()).is_zero()
-	assert_int(loaded.connections.size()).is_zero()
+	assert_int(legacy.version).is_equal(1)
+	assert_bool(legacy.geometry_bounds == Rect2i(2, 3, 4, 5)).is_true()
+	assert_bool(legacy.room_bounds == Rect2i()).is_true()
+	assert_int(legacy.markers.size()).is_zero()
+	assert_int(legacy.connections.size()).is_zero()
+
+	# Legacy data still produces a loadable runtime scene with the expected
+	# structure; the runtime path does not require version 2 fields.
+	var runtime_room = auto_free(RuntimeRoomBuilder.new().build(legacy))
+	assert_str(runtime_room.name).is_equal("RuntimeRoom")
+	assert_int(runtime_room.get_child_count()).is_equal(1)
+	var semantic = runtime_room.get_node_or_null("Semantic")
+	assert_object(semantic).is_not_null()
+	assert_int(semantic.get_child_count()).is_equal(1)
+	var tiles = semantic.get_node_or_null("Tiles")
+	assert_object(tiles).is_not_null()
+	assert_object(tiles).is_class("TileMapLayer")
 
 
 # ── Save failure reporting ───────────────────────────────────────

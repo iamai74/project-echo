@@ -42,6 +42,7 @@ Current semantic authoring data is held in `SemanticRoomData`:
 SemanticRoomData
 ├── spatial_layers : SpatialLayer
 ├── markers        : MarkerLayer
+├── connections    : Array[ConnectionData]
 └── volumes        : VolumeLayer
 ```
 
@@ -176,7 +177,7 @@ Common properties:
 
 The brush converts its pixel position and size into grid coordinates using `World.settings.tile_size`.
 
-The marker and connection-point plan locks one disabled-brush rule: a disabled brush is still collected and remains visible in the authoring scene, but every bake processor and validator skips it. The existing spatial processors do not apply that rule yet.
+A disabled brush is still collected and remains visible in the authoring scene, but every bake processor and validator skips it.
 
 ## Brush types
 
@@ -186,8 +187,8 @@ enum BrushType {
     PLATFORM,
     WALL,
     BACKGROUND,
-    ENEMY_SPAWN,
-    LOOT_SPAWN,
+    MARKER,
+    CONNECTION_POINT,
 }
 ```
 
@@ -197,7 +198,7 @@ Implemented brushes:
 - `WallBrush`;
 - `BackgroundBrush`.
 
-`MarkerBrush` and `VolumeBrush` exist as base classes, but no concrete marker/volume brushes or bake processors are registered yet.
+`MarkerBrush` is implemented and baked by `BakeMarkersStep`. `VolumeBrush` remains a placeholder.
 
 Brushes are `@tool` nodes for editor visualization only. They do not bake, construct runtime tiles or apply themes.
 
@@ -230,9 +231,19 @@ enum VolumeType {
 
 Marker data is the typed `MarkerData { type, position, content_id, marker_id }` resource. Its `position` is the top-left grid cell of a one-cell marker square, and its placement point is the midpoint of the lower edge: `(16, 32)` at the current 32px tile size. No marker type has its own anchor, and no pixel position is serialized.
 
+The marker layer uses `MarkerType.Value` (`scripts/world/semantic/marker_type.gd`). The enum is append-only so serialized integers keep their meaning.
+
+```gdscript
+enum Value {
+    ENEMY_SPAWN,
+    LOOT_SPAWN,
+    CHECKPOINT
+}
+```
+
 Runtime volume data is `SemanticVolume { polygon, properties }`.
 
-Neither layer is currently baked into `RoomData`.
+The marker layer is baked into `RoomData.markers`; the volume layer is not baked.
 
 ---
 
@@ -265,8 +276,8 @@ RoomData
 
 # Current Limitations
 
-- Only spatial `PLATFORM`, `WALL` and `BACKGROUND` data is baked.
-- Marker and volume data have model types but no authoring/bake path.
+- Spatial `PLATFORM`, `WALL` and `BACKGROUND` data and marker data are baked; volume data is not.
+- Volume data has a model type but no authoring/bake path. Marker data is baked.
 - Platform traits are not yet used at runtime.
 - Semantic data does not yet describe entities, hazards or scripted events.
 

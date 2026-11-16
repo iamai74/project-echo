@@ -32,6 +32,8 @@ CollectBrushesStep
 → InitSemanticDataStep
 → BakeSemanticLayerStep
 → PostProcessStep
+→ BakeMarkersStep
+→ BakeConnectionsStep
 → ValidateStep
 → BuildRuntimeRoomStep
 → ApplyDefaultThemeStep
@@ -113,7 +115,7 @@ Processor behavior:
 - `WallBakeProcessor` creates one `SemanticSpatialTopologyCell` per grid cell.
 - `BackgroundBakeProcessor` creates one `SemanticSpatialCell` per grid cell.
 
-Marker and volume brush types are declared but no processors are registered for them.
+Marker brushes are baked by `BakeMarkersStep`; volume brushes remain unregistered.
 
 ---
 
@@ -141,7 +143,10 @@ Runs the validators in order:
 1. `DuplicateCellValidator`;
 2. `SemanticOverlapValidator`;
 3. `TopologyValidator`;
-4. `SemanticCellValidator`.
+4. `SemanticCellValidator`;
+5. `AuthoringBrushValidator`;
+6. `MarkerPlacementValidator`;
+7. `ConnectionPointValidator`.
 
 ## Validators
 
@@ -178,6 +183,26 @@ Validation does not repair invalid data. Invalid rooms should fail the bake.
 
 ---
 
+### AuthoringBrushValidator
+
+Checks brush grid alignment and rejects unsupported brush types. Reports issues for non-grid-aligned brushes and brushes that report `UNKNOWN`.
+
+---
+
+### MarkerPlacementValidator
+
+Checks marker type validity, non-empty `content_id`, unique `marker_id`, position inside logical room bounds, and that the marker does not overlap a wall cell.
+
+---
+
+### ConnectionPointValidator
+
+Checks connection side validity, size, orientation, room-bounds placement, opening clearance from platform and wall cells, non-empty and unique IDs, and overlap between connection rectangles.
+
+Validation errors do not automatically abort unless escalated to fatal. They remain in the report and should be fixed at the authoring source.
+
+---
+
 ## 6. BuildRuntimeRoomStep
 
 **ID:** `build_runtime_room`
@@ -188,15 +213,15 @@ Runs `RoomDataBuilder` and `RuntimeRoomBuilder`.
 
 - copies platform and wall cells into `RoomData`;
 - converts background cells to `BackgroundCell`;
-- computes `bounds` from platform and wall cells;
-- leaves `connections` empty.
+- copies `room_bounds` from the context and computes `geometry_bounds` from platform and wall cells;
+- copies `markers` and `connections` from `context.semantic_data`.
 
 `RuntimeRoomBuilder` creates:
 
 ```text
 RuntimeRoom (Node2D)
-└── Semantic (Node2D)
-    └── Tiles (TileMapLayer)
+├── Semantic (Node2D)
+│   └── Tiles (TileMapLayer)
 ```
 
 It does not create tiles.
@@ -242,6 +267,26 @@ res://scenes/rooms/<room_basename>/<room_basename>_runtime.tscn
 The directory is derived from the authored room scene's file basename.
 
 The runtime room is packed as a `PackedScene` and saved as a project asset.
+
+---
+
+## 9. BakeMarkersStep
+
+**ID:** `bake_markers`
+
+Collects `MarkerBrush` instances from the brushes and produces marker data. Each marker is baked as `MarkerData` with its type and position.
+
+Output: `context.markers`.
+
+---
+
+## 10. BakeConnectionsStep
+
+**ID:** `bake_connections`
+
+Collects `ConnectionPointBrush` instances from the brushes and produces connection data. Each connection is baked as `ConnectionData` with its ID, side, position and size.
+
+Output: `context.connections`.
 
 ---
 
@@ -336,8 +381,7 @@ Runtime does not repeat brush collection, processing or validation.
 
 - Room database update is not implemented.
 - Incremental bake and batch bake tooling are not implemented.
-- Marker and volume data are not baked.
-- Connections are not authored or baked.
+- Volume data are not baked (out of scope for this pipeline).
 - The default theme is always applied during bake; biome-driven theme selection is planned.
 - The pipeline currently relies on debug/test drivers rather than a finished editor integration.
 
