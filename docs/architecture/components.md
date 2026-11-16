@@ -118,6 +118,13 @@ func get_health_percentage() -> float
 
 It does not animate, apply knockback or decide state transitions.
 
+Notes:
+
+- `current_health` and `max_health` default to `100` only as placeholders.
+- The authoritative health value is `ActorData.max_health` (default `5`).
+- `Actor._initialize_components()` calls `health.initialize(data.max_health)` during `_ready()`, overwriting the placeholders.
+- Code and tests should not rely on the `100` defaults for gameplay health values.
+
 ---
 
 # WeaponComponent

@@ -1,7 +1,7 @@
 class_name TileSetBuildStep
 extends BuildStep
 
-const TILE_SIZE := 32
+var resolved_tile_size: int = 0
 
 
 func get_id() -> StringName:
@@ -23,8 +23,10 @@ func run(context: ThemeBuildContext) -> ThemeBuildContext:
 		)
 		return context
 
+	resolved_tile_size = context.tile_size if context.tile_size > 0 else World.settings.tile_size
+
 	var tileset := TileSet.new()
-	tileset.tile_size = Vector2i(TILE_SIZE, TILE_SIZE)
+	tileset.tile_size = Vector2i(resolved_tile_size, resolved_tile_size)
 
 	var theme_dir := "res://assets/sprites/themes/%s/" % context.theme_name
 
@@ -193,7 +195,7 @@ func _load_texture(path: String, report: ThemeBuildReport) -> Texture2D:
 func _create_tile_source(texture: Texture2D) -> TileSetAtlasSource:
 	var source := TileSetAtlasSource.new()
 	source.texture = texture
-	source.texture_region_size = Vector2i(TILE_SIZE, TILE_SIZE)
+	source.texture_region_size = Vector2i(resolved_tile_size, resolved_tile_size)
 	return source
 
 
@@ -201,7 +203,7 @@ func _add_solid_collision(source: TileSetAtlasSource, atlas_coords: Vector2i) ->
 	var tile_data := source.get_tile_data(atlas_coords, 0)
 	if tile_data == null:
 		return
-	var half := TILE_SIZE / 2.0
+	var half := resolved_tile_size / 2.0
 	tile_data.add_collision_polygon(0)
 	tile_data.set_collision_polygon_points(0, 0, PackedVector2Array([
 		Vector2(-half, -half),

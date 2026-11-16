@@ -237,6 +237,7 @@ var theme_tile_assets: ThemeTileAssets
 var theme_info: ThemeInfo
 var tileset: TileSet
 var report: ThemeBuildReport
+var tile_size: int = 0
 ```
 
 The context derives all output paths from `theme_name`:
@@ -289,12 +290,12 @@ Builds a `TilePack` for platforms and walls, and an `Array[TileId]` for backgrou
 
 Current implementation details:
 
-- tile size is hardcoded to `32 × 32`;
+- the tile size is resolved from `context.tile_size` when it is greater than zero, otherwise from `World.settings.tile_size`; the resolved value drives `TileSet.tile_size`, the atlas source texture region size, and the collision polygon dimensions;
 - each texture becomes its own atlas source;
-- collision is a full 32 × 32 box, added only for `platform_*` and `walls_*` tiles;
+- collision is a full box, added only for `platform_*` and `walls_*` tiles;
 - background tiles receive no collision.
 
-`WorldSettings.tile_size` is currently also `32`, but the theme build step does not read it.
+Production callers never set `context.tile_size`, so `World.settings.tile_size` remains the effective source. The field exists so a build can exercise a non-default tile size without changing the global setting.
 
 ## 3. ThemeSaveStep
 
@@ -380,6 +381,7 @@ Implemented:
 - variant catalogs for background, platforms and walls;
 - TileSet generation from per-slice textures;
 - solid collision for platform and wall tiles;
+- tile size sourced from `World.settings.tile_size` (overridable per build via `ThemeBuildContext.tile_size`);
 - `ThemeInfo` and `TilePack` generation;
 - saving built theme resources;
 - theme application to `RoomData` cells;
@@ -389,7 +391,6 @@ Not yet implemented:
 
 - theme selection by biome or progression;
 - deterministic variant selection;
-- tile size from `WorldSettings`;
 - atlas packing multiple tiles into one texture;
 - animated tiles;
 - decoration, prop or foreground layers;

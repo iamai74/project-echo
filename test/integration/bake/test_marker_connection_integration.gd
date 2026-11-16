@@ -5,7 +5,6 @@
 extends GdUnitTestSuite
 
 
-const TILE_SIZE := 32
 const TEMP_ROOT := "user://test_marker_connection_integration"
 const ROOM_SCENE_PATH := "res://test/fixtures/test_room_scene.tscn"
 const ROOM_NAME := "test_room_scene"
@@ -94,7 +93,8 @@ func _make_fixture_room(bounds: Rect2i) -> RoomAuthoring:
 
 
 func _pixel_position(cell: Vector2i) -> Vector2:
-	return Vector2(cell.x * TILE_SIZE, cell.y * TILE_SIZE)
+	var tile_size := World.settings.tile_size
+	return Vector2(cell.x * tile_size, cell.y * tile_size)
 
 
 func _add_platform(room: Node, cell: Vector2i, size: Vector2i) -> PlatformBrush:

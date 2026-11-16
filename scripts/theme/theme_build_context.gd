@@ -8,6 +8,7 @@ var theme_tile_assets: ThemeTileAssets
 var theme_info: ThemeInfo
 var tileset: TileSet
 var report: ThemeBuildReport
+var tile_size: int = 0
 
 
 func get_resource_dir() -> String:

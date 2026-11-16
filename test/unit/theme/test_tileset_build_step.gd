@@ -23,6 +23,12 @@ const TILE_PACK_FIELDS := [
 ]
 
 
+## Non-default tile size used to verify the context override is honored.
+## Must differ from World.settings.tile_size (32) so a reintroduced
+## hardcoded size would fail the override test.
+const OVERRIDE_TILE_SIZE := 48
+
+
 # ── Missing ThemeTileAssets adds fatal issue ─────────────────────────
 
 func test_missing_theme_tile_assets_adds_fatal_issue() -> void:
@@ -139,13 +145,6 @@ func test_map_ids_with_suffix_returns_only_present_ids() -> void:
 	assert_int(result[0].source_id).is_equal(1)
 
 
-# ── Tile size ────────────────────────────────────────────────────────
-
-func test_tile_size_is_32() -> void:
-	var step = TileSetBuildStep.new()
-	assert_int(step.TILE_SIZE).is_equal(32)
-
-
 # ── Full build against the default theme assets ──────────────────────
 
 func _build_default_theme_context() -> ThemeBuildContext:
@@ -216,3 +215,32 @@ func test_background_sources_receive_no_collision() -> void:
 	assert_bool(context.theme_info.background.is_empty()).is_false()
 	for tile_id in context.theme_info.background:
 		_assert_has_no_collision(context.tileset, tile_id)
+
+
+# ── Tile size resolution ────────────────────────────────────────────
+
+func test_default_build_uses_world_settings_tile_size() -> void:
+	var context := _build_default_theme_context()
+	assert_bool(context.report.has_fatal()).is_false()
+
+	TileSetBuildStep.new().run(context)
+
+	assert_bool(context.report.has_fatal()).is_false()
+	assert_object(context.tileset).is_not_null()
+	assert_vector(context.tileset.tile_size).is_equal(
+		Vector2i(World.settings.tile_size, World.settings.tile_size)
+	)
+
+
+func test_context_tile_size_override_is_honored() -> void:
+	var context := _build_default_theme_context()
+	context.tile_size = OVERRIDE_TILE_SIZE
+	assert_bool(context.report.has_fatal()).is_false()
+
+	TileSetBuildStep.new().run(context)
+
+	assert_bool(context.report.has_fatal()).is_false()
+	assert_object(context.tileset).is_not_null()
+	assert_vector(context.tileset.tile_size).is_equal(
+		Vector2i(OVERRIDE_TILE_SIZE, OVERRIDE_TILE_SIZE)
+	)

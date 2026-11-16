@@ -5,8 +5,6 @@
 extends GdUnitTestSuite
 
 const FIXTURE_PATH := "res://test/fixtures/theme_apply_fixture.tscn"
-const DEFAULT_THEME_PATH := "res://resources/themes/default/default_theme.tres"
-const DEFAULT_TILESET_PATH := "res://resources/themes/default/default_tileset.tres"
 const INVALID_CELL := -1
 
 var applyer: ThemeApplyer
@@ -118,8 +116,8 @@ func test_apply_missing_tilemap_layer_pushes_error() -> void:
 func test_apply_places_background_platform_and_wall() -> void:
 	var room := _build_room()
 	var tiles := room.get_node("Semantic/Tiles") as TileMapLayer
-	var theme := load(DEFAULT_THEME_PATH) as ThemeInfo
-	var expected_tileset := load(DEFAULT_TILESET_PATH) as TileSet
+	var theme := load(ApplyDefaultThemeStep.DEFAULT_THEME_PATH) as ThemeInfo
+	var expected_tileset := load(str(theme.tileset)) as TileSet
 
 	var room_data := RoomData.new()
 
@@ -137,7 +135,7 @@ func test_apply_places_background_platform_and_wall() -> void:
 
 	assert_object(tiles.tile_set).is_not_null()
 	assert_object(tiles.tile_set).is_same(expected_tileset)
-	assert_str(tiles.tile_set.resource_path).is_equal(DEFAULT_TILESET_PATH)
+	assert_str(tiles.tile_set.resource_path).is_equal(str(theme.tileset))
 
 	_assert_cell_in_pack(tiles, background_cell.position, theme.background)
 	_assert_cell_in_pack(tiles, platform_cell.position, _pack_ids_for(theme.platforms, platform_cell))
@@ -149,7 +147,7 @@ func test_apply_skips_cell_with_empty_pack() -> void:
 	var tiles := room.get_node("Semantic/Tiles") as TileMapLayer
 
 	var theme := ThemeInfo.new()
-	theme.tileset = StringName(DEFAULT_TILESET_PATH)
+	theme.tileset = (load(ApplyDefaultThemeStep.DEFAULT_THEME_PATH) as ThemeInfo).tileset
 	var pack := TilePack.new()
 	var full_ids: Array[TileId] = [
 		TileId.at_source(13, Vector2i(0, 0)),
