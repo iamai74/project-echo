@@ -42,17 +42,10 @@ func get_outline_color() -> Color:
 
 
 func get_label() -> String:
-	var lines: PackedStringArray = [_side_name()]
+	var lines: PackedStringArray = [ConnectionSide.name_of(side)]
 	if connection_id == &"":
 		lines.append("<missing connection_id>")
 	else:
 		lines.append(String(connection_id))
 	lines.append("%dx%d" % [size.x, size.y])
 	return "\n".join(lines)
-
-
-func _side_name() -> String:
-	var keys: Array = ConnectionSide.Value.keys()
-	if side >= 0 and side < keys.size():
-		return String(keys[side])
-	return "UNKNOWN"

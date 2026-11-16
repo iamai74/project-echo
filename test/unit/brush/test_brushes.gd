@@ -95,7 +95,7 @@ func test_marker_brush_label_out_of_range_type() -> void:
 	var brush = auto_free(MarkerBrush.new())
 	brush.marker_type = 99
 	brush.content_id = &"enemy_goblin"
-	assert_str(brush.get_label()).is_equal("UNKNOWN\nenemy_goblin")
+	assert_str(brush.get_label()).is_equal("99\nenemy_goblin")
 
 
 # ── MarkerBrush fill and outline colour ──────────────────────────────

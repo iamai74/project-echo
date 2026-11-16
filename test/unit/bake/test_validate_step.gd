@@ -21,11 +21,14 @@ func test_get_display_name_returns_string() -> void:
 func test_get_validators_returns_the_default_validators() -> void:
 	var validators := ValidateStep.new().get_validators()
 
-	assert_array(validators).has_size(4)
+	assert_array(validators).has_size(7)
 	assert_object(validators[0]).is_instanceof(DuplicateCellValidator)
 	assert_object(validators[1]).is_instanceof(SemanticOverlapValidator)
 	assert_object(validators[2]).is_instanceof(TopologyValidator)
 	assert_object(validators[3]).is_instanceof(SemanticCellValidator)
+	assert_object(validators[4]).is_instanceof(AuthoringBrushValidator)
+	assert_object(validators[5]).is_instanceof(MarkerPlacementValidator)
+	assert_object(validators[6]).is_instanceof(ConnectionPointValidator)
 
 
 # --- Validators run ---

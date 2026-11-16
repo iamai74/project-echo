@@ -86,13 +86,13 @@ func test_connection_point_brush_invalid_when_not_grid_aligned() -> void:
 	assert_bool(brush.is_valid_brush()).is_false()
 
 
-func test_unknown_side_is_invalid_and_labelled_unknown() -> void:
+func test_unknown_side_is_invalid_and_labelled_with_raw_value() -> void:
 	var brush = auto_free(ConnectionPointBrush.new())
 	brush.position = Vector2.ZERO
 	brush.size = Vector2i(3, 1)
 	brush.side = 99
 	assert_bool(brush.is_valid_brush()).is_false()
-	assert_str(brush.get_label()).is_equal("UNKNOWN\n<missing connection_id>\n3x1")
+	assert_str(brush.get_label()).is_equal("99\n<missing connection_id>\n3x1")
 
 
 # ── Label ────────────────────────────────────────────────────────────

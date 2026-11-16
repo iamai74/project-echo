@@ -18,7 +18,10 @@ func _init(validators: Array[BakeValidator] = []):
 			DuplicateCellValidator.new(),
 			SemanticOverlapValidator.new(),
 			TopologyValidator.new(),
-			SemanticCellValidator.new()
+			SemanticCellValidator.new(),
+			AuthoringBrushValidator.new(),
+			MarkerPlacementValidator.new(),
+			ConnectionPointValidator.new()
 		]
 	else:
 		_validators = validators

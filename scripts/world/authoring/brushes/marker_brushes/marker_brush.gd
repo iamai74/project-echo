@@ -57,7 +57,7 @@ func _get_type_color() -> Color:
 
 
 func get_label() -> String:
-	var lines: PackedStringArray = [_marker_type_name()]
+	var lines: PackedStringArray = [MarkerType.name_of(marker_type)]
 	if content_id == &"":
 		lines.append("<missing content_id>")
 	else:
@@ -65,10 +65,3 @@ func get_label() -> String:
 	if marker_id != &"":
 		lines.append(String(marker_id))
 	return "\n".join(lines)
-
-
-func _marker_type_name() -> String:
-	var keys: Array = MarkerType.Value.keys()
-	if marker_type >= 0 and marker_type < keys.size():
-		return String(keys[marker_type])
-	return "UNKNOWN"
