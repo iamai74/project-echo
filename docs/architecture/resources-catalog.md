@@ -238,7 +238,7 @@ Global world configuration exposed through the `World` autoload.
 ### Notes
 
 - Authoring brushes use `World.settings.tile_size` to convert pixel position/size into grid coordinates.
-- `TileSetBuildStep` currently uses a separate hardcoded `TILE_SIZE := 32` rather than reading `WorldSettings`.
+- `TileSetBuildStep` resolves tile size from `context.tile_size` when greater than zero, otherwise from `World.settings.tile_size`. The resolved value drives `TileSet.tile_size`, texture region size, and collision polygon dimensions.
 
 ---
 

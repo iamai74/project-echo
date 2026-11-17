@@ -42,6 +42,30 @@ func _make_context_with_backgrounds(positions: Array[Vector2i]) -> RoomBakeConte
 	return context
 
 
+func _make_context_with_platforms_and_walls(
+	platform_positions: Array[Vector2i], wall_positions: Array[Vector2i]
+) -> RoomBakeContext:
+	var context = RoomBakeContext.new()
+	context.semantic_data = SemanticRoomData.new()
+	context.report = BakeReport.new()
+
+	var platform_cells: Array[SemanticSpatialCell] = []
+	for pos in platform_positions:
+		var cell = SemanticSpatialCell.new()
+		cell.cell = pos
+		platform_cells.append(cell)
+	context.semantic_data.spatial_layers.set_cells(SpatialLayer.SpatialType.PLATFORM, platform_cells)
+
+	var wall_cells: Array[SemanticSpatialCell] = []
+	for pos in wall_positions:
+		var cell = SemanticSpatialCell.new()
+		cell.cell = pos
+		wall_cells.append(cell)
+	context.semantic_data.spatial_layers.set_cells(SpatialLayer.SpatialType.WALL, wall_cells)
+
+	return context
+
+
 func test_no_duplicates_passes() -> void:
 	var validator = DuplicateCellValidator.new()
 	var positions: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)]
@@ -113,3 +137,36 @@ func test_empty_layer_passes() -> void:
 	var context = _make_context_with_platforms(positions)
 	validator.validate(context)
 	assert_bool(context.report.is_has_issues()).is_false()
+
+
+func test_single_cell_layer_passes() -> void:
+	var validator = DuplicateCellValidator.new()
+	var positions: Array[Vector2i] = [Vector2i(1, 1)]
+	var context = _make_context_with_platforms(positions)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_false()
+
+
+func test_same_position_in_different_layers_is_not_duplicate() -> void:
+	var validator = DuplicateCellValidator.new()
+	var context = _make_context_with_platforms_and_walls([Vector2i(2, 3)], [Vector2i(2, 3)])
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_false()
+
+
+func test_multiple_duplicate_positions_report_multiple_issues() -> void:
+	var validator = DuplicateCellValidator.new()
+	var positions: Array[Vector2i] = [
+		Vector2i(0, 0), Vector2i(0, 0),
+		Vector2i(4, 5), Vector2i(4, 5),
+	]
+	var context = _make_context_with_platforms(positions)
+	validator.validate(context)
+	var all = context.report.get_all_issues()
+	var overlap_issues = all.get(BakeIssue.IssueType.BRUSH_OVERLAP, [])
+	assert_int(overlap_issues.size()).is_greater_equal(2)
+	var reported_positions: Array = []
+	for issue in overlap_issues:
+		reported_positions.append(issue.position)
+	assert_bool(reported_positions.has(Vector2i(0, 0))).is_true()
+	assert_bool(reported_positions.has(Vector2i(4, 5))).is_true()

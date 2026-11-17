@@ -48,6 +48,27 @@ func test_enemy_scene_ready_wires_components() -> void:
 	assert_bool(enemy.detection_component.player_detected.is_connected(enemy._on_player_detected)).is_true()
 	assert_bool(enemy.detection_component.player_lost.is_connected(enemy._on_player_lost)).is_true()
 
+func test_enemy_health_takes_damage() -> void:
+	# Load the enemy scene and instantiate it
+	var enemy_scene = auto_free(EnemyScene.instantiate())
+
+	# Add it to the scene tree so _ready() runs
+	add_child(enemy_scene)
+
+	# Locate the CharacterBody2D actor
+	var enemy = enemy_scene.get_node("CharacterBody2D") as Enemy
+	assert_object(enemy).is_not_null()
+
+	# Health starts at 10 (initialized from ActorData.max_health)
+	assert_int(enemy.health.current_health).is_equal(10)
+
+	# Apply damage through the health component
+	var attack = AttackData.new(5)
+	enemy.health.take_damage(attack)
+
+	# Current health should drop to 5
+	assert_int(enemy.health.current_health).is_equal(5)
+
 func test_get_target_position_delegates_to_detection() -> void:
 	var det = mock(DetectionComponent)
 	do_return(Vector2(50, 50)).on(det).get_target_position()

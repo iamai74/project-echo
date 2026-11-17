@@ -157,6 +157,53 @@ func test_right_shape_top_right_corner_passes() -> void:
 	assert_bool(context.report.is_has_issues()).is_false()
 
 
+func test_top_shape_right_corner_fails() -> void:
+	var validator = SemanticCellValidator.new()
+	var cell = _make_platform_cell(Vector2i(0, 0), CellShape.Value.TOP, CellCorner.Value.RIGHT, [])
+	var cells: Array[SemanticSpatialCell] = [cell]
+	var context = _make_context_with_cells(cells, SpatialLayer.SpatialType.PLATFORM)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_true()
+
+
+func test_top_shape_top_right_corner_passes() -> void:
+	var validator = SemanticCellValidator.new()
+	var cell = _make_platform_cell(
+		Vector2i(0, 0), CellShape.Value.TOP, CellCorner.Value.TOP_RIGHT, []
+	)
+	var cells: Array[SemanticSpatialCell] = [cell]
+	var context = _make_context_with_cells(cells, SpatialLayer.SpatialType.PLATFORM)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_false()
+
+
+func test_bottom_shape_no_corner_passes() -> void:
+	var validator = SemanticCellValidator.new()
+	var cell = _make_platform_cell(Vector2i(0, 0), CellShape.Value.BOTTOM, CellCorner.Value.NO, [])
+	var cells: Array[SemanticSpatialCell] = [cell]
+	var context = _make_context_with_cells(cells, SpatialLayer.SpatialType.PLATFORM)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_false()
+
+
+func test_right_shape_top_corner_fails() -> void:
+	var validator = SemanticCellValidator.new()
+	var cell = _make_platform_cell(Vector2i(0, 0), CellShape.Value.RIGHT, CellCorner.Value.TOP, [])
+	var cells: Array[SemanticSpatialCell] = [cell]
+	var context = _make_context_with_cells(cells, SpatialLayer.SpatialType.PLATFORM)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_true()
+
+
+func test_wall_single_shape_with_diagonal_corner_fails() -> void:
+	var validator = SemanticCellValidator.new()
+	var cell = _make_wall_cell(Vector2i(0, 0), CellShape.Value.SINGLE, CellCorner.Value.TOP_LEFT)
+	var cells: Array[SemanticSpatialCell] = [cell]
+	var context = _make_context_with_cells(cells, SpatialLayer.SpatialType.WALL)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_true()
+
+
 # ── Invalid traits ───────────────────────────────────────────────
 
 func test_invalid_trait_value_fails() -> void:

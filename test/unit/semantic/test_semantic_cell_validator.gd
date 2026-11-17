@@ -107,6 +107,41 @@ func test_empty_traits_pass() -> void:
 	assert_bool(context.report.is_has_issues()).is_false()
 
 
+func test_multiple_valid_traits_pass() -> void:
+	var validator = SemanticCellValidator.new()
+	var traits: Array[SemanticSpatialPlatformCell.Trait] = [
+		SemanticSpatialPlatformCell.Trait.ONE_WAY,
+		SemanticSpatialPlatformCell.Trait.BREAKABLE,
+	]
+	var cell = _make_platform_cell(Vector2i(0, 0), CellShape.Value.SINGLE, CellCorner.Value.NO, traits)
+	var cells: Array[SemanticSpatialCell] = [cell]
+	var context = _make_context_with_cells(cells, SpatialLayer.SpatialType.PLATFORM)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_false()
+
+
+func test_single_shape_with_diagonal_corner_fails() -> void:
+	var validator = SemanticCellValidator.new()
+	var cell = _make_platform_cell(
+		Vector2i(0, 0), CellShape.Value.SINGLE, CellCorner.Value.TOP_LEFT, []
+	)
+	var cells: Array[SemanticSpatialCell] = [cell]
+	var context = _make_context_with_cells(cells, SpatialLayer.SpatialType.PLATFORM)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_true()
+
+
+func test_negative_trait_value_fails() -> void:
+	var validator = SemanticCellValidator.new()
+	var cell = _make_platform_cell(
+		Vector2i(0, 0), CellShape.Value.SINGLE, CellCorner.Value.NO, [-1]
+	)
+	var cells: Array[SemanticSpatialCell] = [cell]
+	var context = _make_context_with_cells(cells, SpatialLayer.SpatialType.PLATFORM)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_true()
+
+
 func test_wall_cell_with_null_topology_skipped() -> void:
 	var validator = SemanticCellValidator.new()
 	var cell = SemanticSpatialTopologyCell.new()

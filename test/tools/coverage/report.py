@@ -13,6 +13,7 @@ AREA_NAMES = (
     "World / bake / semantic",
     "Core gameplay",
     "Actors",
+    "Debug scripts",
     "Other",
 )
 
@@ -22,6 +23,7 @@ FILE_REGRESSION_FLOOR = 80.0
 EXCLUDED_FILES = (
     ("scripts/world/debug/", "Debug driver"),
     ("scripts/theme/debug/", "Debug driver"),
+    ("debug/scripts/", "Debug (informational)"),
 )
 
 
@@ -45,6 +47,8 @@ def area_for(path: str) -> str:
         return "Actors"
     if path == "autoload/world.gd":
         return "World / bake / semantic"
+    if path.startswith("debug/scripts/"):
+        return "Debug scripts"
     return "Other"
 
 

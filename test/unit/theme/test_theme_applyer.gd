@@ -88,12 +88,13 @@ func test_get_pack_array_elements(key: String, expected_elements: Array[Vector2i
 			target = pack.bottom_left
 		"bottom_right":
 			target = pack.bottom_right
-	target.append(TileId.new(0, Vector2i.ZERO))
+	target.append(TileId.new(42, Vector2i.ZERO))
 
 	var result = applyer._get_pack_array(pack, key)
 	assert_int(result.size()).is_equal(expected_elements.size())
 	for i in range(result.size()):
 		assert_vector(result[i].atlas_coords).is_equal(expected_elements[i])
+		assert_int(result[i].source_id).is_equal(42)
 
 
 # --- Error paths ---

@@ -109,8 +109,8 @@ def godot_version(godot: str) -> str:
 
 def source_files(project: Path) -> list[Path]:
     files: list[Path] = []
-    for directory in ("scripts", "autoload"):
-        root = project / directory
+    for relative_dir in ("scripts", "autoload", "debug/scripts"):
+        root = project.joinpath(*relative_dir.split("/"))
         if not root.exists():
             continue
         files.extend(

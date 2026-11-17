@@ -40,6 +40,14 @@ func _make_context_with_platforms(cells: Array[SemanticSpatialCell]) -> RoomBake
 	return context
 
 
+func _make_context_with_walls(cells: Array[SemanticSpatialCell]) -> RoomBakeContext:
+	var context = RoomBakeContext.new()
+	context.semantic_data = SemanticRoomData.new()
+	context.report = BakeReport.new()
+	context.semantic_data.spatial_layers.set_cells(SpatialLayer.SpatialType.WALL, cells)
+	return context
+
+
 # --- Shape and corner from neighbour layout ---
 
 func test_shape_and_corner_from_neighbour_layout(
@@ -103,5 +111,76 @@ func test_shape_and_corner_from_neighbour_layout(
 	context.report = BakeReport.new()
 	context.semantic_data.spatial_layers.set_cells(SpatialLayer.SpatialType.PLATFORM, cells)
 	var validator = TopologyValidator.new()
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_false()
+
+
+# --- Missing topology and mismatched topology ---
+
+func test_cell_without_topology_reports_error() -> void:
+	var validator = TopologyValidator.new()
+	var cell = SemanticSpatialCell.new()
+	cell.cell = Vector2i(2, 2)
+	var cells: Array[SemanticSpatialCell] = [cell]
+	var context = _make_context_with_platforms(cells)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_true()
+	assert_bool(context.report.is_has_saverity(BakeIssue.Severity.ERROR)).is_true()
+	var all = context.report.get_all_issues()
+	assert_bool(all.has(BakeIssue.IssueType.SEMANTIC_CONFLICT)).is_true()
+	assert_int(all[BakeIssue.IssueType.SEMANTIC_CONFLICT].size()).is_equal(1)
+
+
+func test_mismatched_shape_reports_error() -> void:
+	var validator = TopologyValidator.new()
+	var cells: Array[SemanticSpatialCell] = [
+		_make_topology_cell(Vector2i(5, 5), CellShape.Value.FULL, CellCorner.Value.LEFT),
+		_make_topology_cell(Vector2i(6, 5), CellShape.Value.SINGLE, CellCorner.Value.RIGHT),
+	]
+	var context = _make_context_with_platforms(cells)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_true()
+	var all = context.report.get_all_issues()
+	var issues = all.get(BakeIssue.IssueType.SEMANTIC_CONFLICT, [])
+	assert_int(issues.size()).is_equal(1)
+	assert_str(issues[0].message).contains("shape")
+
+
+func test_mismatched_corner_reports_error() -> void:
+	var validator = TopologyValidator.new()
+	var cells: Array[SemanticSpatialCell] = [
+		_make_topology_cell(Vector2i(5, 5), CellShape.Value.SINGLE, CellCorner.Value.RIGHT),
+		_make_topology_cell(Vector2i(6, 5), CellShape.Value.SINGLE, CellCorner.Value.RIGHT),
+	]
+	var context = _make_context_with_platforms(cells)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_true()
+	var all = context.report.get_all_issues()
+	var issues = all.get(BakeIssue.IssueType.SEMANTIC_CONFLICT, [])
+	assert_int(issues.size()).is_equal(1)
+	assert_str(issues[0].message).contains("corner")
+
+
+# --- Boundary variants ---
+
+func test_isolated_wall_cell_passes() -> void:
+	var validator = TopologyValidator.new()
+	var cells: Array[SemanticSpatialCell] = [
+		_make_topology_cell(Vector2i(3, 3), CellShape.Value.SINGLE, CellCorner.Value.ALL)
+	]
+	var context = _make_context_with_walls(cells)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_false()
+
+
+func test_two_by_two_block_passes() -> void:
+	var validator = TopologyValidator.new()
+	var cells: Array[SemanticSpatialCell] = [
+		_make_topology_cell(Vector2i(0, 0), CellShape.Value.TOP, CellCorner.Value.TOP_LEFT),
+		_make_topology_cell(Vector2i(1, 0), CellShape.Value.TOP, CellCorner.Value.TOP_RIGHT),
+		_make_topology_cell(Vector2i(0, 1), CellShape.Value.BOTTOM, CellCorner.Value.BOTTOM_LEFT),
+		_make_topology_cell(Vector2i(1, 1), CellShape.Value.BOTTOM, CellCorner.Value.BOTTOM_RIGHT),
+	]
+	var context = _make_context_with_platforms(cells)
 	validator.validate(context)
 	assert_bool(context.report.is_has_issues()).is_false()

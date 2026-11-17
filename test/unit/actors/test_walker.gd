@@ -51,3 +51,10 @@ func test_walker_does_not_transition_to_patrol_if_already_in_combat_state() -> v
 	walker._try_start_patrol(Vector2.ZERO)
 
 	assert_str(walker.state_machine.current_state.name).is_equal("Hurt")
+
+
+func test_walker_scene_instantiates() -> void:
+	var scene := load("res://debug/actors/enemies/walker.tscn") as PackedScene
+	var root: Node = auto_free(scene.instantiate())
+	add_child(root)
+	assert_object(root).is_not_null()

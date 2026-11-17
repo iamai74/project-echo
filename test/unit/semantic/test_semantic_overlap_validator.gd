@@ -69,6 +69,16 @@ func test_overlap_issue_stores_position() -> void:
 	assert_vector(overlap_issues[0].position).is_equal(overlap_pos)
 
 
+func test_adjacent_platform_and_wall_cells_do_not_overlap() -> void:
+	var validator = SemanticOverlapValidator.new()
+	var context = _make_context_with_platforms_and_walls(
+		[Vector2i(0, 0), Vector2i(1, 0)],
+		[Vector2i(0, 1), Vector2i(1, 1)]
+	)
+	validator.validate(context)
+	assert_bool(context.report.is_has_issues()).is_false()
+
+
 func test_empty_layer_passes(platform_positions: Array[Vector2i], wall_positions: Array[Vector2i], _test_parameters := [
 	[ [], [Vector2i(0, 0), Vector2i(1, 0)] ],
 	[ [Vector2i(0, 0), Vector2i(1, 0)], [] ]

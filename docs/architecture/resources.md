@@ -130,7 +130,7 @@ Example:
 - `WorldSettings` — currently exposes `tile_size` (default `32`);
 - exposed at runtime through the `World` autoload as `World.settings`.
 
-`World.settings.tile_size` is used by authoring brushes to convert pixel positions and sizes into grid coordinates.
+`World.settings.tile_size` is used by authoring brushes to convert pixel positions and sizes into grid coordinates. The theme build pipeline consumes it too: `TileSetBuildStep` resolves tile size from an optional `ThemeBuildContext.tile_size` override, otherwise from `World.settings.tile_size`, instead of a separate constant.
 
 ---
 
