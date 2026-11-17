@@ -5,9 +5,6 @@
 extends GdUnitTestSuite
 
 
-const TILE_SIZE := 32
-
-
 # --- Helpers ---
 
 
@@ -60,7 +57,8 @@ func _issues_of(context: RoomBakeContext, type: BakeIssue.IssueType) -> Array:
 
 func test_aligned_platform_produces_no_issue() -> void:
 	var context := _make_context()
-	context.brushes.add_brush(_make_platform(Vector2(TILE_SIZE * 3, TILE_SIZE * 4)))
+	var tile_size := World.settings.tile_size
+	context.brushes.add_brush(_make_platform(Vector2(tile_size * 3, tile_size * 4)))
 
 	_validate(context)
 
@@ -109,7 +107,8 @@ func test_misaligned_connection_produces_error() -> void:
 func test_stretched_aligned_marker_produces_no_issue() -> void:
 	# Size is an authoring fact owned by MarkerPlacementValidator, not this one.
 	var context := _make_context()
-	var brush := _make_marker(Vector2(TILE_SIZE, TILE_SIZE), true)
+	var tile_size := World.settings.tile_size
+	var brush := _make_marker(Vector2(tile_size, tile_size), true)
 	brush.size = Vector2i(3, 3)
 	context.brushes.add_brush(brush)
 
@@ -121,7 +120,8 @@ func test_stretched_aligned_marker_produces_no_issue() -> void:
 func test_misoriented_aligned_connection_produces_no_issue() -> void:
 	# Orientation is owned by ConnectionPointValidator, not this one.
 	var context := _make_context()
-	var brush := _make_connection(Vector2(TILE_SIZE, TILE_SIZE), true)
+	var tile_size := World.settings.tile_size
+	var brush := _make_connection(Vector2(tile_size, tile_size), true)
 	brush.size = Vector2i(3, 3)
 	brush.side = ConnectionSide.Value.TOP
 	context.brushes.add_brush(brush)
@@ -213,7 +213,8 @@ func test_null_brush_collection_produces_no_issue() -> void:
 
 func test_misaligned_issue_reports_grid_position() -> void:
 	var context := _make_context()
-	var brush := _make_platform(Vector2(TILE_SIZE * 3 + 5, TILE_SIZE * 2 + 7))
+	var tile_size := World.settings.tile_size
+	var brush := _make_platform(Vector2(tile_size * 3 + 5, tile_size * 2 + 7))
 	context.brushes.add_brush(brush)
 
 	_validate(context)

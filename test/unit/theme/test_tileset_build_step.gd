@@ -24,9 +24,9 @@ const TILE_PACK_FIELDS := [
 
 
 ## Non-default tile size used to verify the context override is honored.
-## Must differ from World.settings.tile_size (32) so a reintroduced
-## hardcoded size would fail the override test.
-const OVERRIDE_TILE_SIZE := 48
+## Smaller than the 32×32 source textures so the tiles are actually created,
+## and different from World.settings.tile_size so a hardcoded size fails.
+const OVERRIDE_TILE_SIZE := 16
 
 
 # ── Missing ThemeTileAssets adds fatal issue ─────────────────────────
@@ -233,6 +233,10 @@ func test_default_build_uses_world_settings_tile_size() -> void:
 
 
 func test_context_tile_size_override_is_honored() -> void:
+	# The override must stay distinguishable from the configured default,
+	# otherwise this case can no longer prove the override is read.
+	assert_int(OVERRIDE_TILE_SIZE).is_not_equal(World.settings.tile_size)
+
 	var context := _build_default_theme_context()
 	context.tile_size = OVERRIDE_TILE_SIZE
 	assert_bool(context.report.has_fatal()).is_false()
@@ -243,4 +247,24 @@ func test_context_tile_size_override_is_honored() -> void:
 	assert_object(context.tileset).is_not_null()
 	assert_vector(context.tileset.tile_size).is_equal(
 		Vector2i(OVERRIDE_TILE_SIZE, OVERRIDE_TILE_SIZE)
+	)
+
+	# The resolved size must reach the atlas sources and collision polygons,
+	# not only TileSet.tile_size.
+	var first_source := context.tileset.get_source(0) as TileSetAtlasSource
+	assert_object(first_source).is_not_null()
+	assert_vector(first_source.texture_region_size).is_equal(
+		Vector2i(OVERRIDE_TILE_SIZE, OVERRIDE_TILE_SIZE)
+	)
+
+	var platform_ids := _collect_tile_ids(context.theme_info.platforms)
+	assert_bool(platform_ids.is_empty()).is_false()
+	var platform_id := platform_ids[0]
+	var platform_source := context.tileset.get_source(platform_id.source_id) as TileSetAtlasSource
+	assert_object(platform_source).is_not_null()
+	var tile_data := platform_source.get_tile_data(platform_id.atlas_coords, 0)
+	assert_object(tile_data).is_not_null()
+	var half := OVERRIDE_TILE_SIZE / 2.0
+	assert_vector(tile_data.get_collision_polygon_points(0, 0)[0]).is_equal(
+		Vector2(-half, -half)
 	)

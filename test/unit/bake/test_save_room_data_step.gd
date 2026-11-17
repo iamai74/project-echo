@@ -7,32 +7,16 @@ extends GdUnitTestSuite
 
 
 const TEMP_ROOT := "user://test_save_room_data_step"
+const TestTempDir = preload("res://test/fixtures/test_temp_dir.gd")
 
 
 func before_test() -> void:
-	_remove_dir(TEMP_ROOT)
-	DirAccess.make_dir_recursive_absolute(TEMP_ROOT)
+	TestTempDir.remove(TEMP_ROOT)
+	TestTempDir.create(TEMP_ROOT)
 
 
 func after_test() -> void:
-	_remove_dir(TEMP_ROOT)
-
-
-func _remove_dir(path: String) -> void:
-	var dir := DirAccess.open(path)
-	if dir != null:
-		dir.list_dir_begin()
-		var entry := dir.get_next()
-		while entry != "":
-			if entry != "." and entry != "..":
-				var entry_path := path.path_join(entry)
-				if dir.current_is_dir():
-					_remove_dir(entry_path)
-				else:
-					DirAccess.remove_absolute(entry_path)
-			entry = dir.get_next()
-		dir.list_dir_end()
-	DirAccess.remove_absolute(path)
+	TestTempDir.remove(TEMP_ROOT)
 
 
 func _make_context_with_data() -> RoomBakeContext:
@@ -41,6 +25,14 @@ func _make_context_with_data() -> RoomBakeContext:
 	var room_data = RoomData.new()
 	context.runtime_room_data = room_data
 	return context
+
+
+# ── Default output root ───────────────────────────────────────────
+
+func test_save_room_data_step_defaults_output_root_to_production_path() -> void:
+	var step := SaveRoomDataStep.new()
+	assert_str(step.output_root).is_equal("res://scenes/rooms")
+	assert_str(step.output_root).is_equal(SaveRoomDataStep.DEFAULT_OUTPUT_ROOT)
 
 
 # ── Error path: null runtime data ─────────────────────────────────
@@ -84,6 +76,12 @@ func test_save_room_data_step_derives_room_dir_from_scene_path() -> void:
 
 	assert_str(step._get_room_dir(room)).is_equal(
 		TEMP_ROOT.path_join("test_room_scene")
+	)
+
+	# The debug bake routes saves here, so the derived path must follow it.
+	step.output_root = SaveRoomDataStep.DEBUG_OUTPUT_ROOT
+	assert_str(step._get_room_dir(room)).is_equal(
+		"res://debug/scenes/rooms/test_room_scene"
 	)
 
 

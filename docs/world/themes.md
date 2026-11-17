@@ -76,6 +76,8 @@ res://resources/themes/{theme}/{theme}_tileset.tres
 
 Built theme resources are generated artifacts. Change the source assets or the build steps, then rebuild — do not treat the generated `.tres` files as a competing source of truth.
 
+> Artifact ownership and tracking rules for built theme resources: see [room-data.md#artifact-ownership](room-data.md#artifact-ownership).
+
 ---
 
 # Data Types

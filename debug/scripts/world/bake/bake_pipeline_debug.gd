@@ -1,6 +1,6 @@
 extends Node
 
-const ROOM_SCENE := preload("res://scripts/world/debug/bake_pipeline_debug.tscn")
+const ROOM_SCENE := preload("res://debug/scenes/world/bake/test_scene_for_bake.tscn")
 
 
 func _ready() -> void:
@@ -10,6 +10,12 @@ func _ready() -> void:
 	var report = BakeReport.new()
 	context.report = report
 	var pipeline := BakePipeline.new()
+	# Route the debug bake's save step to the debug output root so its artifacts
+	# land under res://debug/scenes/rooms instead of the tracked production
+	# directory.
+	for step in pipeline._steps:
+		if step is SaveRoomDataStep:
+			step.output_root = SaveRoomDataStep.DEBUG_OUTPUT_ROOT
 	context = pipeline.run(context)
 	_print_result(context)
 

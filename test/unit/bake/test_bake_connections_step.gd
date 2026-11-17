@@ -6,9 +6,6 @@
 extends GdUnitTestSuite
 
 
-const TILE_SIZE := 32
-
-
 # A brush that reports the CONNECTION_POINT type but is not a
 # ConnectionPointBrush, used to prove the step records a fatal issue when a
 # cast to ConnectionPointBrush fails.
@@ -39,7 +36,8 @@ func _make_connection_brush(
 	enabled: bool = true
 ) -> ConnectionPointBrush:
 	var brush = auto_free(ConnectionPointBrush.new())
-	brush.position = Vector2(grid_position.x * TILE_SIZE, grid_position.y * TILE_SIZE)
+	var tile_size := World.settings.tile_size
+	brush.position = Vector2(grid_position.x * tile_size, grid_position.y * tile_size)
 	brush.side = side
 	brush.connection_id = connection_id
 	brush.size = size

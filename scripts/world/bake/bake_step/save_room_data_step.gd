@@ -1,8 +1,17 @@
 class_name SaveRoomDataStep
 extends BakeStep
 
-# Output root for test purposes. Defaults to the production path.
-var output_root: String = "res://scenes/rooms"
+# Production output root. Named so tests and the debug bake reference the same
+# value instead of duplicating the literal.
+const DEFAULT_OUTPUT_ROOT := "res://scenes/rooms"
+
+# Debug output root. Keeps debug artifacts out of the tracked production
+# directory so a debug bake cannot overwrite production room files.
+const DEBUG_OUTPUT_ROOT := "res://debug/scenes/rooms"
+
+# Output root for baked room data. Tests override this to a "user://test_<suite>"
+# root; the debug bake overrides it to `DEBUG_OUTPUT_ROOT`.
+var output_root: String = DEFAULT_OUTPUT_ROOT
 
 
 

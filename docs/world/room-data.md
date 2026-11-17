@@ -187,6 +187,31 @@ A generated runtime scene is stored alongside it so that runtime does not need t
 
 ---
 
+# Artifact Ownership
+
+The table lists each artifact location, its kind, whether it is Git-tracked, and how it is regenerated.
+
+The production directory is the configured destination and is not populated yet: no production room has been baked, so `res://scenes/rooms/` does not exist. All baked rooms currently tracked in the repository live under `res://debug/scenes/rooms/`.
+
+| Location | Kind | Tracked | Regeneration |
+|---|---|---|---|
+| `res://scenes/rooms/<room_basename>/` | Production baked rooms (`*_room_data.tres`, `*_runtime.tscn`) | Yes — runtime assets required for execution | Re-run the production bake pipeline |
+| `res://debug/scenes/rooms/<room_basename>/` | Debug bake output | Yes — regeneration not proven (ART-4 failed); keep tracked | Re-run the debug bake pipeline; output is not currently reproducible (see `docs/task/art-4-result.md`) |
+| `user://test_<suite>/<room_basename>/` | Test/temporary artifacts | No — outside the repository | Re-run the relevant test suite |
+| `res://resources/themes/{theme}/` | Built theme resources (`*_tile_assets.tres`, `*_theme.tres`, `*_tileset.tres`) | Yes — intentionally version-controlled | Re-run the theme build pipeline |
+| `res://assets/sprites/themes/{theme}/` | Theme source assets | Yes — source of truth | Edit source assets, then rebuild |
+
+Rules:
+
+- `SaveRoomDataStep.output_root` defaults to `DEFAULT_OUTPUT_ROOT` (`res://scenes/rooms`).
+- Tests override `output_root` to a `user://test_<suite>` root in `before_test` and remove it in `after_test`.
+- Debug bake sets `output_root` to the debug root before running the pipeline.
+- Debug rooms stay tracked until regeneration is proven. ART-4 found that four of the six tracked files have no source scene and the two reproducible files differ on every run, so they must not be ignored or removed.
+- Production bake never writes to `user://`.
+- `.gitignore` must not gain a blanket `scenes/rooms/` or `resources/themes/` entry.
+
+---
+
 # Related Documents
 
 - [Room Architecture](room-architecture.md)

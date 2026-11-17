@@ -8,7 +8,6 @@
 extends GdUnitTestSuite
 
 
-const TILE_SIZE := 32
 const BOUNDS := Rect2i(Vector2i.ZERO, Vector2i(10, 10))
 
 

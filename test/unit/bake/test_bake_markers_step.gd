@@ -5,9 +5,6 @@
 extends GdUnitTestSuite
 
 
-const TILE_SIZE := 32
-
-
 # A brush that reports the MARKER type but is not a MarkerBrush, used to prove
 # the step records a fatal issue when a cast to MarkerBrush fails.
 class MockMarkerLikeBrush:
@@ -37,7 +34,8 @@ func _make_marker_brush(
 	enabled: bool = true
 ) -> MarkerBrush:
 	var brush = auto_free(MarkerBrush.new())
-	brush.position = Vector2(grid_position.x * TILE_SIZE, grid_position.y * TILE_SIZE)
+	var tile_size := World.settings.tile_size
+	brush.position = Vector2(grid_position.x * tile_size, grid_position.y * tile_size)
 	brush.marker_type = marker_type
 	brush.content_id = content_id
 	brush.marker_id = marker_id

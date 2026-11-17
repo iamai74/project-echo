@@ -268,6 +268,8 @@ The directory is derived from the authored room scene's file basename.
 
 The runtime room is packed as a `PackedScene` and saved as a project asset.
 
+> Output locations and Git-tracking rules: see [room-data.md#artifact-ownership](room-data.md#artifact-ownership).
+
 ---
 
 ## 9. BakeMarkersStep

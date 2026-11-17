@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 
 
 const TEMP_ROOT := "user://test_marker_connection_integration"
+const TestTempDir = preload("res://test/fixtures/test_temp_dir.gd")
 const ROOM_SCENE_PATH := "res://test/fixtures/test_room_scene.tscn"
 const ROOM_NAME := "test_room_scene"
 const ROOM_BOUNDS := Rect2i(0, 0, 8, 8)
@@ -13,29 +14,12 @@ const STANDARD_GEOMETRY_BOUNDS := Rect2i(0, 0, 8, 6)
 
 
 func before_test() -> void:
-	_remove_dir(TEMP_ROOT)
-	DirAccess.make_dir_recursive_absolute(TEMP_ROOT)
+	TestTempDir.remove(TEMP_ROOT)
+	TestTempDir.create(TEMP_ROOT)
 
 
 func after_test() -> void:
-	_remove_dir(TEMP_ROOT)
-
-
-func _remove_dir(path: String) -> void:
-	var dir := DirAccess.open(path)
-	if dir != null:
-		dir.list_dir_begin()
-		var entry := dir.get_next()
-		while entry != "":
-			if entry != "." and entry != "..":
-				var entry_path := path.path_join(entry)
-				if dir.current_is_dir():
-					_remove_dir(entry_path)
-				else:
-					DirAccess.remove_absolute(entry_path)
-			entry = dir.get_next()
-		dir.list_dir_end()
-	DirAccess.remove_absolute(path)
+	TestTempDir.remove(TEMP_ROOT)
 
 
 # ── Pipeline and room helpers ───────────────────────────────────────

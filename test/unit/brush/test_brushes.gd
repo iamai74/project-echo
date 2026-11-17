@@ -4,8 +4,6 @@
 ## label formatting and validation.
 extends GdUnitTestSuite
 
-const TILE_SIZE := 32
-
 # ── Brush types ──────────────────────────────────────────────────────
 
 
@@ -281,8 +279,9 @@ func test_brush_size_clamping(
 
 
 func test_get_grid_rect_converts_position_and_size() -> void:
+	var tile_size := World.settings.tile_size
 	var brush = auto_free(PlatformBrush.new())
-	brush.position = Vector2(64, 32)
+	brush.position = Vector2(tile_size * 2, tile_size)
 	brush.size = Vector2i(2, 3)
 
 	var rect = brush.get_grid_rect()
@@ -292,13 +291,14 @@ func test_get_grid_rect_converts_position_and_size() -> void:
 
 
 func test_get_pixel_rect_uses_tile_size() -> void:
+	var tile_size := World.settings.tile_size
 	var brush = auto_free(PlatformBrush.new())
 	brush.size = Vector2i(2, 3)
 
 	var rect = brush.get_pixel_rect()
 
-	assert_float(rect.size.x).is_equal(float(TILE_SIZE * 2))
-	assert_float(rect.size.y).is_equal(float(TILE_SIZE * 3))
+	assert_float(rect.size.x).is_equal(float(tile_size * 2))
+	assert_float(rect.size.y).is_equal(float(tile_size * 3))
 
 
 func test_get_grid_size_returns_size() -> void:
@@ -311,8 +311,9 @@ func test_get_grid_size_returns_size() -> void:
 
 
 func test_semantic_brush_grid_conversion_with_fractions() -> void:
+	var tile_size := World.settings.tile_size
 	var brush = auto_free(SemanticBrush.new())
-	brush.position = Vector2(32.7, 64.2)
+	brush.position = Vector2(tile_size + 0.7, tile_size * 2.0 + 0.2)
 	assert_vector(brush.get_grid_position()).is_equal(Vector2i(1, 2))
 
 
@@ -323,16 +324,18 @@ func test_semantic_brush_size_clamping_with_zero_or_negative() -> void:
 
 
 func test_semantic_brush_pixel_size_and_position() -> void:
+	var tile_size := World.settings.tile_size
 	var brush = auto_free(SemanticBrush.new())
-	brush.position = Vector2(32, 64)
+	brush.position = Vector2(tile_size, tile_size * 2)
 	brush.size = Vector2i(2, 3)
-	assert_vector(brush.get_pixel_position()).is_equal(Vector2(32, 64))
-	assert_vector(brush.get_pixel_size()).is_equal(Vector2(64, 96))
+	assert_vector(brush.get_pixel_position()).is_equal(Vector2(tile_size, tile_size * 2))
+	assert_vector(brush.get_pixel_size()).is_equal(Vector2(tile_size * 2, tile_size * 3))
 
 
 func test_semantic_brush_grid_position_with_negative_coordinates() -> void:
+	var tile_size := World.settings.tile_size
 	var brush = auto_free(SemanticBrush.new())
-	brush.position = Vector2(-32.5, 0)
+	brush.position = Vector2(-tile_size - 0.5, 0)
 	assert_vector(brush.get_grid_position()).is_equal(Vector2i(-1, 0))
 
 
@@ -343,8 +346,9 @@ func test_semantic_brush_grid_position_at_origin() -> void:
 
 
 func test_semantic_brush_grid_position_large_coordinates() -> void:
+	var tile_size := World.settings.tile_size
 	var brush = auto_free(SemanticBrush.new())
-	brush.position = Vector2(960, 640)
+	brush.position = Vector2(tile_size * 30, tile_size * 20)
 	assert_vector(brush.get_grid_position()).is_equal(Vector2i(30, 20))
 
 
@@ -387,10 +391,11 @@ func test_semantic_brush_outline_color_resolution() -> void:
 
 
 func test_semantic_brush_outline_color_valid_and_not_selected() -> void:
+	var tile_size := World.settings.tile_size
 	var brush = auto_free(SemanticBrush.new())
 	brush.enabled = true
 	brush.selected = false
-	brush.position = Vector2(32, 64)
+	brush.position = Vector2(tile_size, tile_size * 2)
 	assert_that(brush._resolve_outline_color()).is_equal(Color.WHITE)
 
 
@@ -450,40 +455,39 @@ func test_brush_label_formatting(
 # ── Parameterized: Validation ───────────────────────────────────────
 
 
-func test_is_valid_brush(
-	initial_position: Vector2,
-	expected_valid: bool,
-	_test_parameters := [
-		[Vector2(64, 96), true],
-		[Vector2(10, 10), false],
-		[Vector2.ZERO, true],
-		[Vector2(TILE_SIZE, TILE_SIZE * 3), true],
-		[Vector2(TILE_SIZE * 0.5, TILE_SIZE), false],
-		[Vector2(-10, 32), false],
-		[Vector2(-TILE_SIZE, -TILE_SIZE * 2), true]
+func _grid_alignment_cases() -> Array[Dictionary]:
+	var tile_size := World.settings.tile_size
+	return [
+		{"position": Vector2(tile_size * 2, tile_size * 3), "aligned": true},
+		{"position": Vector2(tile_size * 2 + 1, tile_size * 3), "aligned": false},
+		{"position": Vector2.ZERO, "aligned": true},
+		{"position": Vector2(tile_size, tile_size * 3), "aligned": true},
+		{"position": Vector2(tile_size * 0.5, tile_size), "aligned": false},
+		{"position": Vector2(-tile_size * 2 + 1, tile_size), "aligned": false},
+		{"position": Vector2(-tile_size, -tile_size * 2), "aligned": true}
 	]
-) -> void:
-	var brush = auto_free(SemanticBrush.new())
-	brush.position = initial_position
-	assert_bool(brush.is_valid_brush()).is_equal(expected_valid)
+
+
+func test_is_valid_brush() -> void:
+	for case in _grid_alignment_cases():
+		var brush = auto_free(SemanticBrush.new())
+		brush.position = case["position"]
+		assert_bool(brush.is_valid_brush()) \
+			.override_failure_message(
+				"is_valid_brush(%s) expected %s" % [case["position"], case["aligned"]]
+			) \
+			.is_equal(case["aligned"])
 
 
 # ── is_grid_aligned (public, delegates into is_valid_brush) ──────────
 
 
-func test_is_grid_aligned(
-	initial_position: Vector2,
-	expected_aligned: bool,
-	_test_parameters := [
-		[Vector2(64, 96), true],
-		[Vector2(10, 10), false],
-		[Vector2.ZERO, true],
-		[Vector2(TILE_SIZE, TILE_SIZE * 3), true],
-		[Vector2(TILE_SIZE * 0.5, TILE_SIZE), false],
-		[Vector2(-10, 32), false],
-		[Vector2(-TILE_SIZE, -TILE_SIZE * 2), true]
-	]
-) -> void:
-	var brush = auto_free(SemanticBrush.new())
-	brush.position = initial_position
-	assert_bool(brush.is_grid_aligned()).is_equal(expected_aligned)
+func test_is_grid_aligned() -> void:
+	for case in _grid_alignment_cases():
+		var brush = auto_free(SemanticBrush.new())
+		brush.position = case["position"]
+		assert_bool(brush.is_grid_aligned()) \
+			.override_failure_message(
+				"is_grid_aligned(%s) expected %s" % [case["position"], case["aligned"]]
+			) \
+			.is_equal(case["aligned"])
