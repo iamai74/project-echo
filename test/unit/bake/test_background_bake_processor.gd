@@ -15,10 +15,11 @@ func test_empty_brush_array_adds_no_cells() -> void:
 
 
 func test_background_cells_are_created() -> void:
+	var tile_size := World.settings.tile_size
 	var processor = BackgroundBakeProcessor.new()
 	var room_data = SemanticRoomData.new()
 	var brush = auto_free(BackgroundBrush.new())
-	brush.position = Vector2(32, 32)
+	brush.position = Vector2(tile_size, tile_size)
 	brush.size = Vector2i(1, 1)
 
 	var brushes: Array[SemanticBrush] = [brush]

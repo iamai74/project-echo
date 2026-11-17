@@ -17,8 +17,9 @@ func test_empty_brush_array_adds_no_cells() -> void:
 func test_wall_cells_are_topology_cells() -> void:
 	var processor = WallBakeProcessor.new()
 	var room_data = SemanticRoomData.new()
+	var tile_size := World.settings.tile_size
 	var brush = auto_free(WallBrush.new())
-	brush.position = Vector2(32, 32)
+	brush.position = Vector2(tile_size, tile_size)
 	brush.size = Vector2i(1, 1)
 
 	var brushes: Array[SemanticBrush] = [brush]

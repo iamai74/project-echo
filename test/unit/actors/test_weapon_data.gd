@@ -73,6 +73,7 @@ func test_attack_definition_default_values() -> void:
 	assert_float(def.startup).is_equal(0.08)
 	assert_float(def.active).is_equal(0.10)
 	assert_float(def.recovery).is_equal(0.12)
+	# Expected default mirrors AttackDefinition.hitbox_size (scripts/core/actor/attack_definition.gd:19)
 	assert_vector(def.hitbox_size).is_equal(Vector2(32, 24))
 
 

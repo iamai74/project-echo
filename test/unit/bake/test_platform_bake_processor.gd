@@ -13,11 +13,12 @@ func test_empty_brush_array_adds_no_cells() -> void:
 	assert_array(room_data.spatial_layers.get_cells(SpatialLayer.SpatialType.PLATFORM)).has_size(0)
 
 func test_one_by_one_brush_creates_one_cell() -> void:
+	var tile_size := World.settings.tile_size
 	var processor = PlatformBakeProcessor.new()
 	var room_data = SemanticRoomData.new()
 	var brush = auto_free(PlatformBrush.new())
-	# Use a position that is aligned with tile size (32)
-	brush.position = Vector2(32, 32)
+	# Use a position that is aligned with the tile size.
+	brush.position = Vector2(tile_size, tile_size)
 	brush.size = Vector2i(1, 1)
 
 	var brushes: Array[SemanticBrush] = [brush]
@@ -25,7 +26,7 @@ func test_one_by_one_brush_creates_one_cell() -> void:
 
 	var cells = room_data.spatial_layers.get_cells(SpatialLayer.SpatialType.PLATFORM)
 	assert_int(cells.size()).is_equal(1)
-	# Position 32 with a tile size of 32 maps to cell (1, 1).
+	# Position tile_size with a tile size of tile_size maps to cell (1, 1).
 	assert_vector(cells[0].cell).is_equal(Vector2i(1, 1))
 
 func test_multi_cell_brush_creates_full_rectangle() -> void:
@@ -87,6 +88,7 @@ func test_overlapping_brushes_emit_issue() -> void:
 
 
 func test_non_overlapping_brushes_emit_no_issue() -> void:
+	var tile_size := World.settings.tile_size
 	var processor = PlatformBakeProcessor.new()
 	var room_data = SemanticRoomData.new()
 
@@ -98,7 +100,7 @@ func test_non_overlapping_brushes_emit_no_issue() -> void:
 	brush1.size = Vector2i(1, 1)
 
 	var brush2 = auto_free(PlatformBrush.new())
-	brush2.position = Vector2(32, 0)
+	brush2.position = Vector2(tile_size, 0)
 	brush2.size = Vector2i(1, 1)
 
 	var brushes: Array[SemanticBrush] = [brush1, brush2]

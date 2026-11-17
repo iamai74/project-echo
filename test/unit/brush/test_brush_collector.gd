@@ -37,17 +37,18 @@ func test_collects_marker_brush() -> void:
 
 
 func test_recursively_collects_nested_brushes() -> void:
+	var tile_size := World.settings.tile_size
 	var root = auto_free(Node2D.new())
 	var child = Node2D.new()
 	root.add_child(child)
-	
+
 	var brush1 = PlatformBrush.new()
 	brush1.position = Vector2(0, 0)
 	brush1.size = Vector2i(1, 1)
 	root.add_child(brush1)
-	
+
 	var brush2 = WallBrush.new()
-	brush2.position = Vector2(32, 0)
+	brush2.position = Vector2(tile_size, 0)
 	brush2.size = Vector2i(1, 1)
 	child.add_child(brush2)
 	
