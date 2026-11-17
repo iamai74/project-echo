@@ -89,7 +89,7 @@ func test_build_runtime_room_step_fatal_when_semantic_data_null() -> void:
 
 	step.run(context)
 
-	assert_bool(context.report.is_has_fatal()).is_true
+	assert_bool(context.report.is_has_fatal()).is_true()
 
 
 func test_build_runtime_room_step_builds_data_and_room() -> void:
@@ -99,7 +99,7 @@ func test_build_runtime_room_step_builds_data_and_room() -> void:
 
 	step.run(context)
 
-	assert_bool(context.report.is_has_fatal()).is_false
+	assert_bool(context.report.is_has_fatal()).is_false()
 	assert_object(context.runtime_room_data).is_not_null()
 	assert_object(context.runtime_room).is_not_null()
 	auto_free(context.runtime_room)
@@ -155,7 +155,7 @@ func test_apply_default_theme_step_fatal_when_room_null() -> void:
 
 	step.run(context)
 
-	assert_bool(context.report.is_has_fatal()).is_true
+	assert_bool(context.report.is_has_fatal()).is_true()
 
 
 func test_apply_default_theme_step_fatal_when_data_null() -> void:
@@ -166,7 +166,7 @@ func test_apply_default_theme_step_fatal_when_data_null() -> void:
 
 	step.run(context)
 
-	assert_bool(context.report.is_has_fatal()).is_true
+	assert_bool(context.report.is_has_fatal()).is_true()
 
 
 # ── Helpers ───────────────────────────────────────────────────────
