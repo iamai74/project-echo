@@ -68,3 +68,7 @@ GdUnitRunner.cfg
 __pycache__/
 *.pyc
 
+# Debug-generated artifacts (regenerable)
+debug/baked/
+debug/generated/
+

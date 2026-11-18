@@ -25,3 +25,13 @@ func test_context_fields_are_accessible() -> void:
 	var context = ThemeBuildContext.new()
 	context.theme_name = "test_theme"
 	assert_str(context.theme_name).is_equal("test_theme")
+
+
+func test_resources_path_can_be_overridden() -> void:
+	var context = ThemeBuildContext.new()
+	context.theme_name = "default"
+	context.resources_path = "user://theme_test/{theme}/"
+
+	# An override must redirect output away from the production path.
+	assert_str(context.get_resource_dir()).contains("user://theme_test/default")
+	assert_str(context.get_resource_dir()).not_contains("res://resources/themes/")

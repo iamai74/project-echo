@@ -208,7 +208,7 @@ Rules:
 - Debug bake sets `output_root` to the debug root before running the pipeline.
 - Debug rooms stay tracked until regeneration is proven. ART-4 found that four of the six tracked files have no source scene and the two reproducible files differ on every run, so they must not be ignored or removed.
 - Production bake never writes to `user://`.
-- `.gitignore` must not gain a blanket `scenes/rooms/` or `resources/themes/` entry.
+- `.gitignore` must not gain a blanket `scenes/rooms/` or `resources/themes/` entry. Built theme resources under `res://resources/themes/` are intentionally version-controlled; see [ADR-008](../adr/ADR-008-built-theme-resources-version-controlled.md).
 
 ---
 

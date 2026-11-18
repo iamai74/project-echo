@@ -1,7 +1,7 @@
 class_name ThemeBuildContext
 extends RefCounted
 
-const RESOURCES_PATH := "res://resources/themes/{theme}/"
+var resources_path: String = "res://resources/themes/{theme}/"
 
 var theme_name: String
 var theme_tile_assets: ThemeTileAssets
@@ -12,7 +12,7 @@ var tile_size: int = 0
 
 
 func get_resource_dir() -> String:
-	return RESOURCES_PATH.format({"theme": theme_name})
+	return resources_path.format({"theme": theme_name})
 
 
 func get_resource_prefix() -> String:

@@ -123,6 +123,15 @@ func test_post_process_step_updates_platform_topology() -> void:
 	# After post-processing, platform cells should still exist (topology updated)
 	assert_int(context.semantic_data.spatial_layers.get_cells(SpatialLayer.SpatialType.PLATFORM).size()).is_equal(1)
 
+	# PostProcessStep must actually update the platform cell's topology data.
+	var platform_layer = context.semantic_data.spatial_layers.get_cells(SpatialLayer.SpatialType.PLATFORM)
+	assert_object(platform_layer[0]).is_class(&"SemanticSpatialPlatformCell")
+	var platform_cell: SemanticSpatialPlatformCell = platform_layer[0] as SemanticSpatialPlatformCell
+	assert_object(platform_cell.topology).is_not_null()
+	# An isolated cell has no neighbors, so it bakes to a single cell with an all-corner shape.
+	assert_int(platform_cell.topology.shape).is_equal(CellShape.Value.SINGLE)
+	assert_int(platform_cell.topology.corner).is_equal(CellCorner.Value.ALL)
+
 
 func test_post_process_step_leaves_background_untouched() -> void:
 	var step = PostProcessStep.new()
@@ -141,9 +150,23 @@ func test_post_process_step_leaves_background_untouched() -> void:
 	var platform_cells: Array[SemanticSpatialCell] = [platform_cell]
 	context.semantic_data.spatial_layers.add_cells(SpatialLayer.SpatialType.PLATFORM, platform_cells)
 
+	# Capture the background cell's data before post-processing so we can prove
+	# PostProcessStep leaves the BACKGROUND layer exactly as it was.
+	var background_before = context.semantic_data.spatial_layers.get_cells(SpatialLayer.SpatialType.BACKGROUND)
+	var original_cell: SemanticSpatialCell = background_before[0]
+	var original_position: Vector2i = original_cell.cell
+
 	step.run(context)
 
-	assert_int(context.semantic_data.spatial_layers.get_cells(SpatialLayer.SpatialType.BACKGROUND).size()).is_equal(1)
+	# The background layer must keep exactly one cell, and it must be the very
+	# same cell at the same position. A plain SemanticSpatialCell has no
+	# topology, so identity plus position together prove the cell is untouched.
+	var background_after = context.semantic_data.spatial_layers.get_cells(SpatialLayer.SpatialType.BACKGROUND)
+	assert_int(background_after.size()).is_equal(1)
+	assert_bool(background_after[0] == original_cell).is_true()
+	assert_int(background_after[0].cell.x).is_equal(original_position.x)
+	assert_int(background_after[0].cell.y).is_equal(original_position.y)
+	assert_object(background_after[0]).is_class(&"SemanticSpatialCell")
 
 
 # ── ApplyDefaultThemeStep ─────────────────────────────────────────

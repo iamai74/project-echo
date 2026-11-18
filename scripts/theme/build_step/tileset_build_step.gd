@@ -28,7 +28,7 @@ func run(context: ThemeBuildContext) -> ThemeBuildContext:
 	var tileset := TileSet.new()
 	tileset.tile_size = Vector2i(resolved_tile_size, resolved_tile_size)
 
-	var theme_dir := "res://assets/sprites/themes/%s/" % context.theme_name
+	var theme_dir := ThemeAssetsLoadStep.THEMES_DIR + context.theme_name + "/"
 
 	var tile_map := _build_tile_map(context.theme_tile_assets, tileset, theme_dir, context.report)
 

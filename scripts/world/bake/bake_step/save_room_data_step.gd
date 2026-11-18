@@ -1,13 +1,18 @@
 class_name SaveRoomDataStep
 extends BakeStep
 
+# Rooms sub-path shared by every output root, so production and debug roots stay
+# in sync instead of duplicating the literal.
+const ROOMS_SUFFIX := "scenes/rooms"
+
 # Production output root. Named so tests and the debug bake reference the same
 # value instead of duplicating the literal.
-const DEFAULT_OUTPUT_ROOT := "res://scenes/rooms"
+const DEFAULT_OUTPUT_ROOT := "res://" + ROOMS_SUFFIX
 
 # Debug output root. Keeps debug artifacts out of the tracked production
-# directory so a debug bake cannot overwrite production room files.
-const DEBUG_OUTPUT_ROOT := "res://debug/scenes/rooms"
+# directory so a debug bake cannot overwrite production room files. Built from the
+# same shared suffix as DEFAULT_OUTPUT_ROOT so the two roots cannot diverge.
+const DEBUG_OUTPUT_ROOT := "res://debug/" + ROOMS_SUFFIX
 
 # Output root for baked room data. Tests override this to a "user://test_<suite>"
 # root; the debug bake overrides it to `DEBUG_OUTPUT_ROOT`.

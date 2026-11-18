@@ -5,6 +5,9 @@ extends BakeStep
 const DEFAULT_THEME_PATH := "res://resources/themes/default/default_theme.tres"
 
 
+var default_theme_path: String = DEFAULT_THEME_PATH
+
+
 func get_id() -> StringName:
 	return &"apply_default_theme"
 
@@ -28,11 +31,11 @@ func run(context: RoomBakeContext) -> RoomBakeContext:
 		))
 		return context
 
-	var theme := load(DEFAULT_THEME_PATH) as ThemeInfo
+	var theme := load(default_theme_path) as ThemeInfo
 	if theme == null:
 		context.report.add_error(_error(
 			BakeIssue.IssueType.BAKE_FAILED,
-			"Failed to load default theme from %s" % DEFAULT_THEME_PATH
+			"Failed to load default theme from %s" % default_theme_path
 		))
 		return context
 

@@ -1,7 +1,8 @@
 class_name ThemeAssetsLoadStep
 extends BuildStep
 
-const ASSETS_PATH := "res://assets/sprites/themes/{theme}/{theme}.json"
+const THEMES_DIR := "res://assets/sprites/themes/"
+const ASSETS_PATH := THEMES_DIR + "{theme}/{theme}.json"
 
 const KNOWN_TILE_TYPES := [
 	"single_all",
