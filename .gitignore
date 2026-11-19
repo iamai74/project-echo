@@ -59,6 +59,7 @@ crashlog.txt
 # Godot addons - ignore managed dependencies, keep gd-plug tracked
 addons/*
 !addons/gd-plug/
+!addons/echo_world_editor/
 
 # GdUnit4 test results
 reports/

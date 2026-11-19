@@ -127,7 +127,7 @@ Consistency with the existing project is more important than stylistic preferenc
 
 The repository currently contains major areas such as:
 
-- `addons/` — third-party Godot addons; managed by gd-plug except the tracked `gd-plug` bootstrap
+- `addons/` — third-party Godot addons; managed by gd-plug except the tracked `gd-plug` bootstrap and the project-owned `echo_world_editor` plugin
 - `assets/` — source and game assets
 - `autoload/` — registered autoload/singleton systems (`input_setup`, `World`)
 - `docs/` — architecture and technical documentation
@@ -152,7 +152,7 @@ Third-party Godot addons are managed with gd-plug.
 - Treat `.plugged/` and installed addon files as generated artifacts; do not edit them manually.
 - `addons/gd-plug/` is the tracked bootstrap. Other managed addon directories are ignored by git.
 - Enable editor plugins in `project.godot` under `[editor_plugins]`.
-- Project-specific code must never be placed in `addons/`.
+- Project-specific code must not be placed in `addons/`. The single exception is `addons/echo_world_editor/`, the project-owned Echo World Editor plugin; it is tracked source, not a gd-plug dependency. See `docs/world_editor/World Editor Architecture.md`.
 
 ---
 

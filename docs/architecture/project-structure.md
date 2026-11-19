@@ -64,7 +64,9 @@ Addons are managed with **gd-plug**:
 - dependency declarations live in `plug.gd`;
 - `addons/gd-plug/` is the tracked bootstrap;
 - other managed addon files are generated/installed artifacts;
-- project-specific code must never be placed in `addons/`.
+- project-specific code must not be placed in `addons/`, with one documented exception.
+
+`addons/echo_world_editor/` is that exception. It is the project-owned Echo World Editor plugin and is tracked source, not a gd-plug dependency. The World Editor milestone requires the plugin to live under `addons/` so it behaves like a normal Godot editor plugin. See [World Editor Architecture](../world_editor/World%20Editor%20Architecture.md).
 
 The currently enabled editor plugins are configured in `project.godot` under `[editor_plugins]`.
 
@@ -375,7 +377,7 @@ Examples:
 
 Avoid:
 
-- placing project code in `addons/`;
+- placing project code in `addons/` (the project-owned `addons/echo_world_editor/` plugin is the documented exception);
 - mixing authoring, baking and runtime responsibilities in one class;
 - storing gameplay state inside Resources;
 - editing generated theme or room artifacts directly;

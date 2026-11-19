@@ -1,3 +1,13 @@
+## 2026-11-19
+
+- Implemented and verified the Echo World Editor Plugin Foundation milestone:
+  - `addons/echo_world_editor/`: `EditorPlugin`, `EditorContext` scene classification and a display-only `EditorDock`
+  - dock tracks scene changes through the Godot 4.7 `scene_changed` and `scene_closed` signals; `remove_dock` is paired with `queue_free`
+  - tests under `test/unit/editor/` cover the three scene states and the dock status text
+- Documented `addons/echo_world_editor/` as the single project-owned exception to the "no project code in `addons/`" rule in `architecture/project-structure.md` and `AGENTS.md`.
+- Indexed the `world_editor/` documentation in `README.md` and recorded the implemented milestone in `world_editor/World Editor Architecture.md`.
+- Added the Plugin Foundation verification record, including the `edited_scene_changed` correction.
+
 ## 2026-11-14
 
 - Marker and connection point pipeline fully implemented:

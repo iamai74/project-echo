@@ -49,6 +49,12 @@ docs/
 │   ├── connection-points.md
 │   └── world-generation.md
 │
+├── world_editor/
+│   ├── World Editor Architecture.md
+│   ├── Editor Configuration.md
+│   ├── Editor Extensibility.md
+│   └── implementation/
+│
 └── adr/
     ├── ADR-001 — Layer-Based Project Structure.md
     ├── ADR-002 — Composition over Inheritance.md
@@ -91,6 +97,17 @@ docs/
 | [`themes.md`](world/themes.md) | Theme building and theme application |
 | [`connection-points.md`](world/connection-points.md) | Room connection data and implemented usage |
 | [`world-generation.md`](world/world-generation.md) | Planned procedural world assembly |
+
+---
+
+## World Editor Documents
+
+| Document | Description |
+|----------|-------------|
+| [`World Editor Architecture.md`](world_editor/World%20Editor%20Architecture.md) | Plugin, Core and runtime boundaries of the Echo World Editor |
+| [`Editor Configuration.md`](world_editor/Editor%20Configuration.md) | Editor settings and cell-size configuration |
+| [`Editor Extensibility.md`](world_editor/Editor%20Extensibility.md) | Brush descriptors and the planned registry |
+| [`implementation/`](world_editor/implementation/) | Milestone plans and verification records |
 
 ---
 
@@ -139,10 +156,12 @@ Implemented systems:
 - room bake pipeline with validation;
 - baked `RoomData` and runtime room scenes;
 - theme build and application pipeline;
+- Echo World Editor plugin foundation (editor dock with edited-scene classification);
 - GdUnit4 unit and integration test suites.
 
 In progress or partially implemented:
 
+- Echo World Editor: plugin foundation implemented; editor configuration, tool system, brush registry and bake UI planned;
 - marker authoring and baking (implemented); volume authoring (planned);
 - enemy detection-to-behaviour wiring for the base `Enemy`;
 - player dash and jump-attack states;

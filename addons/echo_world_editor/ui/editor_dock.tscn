@@ -1,0 +1,16 @@
+[gd_scene format=4]
+
+[ext_resource type="Script" uid="uid://b86b5bx1slodl" path="res://addons/echo_world_editor/ui/editor_dock.gd" id="1_dock"]
+
+[node name="EditorDock" type="EditorDock"]
+script = ExtResource("1_dock")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="title_label" type="Label" parent="VBoxContainer"]
+text = "Echo World Editor"
+
+[node name="status_label" type="Label" parent="VBoxContainer"]
+text = "No scene"

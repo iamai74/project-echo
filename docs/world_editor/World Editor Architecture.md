@@ -8,6 +8,19 @@ It provides editor-facing tools for creating, selecting, configuring, validating
 
 The plugin is an authoring interface, not a second runtime or bake framework.
 
+### Implementation status
+
+Milestone 1, **Plugin Foundation**, is implemented:
+
+- `addons/echo_world_editor/` registers an `EditorPlugin` with a display-only dock.
+- The dock classifies the edited scene as an authoring room, an unsupported scene, or no scene.
+- Scene changes are tracked through the `EditorPlugin.scene_changed` and `scene_closed` signals.
+- The dock is registered with `add_dock()` and freed by the plugin on disable.
+
+The dock builds on Godot's `EditorDock` class, which is marked experimental in Godot 4.7 and may change in future engine versions.
+
+See `docs/world_editor/implementation/01_Plugin_Foundation_Verification.md` for the verification record.
+
 ## 2. Goals
 
 - Provide a convenient 2D authoring workflow inside Godot Editor.
@@ -43,7 +56,7 @@ The system is divided into three conceptual layers.
 │  ├── Editor context                        │
 │  └── Editor configuration                  │
 └─────────────────────┬──────────────────────┘
-                      │ uses
+					  │ uses
 ┌─────────────────────▼──────────────────────┐
 │           World Authoring Core             │
 │                                            │
@@ -53,7 +66,7 @@ The system is divided into three conceptual layers.
 │  Validators                                │
 │  Bake Pipeline                             │
 └─────────────────────┬──────────────────────┘
-                      │ produces
+					  │ produces
 ┌─────────────────────▼──────────────────────┐
 │              Runtime artifacts             │
 │                                            │
@@ -143,11 +156,11 @@ EchoWorldEditorPlugin
 │   ├── BrushTool
 │   └── TransformTool
 └── BrushRegistry
-    ├── PlatformBrush descriptor
-    ├── WallBrush descriptor
-    ├── BackgroundBrush descriptor
-    ├── Marker brush descriptors
-    └── Connection point descriptor
+	├── PlatformBrush descriptor
+	├── WallBrush descriptor
+	├── BackgroundBrush descriptor
+	├── Marker brush descriptors
+	└── Connection point descriptor
 ```
 
 Do not implement all of these classes in the Foundation milestone. Introduce abstractions only when a concrete step needs them.
